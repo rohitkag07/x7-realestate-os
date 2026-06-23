@@ -276,7 +276,7 @@ async function recordWhatsAppMessage({
   const sb = supabase();
   if (!sb || !builderId || !phone) return;
 
-  await sb.from('whatsapp_messages').upsert({
+  const payload = {
     builder_id: builderId,
     lead_id: leadId || null,
     resident_id: residentId || null,
@@ -291,10 +291,23 @@ async function recordWhatsAppMessage({
     error,
     agent,
     template_params: projectId ? [{ project_id: projectId }] : [],
-  }, {
-    onConflict: 'wa_message_id',
-    ignoreDuplicates: false,
-  });
+  };
+
+  const { error: insertError } = await sb.from('whatsapp_messages').insert(payload);
+  if (!insertError) return;
+
+  if (waMessageId && insertError.code === '23505') {
+    const { error: updateError } = await sb
+      .from('whatsapp_messages')
+      .update(payload)
+      .eq('wa_message_id', waMessageId);
+
+    if (!updateError) return;
+    logEvent('wa_message_update_failed', { waMessageId, error: updateError.message });
+    return;
+  }
+
+  logEvent('wa_message_insert_failed', { waMessageId, error: insertError.message });
 }
 
 async function resolveBuilderContext({ resident, lead }) {

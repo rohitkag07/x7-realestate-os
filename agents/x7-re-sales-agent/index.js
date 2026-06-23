@@ -1028,7 +1028,7 @@ async function recordWhatsAppMessage({
 }) {
   if (!supabase || !builderId || !phone) return;
 
-  await supabase.from('whatsapp_messages').upsert({
+  const payload = {
     builder_id: builderId,
     lead_id: leadId || null,
     direction,
@@ -1042,10 +1042,23 @@ async function recordWhatsAppMessage({
     error,
     agent,
     template_params: projectId ? [{ project_id: projectId }] : [],
-  }, {
-    onConflict: 'wa_message_id',
-    ignoreDuplicates: false,
-  });
+  };
+
+  const { error: insertError } = await supabase.from('whatsapp_messages').insert(payload);
+  if (!insertError) return;
+
+  if (waMessageId && insertError.code === '23505') {
+    const { error: updateError } = await supabase
+      .from('whatsapp_messages')
+      .update(payload)
+      .eq('wa_message_id', waMessageId);
+
+    if (!updateError) return;
+    console.error('[wa_message_update_failed]', waMessageId, updateError.message);
+    return;
+  }
+
+  console.error('[wa_message_insert_failed]', waMessageId, insertError.message);
 }
 
 async function updateMessageStatus(status) {

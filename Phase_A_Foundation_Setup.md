@@ -20,7 +20,7 @@ Turn the current local demo stack into a real, env-backed app foundation by:
 - The stable local dashboard runtime is currently the no-space workspace copy:
   - `/Users/rohit/Documents/Claude/Projects/X7-Real-estate-local`
 
-## Current Verified Status (23 June 2026)
+## Current Verified Status (24 June 2026)
 
 This is the current hard-proof status, not a future plan.
 
@@ -54,13 +54,22 @@ This is the current hard-proof status, not a future plan.
   - dashboard `GET /api/ops/readiness`: ready
   - landing project route loads from live Supabase
   - summoner, sales, tool-gateway, content, ads, ghost-closer, colony, finance: all reachable
+- Verified WhatsApp proof:
+  - Meta test number is active
+  - verified recipient `+91 78691 61842` received:
+    - template `hello_world`
+    - custom tool-gateway outbound text
+    - bilingual sales-agent outbound reply
+  - inbound webhook logic was proven locally with signed payload simulation into Summoner
+  - `whatsapp_messages` and `agent_runs` both recorded the inbound flow correctly after duplicate-write handling was fixed
 - Verified rollout work:
   - git repository initialized
   - GitHub repo pushed:
     - `https://github.com/rohitkag07/x7-realestate-os`
-  - public Summoner webhook tunnel works and returns Meta challenge correctly
+  - Vercel production project exists:
+    - `x7-realestate-os`
+    - `https://x7-realestate-os.vercel.app`
 - Current readiness still blocked only where real external credentials are missing:
-  - WhatsApp Cloud API
   - Meta Ads
   - Razorpay
   - OpenAI
@@ -150,7 +159,7 @@ Phase A is successful when all of this is true:
 
 ## Phase A Result
 
-Phase A foundation is now effectively complete for the local stack baseline.
+Phase A foundation is now effectively complete for the live baseline.
 
 What is done:
 
@@ -162,12 +171,13 @@ What is done:
 - dashboard readiness JSON now reflects real runtime state
 - local agent mesh is healthy
 - GitHub remote is established for rollout continuity
-- public webhook verification path is proven on a temporary tunnel
+- WhatsApp outbound has been proven with the real Meta test number
+- local inbound WhatsApp routing has been proven through Summoner
+- Vercel production project for this repo exists and is linked to GitHub main
 
 What is not part of Phase A:
 
 - real Meta credentials
-- real WhatsApp Business credentials
 - real Razorpay keys and webhook secret
 - real OpenAI key
 - real Remotion/Higgsfield media execution config
@@ -176,18 +186,20 @@ What is not part of Phase A:
 
 These are no longer build or architecture blockers. They are external-state blockers.
 
-- current WhatsApp access token is invalid
-  - Graph API returns:
-    - `The session is invalid because the user logged out.`
-- Vercel CLI on this machine is not authenticated
-- existing Vercel `x7-dashboard` project is wired to a different repo, not this repo
+- public production webhook path still needs one last live inbound message proof against the active Vercel deployment after the latest webhook route commit is deployed
+- Meta Ads credentials are still missing
+- Razorpay credentials are still missing
+- OpenAI and media credentials are still missing
 
 ## Immediate Next Actions
 
-1. Regenerate the WhatsApp temporary access token in Meta and replace the expired one locally.
-2. Import `https://github.com/rohitkag07/x7-realestate-os` into a fresh Vercel project, or reconnect the existing dashboard project to this repo.
-3. Set the public webhook URL to the active Summoner public ingress and verify it in Meta.
-4. Send one inbound WhatsApp test message and confirm lead creation or routing in Supabase.
+1. Deploy the latest webhook route to `x7-realestate-os`.
+2. Set Meta webhook URL to `https://x7-realestate-os.vercel.app/api/webhooks/whatsapp`.
+3. Verify the challenge using `WHATSAPP_VERIFY_TOKEN`.
+4. Send one real inbound WhatsApp message and confirm:
+   - inbound row in `whatsapp_messages`
+   - run row in `agent_runs`
+   - reply received on WhatsApp
 
 ## Automation Added
 

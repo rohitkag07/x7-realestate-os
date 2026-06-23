@@ -10,6 +10,9 @@
 - Phase 6 Summoner orchestration
 - local mesh scripts
 - central WhatsApp ingress on Summoner
+- real Meta test-number outbound proof
+- signed inbound WhatsApp simulation proof into Summoner with Supabase logging
+- Vercel production project for `x7-realestate-os`
 - photography-style documentation pack for real-estate repo
 - env contract and deployment checklist docs
 - live ops readiness layer in dashboard settings
@@ -19,8 +22,8 @@
 
 - live external integrations
 - production scheduler
-- production env completeness
-- some runtime proofs with real vendor credentials
+- Meta webhook public inbound proof on the active Vercel deployment
+- production env completeness beyond WhatsApp
 
 ### Missing
 
@@ -42,6 +45,6 @@ This repo now has:
 Before more feature build:
 
 1. use the new ops/readiness surface to fill env gaps
-2. verify one live Supabase-backed path end-to-end
-3. prove Summoner-first webhook ingress on deployed infra
+2. push the latest webhook route commit so `x7-realestate-os.vercel.app` exposes `/api/webhooks/whatsapp`
+3. verify one public inbound WhatsApp round-trip against production
 4. prove one finance path with real or test provider events
