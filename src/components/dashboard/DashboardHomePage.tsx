@@ -1,3 +1,5 @@
+'use client';
+
 import { Users, Calendar, IndianRupee, ImageIcon, Activity, ArrowUpRight, CircleDot } from 'lucide-react';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { KPICard } from '@/components/shared/KPICard';

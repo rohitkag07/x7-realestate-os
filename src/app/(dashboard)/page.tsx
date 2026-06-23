@@ -1,3 +1,5 @@
+'use client';
+
 import { DashboardHomePage } from '@/components/dashboard/DashboardHomePage';
 
 export const metadata = { title: 'Dashboard' };
