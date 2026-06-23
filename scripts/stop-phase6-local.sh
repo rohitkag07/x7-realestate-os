@@ -18,3 +18,10 @@ for pid_file in "$PID_DIR"/*.pid; do
   fi
   rm -f "$pid_file"
 done
+
+for port in 8080 8081 8082 8083 8085 8086 8087 8088; do
+  for pid in $(lsof -ti tcp:"$port" 2>/dev/null || true); do
+    kill "$pid" 2>/dev/null || true
+    echo "stopped pid $pid on port $port"
+  done
+done

@@ -25,11 +25,22 @@ start_agent() {
     if [[ ! -d node_modules ]]; then
       npm install --omit=dev >/dev/null
     fi
-    nohup "$NODE_BIN" --env-file=.env index.js >"$log_file" 2>&1 &
-    echo $! >"$pid_file"
-  )
 
-  echo "started $name"
+    : >"$log_file"
+    nohup "$NODE_BIN" --env-file=.env index.js < /dev/null >"$log_file" 2>&1 &
+    local pid=$!
+    disown "$pid" 2>/dev/null || true
+    echo "$pid" >"$pid_file"
+    sleep 1
+
+    if kill -0 "$pid" 2>/dev/null; then
+      echo "started $name on pid $pid"
+    else
+      echo "failed to keep $name running; recent log:"
+      tail -n 40 "$log_file" || true
+      return 1
+    fi
+  )
 }
 
 start_agent "sales-agent" "agents/x7-re-sales-agent"
