@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  distDir: '.next-dev',
+  distDir: process.env.VERCEL ? '.next' : '.next-dev',
   reactStrictMode: true,
   experimental: {
     typedRoutes: false,
