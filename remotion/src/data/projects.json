@@ -1,0 +1,14 @@
+{
+  "krishna-greens": {
+    "projectName": "Krishna Greens", "location": "Super Corridor, Indore", "city": "Indore",
+    "builderName": "Shree Krishna Developers", "brandPrimary": "#0F172A", "brandAccent": "#F59E0B",
+    "reraNumber": "P-MP-IND-2026-00123", "startingPrice": 18, "totalPlots": 120, "availablePlots": 87,
+    "amenities": ["Wide 40ft Roads", "Garden", "24x7 Security", "Club House"], "whatsappNumber": "+91 98765 43210",
+    "landmarks": [
+      { "name": "Indore Airport", "type": "airport", "distanceKm": 12 },
+      { "name": "IT Park", "type": "office", "distanceKm": 3 },
+      { "name": "DPS School", "type": "school", "distanceKm": 2.5 },
+      { "name": "Apollo Hospital", "type": "hospital", "distanceKm": 4 }
+    ]
+  }
+}

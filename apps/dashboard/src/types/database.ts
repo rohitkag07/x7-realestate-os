@@ -1,0 +1,547 @@
+/**
+ * Hand-written TypeScript types matching supabase/migrations/001_initial_schema.sql.
+ * Keep in sync if columns are added/removed — long-term these can be
+ * regenerated with `supabase gen types typescript`.
+ */
+
+// ---------------------------------------------------------------------
+// Enum unions (mirror CHECK constraints)
+// ---------------------------------------------------------------------
+export type BuilderPlan      = 'starter' | 'growth' | 'premium' | 'enterprise';
+export type BuilderStatus    = 'active'  | 'paused' | 'cancelled' | 'trial';
+export type ProjectType      = 'plots' | 'villas' | 'apartments' | 'commercial' | 'mixed';
+export type ProjectStatus    = 'pre_launch' | 'active' | 'last_units' | 'sold_out' | 'paused';
+export type PlotStatus       = 'available' | 'token' | 'booked' | 'registered' | 'sold' | 'blocked';
+export type PlotFacing       =
+  | 'North' | 'South' | 'East' | 'West'
+  | 'North-East' | 'North-West' | 'South-East' | 'South-West'
+  | 'Corner' | 'Park-Facing' | 'Road-Facing';
+
+export type LeadSource       =
+  | 'meta_ad' | 'google_ad' | 'website' | 'whatsapp'
+  | 'referral' | 'walk_in' | 'ghost_closer' | 'telegram' | 'manual';
+
+export type LeadStage        =
+  | 'new' | 'qualified' | 'visit_scheduled' | 'visited'
+  | 'negotiation' | 'booked' | 'lost';
+
+export type LeadTemperature  = 'hot' | 'warm' | 'cold';
+
+export type SiteVisitStatus  =
+  | 'scheduled' | 'confirmed' | 'completed' | 'no_show' | 'cancelled' | 'rescheduled';
+
+export type BookingStatus    =
+  | 'token_paid' | 'agreement' | 'registered' | 'completed' | 'cancelled' | 'refunded';
+
+export type PaymentMode      = 'upi' | 'neft' | 'imps' | 'rtgs' | 'cash' | 'cheque' | 'card';
+
+export type ContentType      = 'post' | 'reel' | 'story' | 'video' | 'ad_creative' | 'carousel' | 'long_form_video';
+export type ContentPlatform  = 'instagram' | 'facebook' | 'youtube' | 'google_ads' | 'linkedin' | 'twitter' | 'whatsapp_status';
+export type ContentPillar    =
+  | 'location_advantage' | 'construction_update' | 'educational'
+  | 'social_proof' | 'lifestyle' | 'investment_logic'
+  | 'engagement' | 'festival' | 'ad';
+export type ContentStatus    =
+  | 'draft' | 'generating' | 'review' | 'approved' | 'scheduled'
+  | 'published' | 'failed' | 'archived';
+
+export type CampaignPlatform = 'meta' | 'google' | 'youtube' | 'linkedin';
+export type CampaignType     =
+  | 'awareness' | 'consideration' | 'conversion'
+  | 'retargeting' | 'lead_gen' | 'click_to_whatsapp';
+export type CampaignStatus   = 'draft' | 'active' | 'paused' | 'completed' | 'archived';
+
+export type ResidentStatus   = 'owner' | 'tenant' | 'vacant' | 'co_owner';
+export type InvoiceStatus    = 'pending' | 'paid' | 'overdue' | 'waived' | 'cancelled';
+
+export type ComplaintCategory =
+  | 'plumbing' | 'electrical' | 'civil' | 'road' | 'water' | 'security'
+  | 'cleanliness' | 'street_light' | 'sewage' | 'garbage' | 'lift'
+  | 'internet' | 'common_area' | 'other';
+export type ComplaintPriority = 'low' | 'medium' | 'high' | 'critical';
+export type ComplaintStatus   = 'open' | 'in_progress' | 'resolved' | 'closed' | 'reopened';
+
+export type VisitorType       = 'guest' | 'delivery' | 'service' | 'frequent' | 'contractor' | 'other';
+export type VisitorApproval   = 'pending' | 'approved' | 'denied' | 'expired';
+export type VisitorApprovalMethod = 'whatsapp' | 'dashboard' | 'phone_call' | 'pre_approved';
+
+// ---------------------------------------------------------------------
+// Row types
+// ---------------------------------------------------------------------
+export interface Builder {
+  id: string;
+  name: string;
+  company_name: string;
+  phone: string;
+  email: string | null;
+  city: string;
+  whatsapp_number: string | null;
+  logo_url: string | null;
+  brand_colors: Record<string, string>;
+  plan: BuilderPlan;
+  status: BuilderStatus;
+  trial_ends_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Project {
+  id: string;
+  builder_id: string;
+  name: string;
+  slug: string;
+  location: string;
+  city: string;
+  latitude: number | null;
+  longitude: number | null;
+  total_plots: number;
+  available_plots: number;
+  price_range_min: number | null;
+  price_range_max: number | null;
+  rera_number: string | null;
+  project_type: ProjectType;
+  amenities: string[];
+  nearby_landmarks: Array<{ name: string; type: string; distance_km: number }>;
+  brochure_url: string | null;
+  landing_page_url: string | null;
+  hero_image_url: string | null;
+  description: string | null;
+  status: ProjectStatus;
+  launched_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Plot {
+  id: string;
+  project_id: string;
+  plot_number: string;
+  block: string | null;
+  area_sqft: number;
+  dimension: string | null;
+  facing: PlotFacing | null;
+  price_per_sqft: number | null;
+  total_price: number | null;
+  status: PlotStatus;
+  booked_by: string | null;
+  token_amount: number | null;
+  token_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Lead {
+  id: string;
+  project_id: string | null;
+  builder_id: string;
+  name: string;
+  phone: string;
+  email: string | null;
+  source: LeadSource;
+  campaign_id: string | null;
+  ad_id: string | null;
+  budget_range: '15-25L' | '25-40L' | '40L+' | 'undisclosed' | null;
+  purpose: 'self_use' | 'investment' | 'undecided' | null;
+  timeline: 'immediate' | '3_months' | '6_months+' | null;
+  lead_score: number;
+  lead_stage: LeadStage;
+  temperature: LeadTemperature;
+  lost_reason: string | null;
+  assigned_to: string | null;
+  notes: string | null;
+  whatsapp_session: Record<string, unknown>;
+  last_contacted_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SiteVisit {
+  id: string;
+  lead_id: string;
+  project_id: string;
+  scheduled_date: string;   // YYYY-MM-DD
+  scheduled_time: string;
+  status: SiteVisitStatus;
+  feedback: string | null;
+  interest_level: 'very_high' | 'high' | 'medium' | 'low' | null;
+  follow_up_action: string | null;
+  reminder_sent_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Booking {
+  id: string;
+  lead_id: string;
+  project_id: string;
+  plot_id: string | null;
+  token_amount: number;
+  total_amount: number | null;
+  payment_mode: PaymentMode | null;
+  payment_reference: string | null;
+  upi_payment_link: string | null;
+  booking_date: string;
+  status: BookingStatus;
+  agreement_url: string | null;
+  registry_url: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ContentCalendarEntry {
+  id: string;
+  project_id: string | null;
+  builder_id: string;
+  content_type: ContentType;
+  platform: ContentPlatform;
+  pillar: ContentPillar | null;
+  caption: string | null;
+  caption_hindi: string | null;
+  hashtags: string[];
+  media_url: string | null;
+  thumbnail_url: string | null;
+  media_type: 'image' | 'video' | 'carousel' | 'gif' | null;
+  scheduled_for: string | null;
+  published_at: string | null;
+  status: ContentStatus;
+  engagement: Record<string, number>;
+  virality_score: number | null;
+  generated_by: string | null;
+  generation_prompt: string | null;
+  remotion_composition: string | null;
+  higgsfield_job_id: string | null;
+  external_post_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdCampaign {
+  id: string;
+  project_id: string | null;
+  builder_id: string;
+  platform: CampaignPlatform;
+  campaign_name: string;
+  campaign_type: CampaignType;
+  objective: string | null;
+  budget_daily: number | null;
+  budget_total: number | null;
+  budget_spent: number;
+  impressions: number;
+  clicks: number;
+  leads_generated: number;
+  site_visits_attributed: number;
+  bookings_attributed: number;
+  cpl: number | null;
+  cpv: number | null;
+  ctr: number | null;
+  status: CampaignStatus;
+  meta_campaign_id: string | null;
+  meta_adset_id: string | null;
+  google_campaign_id: string | null;
+  audience: Record<string, unknown>;
+  start_date: string | null;
+  end_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Resident {
+  id: string;
+  project_id: string;
+  plot_id: string | null;
+  name: string;
+  phone: string;
+  email: string | null;
+  alt_phone: string | null;
+  family_members: Array<{ name: string; relation: string; phone?: string }>;
+  vehicles: Array<{ type: string; number: string; color?: string }>;
+  move_in_date: string | null;
+  move_out_date: string | null;
+  status: ResidentStatus;
+  emergency_contact: Record<string, string>;
+  documents: Array<{ name: string; url: string }>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MaintenanceInvoice {
+  id: string;
+  project_id: string;
+  resident_id: string;
+  plot_id: string | null;
+  month: string;     // YYYY-MM
+  amount: number;
+  due_date: string;
+  paid_date: string | null;
+  payment_mode: PaymentMode | null;
+  payment_reference: string | null;
+  upi_payment_link: string | null;
+  invoice_pdf_url: string | null;
+  receipt_pdf_url: string | null;
+  status: InvoiceStatus;
+  late_fee: number;
+  reminder_sent_at: string | null;
+  reminder_count: number;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Complaint {
+  id: string;
+  project_id: string;
+  resident_id: string;
+  category: ComplaintCategory;
+  description: string;
+  photo_url: string | null;
+  attachments: Array<{ name: string; url: string }>;
+  priority: ComplaintPriority;
+  status: ComplaintStatus;
+  assigned_to: string | null;
+  resolution_notes: string | null;
+  sla_breached: boolean;
+  resolved_at: string | null;
+  closed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Visitor {
+  id: string;
+  project_id: string;
+  resident_id: string | null;
+  visitor_name: string;
+  visitor_phone: string | null;
+  purpose: string | null;
+  vehicle_number: string | null;
+  visitor_type: VisitorType;
+  photo_url: string | null;
+  entry_time: string;
+  exit_time: string | null;
+  approval_status: VisitorApproval;
+  approved_by: string | null;
+  approval_method: VisitorApprovalMethod | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WhatsappMessage {
+  id: string;
+  builder_id: string;
+  lead_id: string | null;
+  resident_id: string | null;
+  direction: 'inbound' | 'outbound';
+  phone: string;
+  wa_message_id: string | null;
+  message_type: 'text' | 'image' | 'document' | 'video' | 'audio' | 'interactive' | 'template' | 'button_reply' | 'list_reply' | 'location';
+  body: string | null;
+  media_url: string | null;
+  template_name: string | null;
+  template_params: unknown[];
+  interactive_payload: Record<string, unknown>;
+  status: 'queued' | 'sent' | 'delivered' | 'read' | 'failed' | 'received';
+  error: string | null;
+  agent: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ColonySettings {
+  id: string;
+  project_id: string;
+  monthly_rate: number;
+  rate_per_sqft: number | null;
+  rate_overrides: Record<string, number>;
+  billing_day: number;
+  due_grace_days: number;
+  late_fee_amount: number;
+  late_fee_after_days: number;
+  upi_vpa: string | null;
+  upi_name: string | null;
+  bank_account_name: string | null;
+  bank_account_no: string | null;
+  bank_ifsc: string | null;
+  gst_number: string | null;
+  gst_rate: number;
+  pan_number: string | null;
+  invoice_prefix: string;
+  receipt_prefix: string;
+  next_invoice_seq: number;
+  next_receipt_seq: number;
+  reminder_day_1: number;
+  reminder_day_2: number;
+  reminder_day_3: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Notice {
+  id: string;
+  project_id: string;
+  builder_id: string;
+  title: string;
+  body: string;
+  body_hindi: string | null;
+  category: 'general' | 'maintenance' | 'emergency' | 'event' | 'poll' | 'payment' | 'warning';
+  target: 'all' | 'owners' | 'tenants' | 'block' | 'floor' | 'custom';
+  target_filter: Record<string, unknown>;
+  attachment_url: string | null;
+  scheduled_for: string | null;
+  sent_at: string | null;
+  recipient_count: number;
+  delivered_count: number;
+  read_count: number;
+  poll_options: Array<{ id: string; label: string; votes?: number }>;
+  poll_responses: Record<string, string>;
+  status: 'draft' | 'scheduled' | 'sending' | 'sent' | 'failed';
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Amenity {
+  id: string;
+  project_id: string;
+  name: string;
+  kind: 'clubhouse' | 'party_hall' | 'court' | 'pool' | 'gym' | 'guest_room' | 'parking' | 'other';
+  capacity: number | null;
+  hourly_rate: number;
+  daily_rate: number | null;
+  open_time: string;
+  close_time: string;
+  rules: string | null;
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AmenityBooking {
+  id: string;
+  amenity_id: string;
+  resident_id: string;
+  project_id: string;
+  booking_date: string;
+  start_time: string;
+  end_time: string;
+  guests: number;
+  fee: number;
+  paid: boolean;
+  upi_payment_link: string | null;
+  status: 'confirmed' | 'cancelled' | 'completed' | 'no_show';
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ComplaintUpdate {
+  id: string;
+  complaint_id: string;
+  update_type: 'comment' | 'assignment' | 'status_change' | 'reminder' | 'photo' | 'closed';
+  body: string | null;
+  from_role: string | null;
+  from_name: string | null;
+  attachment_url: string | null;
+  visible_to_resident: boolean;
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface ColonyDocument {
+  id: string;
+  project_id: string;
+  resident_id: string | null;
+  plot_id: string | null;
+  category: 'society_bylaws' | 'registration' | 'rera' | 'fire_noc' | 'lift_certificate' | 'agm_minutes' | 'sale_deed' | 'noc' | 'rent_agreement' | 'utility_bill' | 'other';
+  title: string;
+  file_url: string;
+  size_bytes: number | null;
+  uploaded_by: string | null;
+  visible_to_residents: boolean;
+  expires_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PaymentReceipt {
+  id: string;
+  invoice_id: string;
+  project_id: string;
+  resident_id: string;
+  receipt_number: string;
+  amount: number;
+  payment_mode: PaymentMode;
+  payment_reference: string | null;
+  pdf_url: string | null;
+  issued_at: string;
+  created_at: string;
+}
+
+export interface AgentRun {
+  id: string;
+  builder_id: string | null;
+  agent: string;
+  action: string;
+  lead_id: string | null;
+  project_id: string | null;
+  input: Record<string, unknown>;
+  output: Record<string, unknown>;
+  status: 'success' | 'partial' | 'failure';
+  duration_ms: number | null;
+  error: string | null;
+  cost_usd: number | null;
+  created_at: string;
+}
+
+export interface FollowUpQueue {
+  id: string;
+  builder_id: string;
+  lead_id: string;
+  step: string;
+  scheduled_for: string;
+  status: 'pending' | 'sent' | 'skipped' | 'cancelled' | 'failed';
+  payload: Record<string, unknown>;
+  sent_at: string | null;
+  error: string | null;
+  attempts: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// ---------------------------------------------------------------------
+// Database (shape expected by @supabase/supabase-js generics)
+// ---------------------------------------------------------------------
+export interface Database {
+  public: {
+    Tables: {
+      builders:              { Row: Builder;            Insert: Partial<Builder>;            Update: Partial<Builder> };
+      projects:              { Row: Project;            Insert: Partial<Project>;            Update: Partial<Project> };
+      plots:                 { Row: Plot;               Insert: Partial<Plot>;               Update: Partial<Plot> };
+      leads:                 { Row: Lead;               Insert: Partial<Lead>;               Update: Partial<Lead> };
+      site_visits:           { Row: SiteVisit;          Insert: Partial<SiteVisit>;          Update: Partial<SiteVisit> };
+      bookings:              { Row: Booking;            Insert: Partial<Booking>;            Update: Partial<Booking> };
+      content_calendar:      { Row: ContentCalendarEntry; Insert: Partial<ContentCalendarEntry>; Update: Partial<ContentCalendarEntry> };
+      ad_campaigns:          { Row: AdCampaign;         Insert: Partial<AdCampaign>;         Update: Partial<AdCampaign> };
+      residents:             { Row: Resident;           Insert: Partial<Resident>;           Update: Partial<Resident> };
+      maintenance_invoices:  { Row: MaintenanceInvoice; Insert: Partial<MaintenanceInvoice>; Update: Partial<MaintenanceInvoice> };
+      complaints:            { Row: Complaint;          Insert: Partial<Complaint>;          Update: Partial<Complaint> };
+      visitors:              { Row: Visitor;            Insert: Partial<Visitor>;            Update: Partial<Visitor> };
+      colony_settings:       { Row: ColonySettings;     Insert: Partial<ColonySettings>;     Update: Partial<ColonySettings> };
+      notices:               { Row: Notice;             Insert: Partial<Notice>;             Update: Partial<Notice> };
+      amenities:             { Row: Amenity;            Insert: Partial<Amenity>;            Update: Partial<Amenity> };
+      amenity_bookings:      { Row: AmenityBooking;     Insert: Partial<AmenityBooking>;     Update: Partial<AmenityBooking> };
+      colony_staff:          { Row: Record<string, unknown>; Insert: Record<string, unknown>; Update: Record<string, unknown> };
+      complaint_updates:     { Row: ComplaintUpdate;    Insert: Partial<ComplaintUpdate>;    Update: Partial<ComplaintUpdate> };
+      documents:             { Row: ColonyDocument;     Insert: Partial<ColonyDocument>;     Update: Partial<ColonyDocument> };
+      payment_receipts:      { Row: PaymentReceipt;     Insert: Partial<PaymentReceipt>;     Update: Partial<PaymentReceipt> };
+      whatsapp_messages:     { Row: WhatsappMessage;    Insert: Partial<WhatsappMessage>;    Update: Partial<WhatsappMessage> };
+      agent_runs:            { Row: AgentRun;           Insert: Partial<AgentRun>;           Update: Partial<AgentRun> };
+      follow_up_queue:       { Row: FollowUpQueue;      Insert: Partial<FollowUpQueue>;      Update: Partial<FollowUpQueue> };
+    };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
+    Enums: Record<string, never>;
+  };
+}

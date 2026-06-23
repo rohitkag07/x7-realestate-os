@@ -1,0 +1,8 @@
+[
+  { "id": "post-001", "composition": "PropertyWalkthrough-9x16", "pillar": "location_advantage", "props": {} },
+  { "id": "post-002", "composition": "PriceReveal-9x16", "pillar": "investment_logic", "props": {} },
+  { "id": "post-003", "composition": "LocationExplainer-9x16", "pillar": "location_advantage", "props": {} },
+  { "id": "post-004", "composition": "ConstructionUpdate-9x16", "pillar": "construction_update", "props": { "weekNumber": 12 } },
+  { "id": "post-005", "composition": "TestimonialReel-9x16", "pillar": "social_proof", "props": {} },
+  { "id": "post-006", "composition": "AdCreative-9x16", "pillar": "ad", "props": {} }
+]
