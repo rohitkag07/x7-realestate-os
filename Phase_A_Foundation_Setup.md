@@ -54,6 +54,11 @@ This is the current hard-proof status, not a future plan.
   - dashboard `GET /api/ops/readiness`: ready
   - landing project route loads from live Supabase
   - summoner, sales, tool-gateway, content, ads, ghost-closer, colony, finance: all reachable
+- Verified rollout work:
+  - git repository initialized
+  - GitHub repo pushed:
+    - `https://github.com/rohitkag07/x7-realestate-os`
+  - public Summoner webhook tunnel works and returns Meta challenge correctly
 - Current readiness still blocked only where real external credentials are missing:
   - WhatsApp Cloud API
   - Meta Ads
@@ -156,6 +161,8 @@ What is done:
 - Supabase live probes are passing
 - dashboard readiness JSON now reflects real runtime state
 - local agent mesh is healthy
+- GitHub remote is established for rollout continuity
+- public webhook verification path is proven on a temporary tunnel
 
 What is not part of Phase A:
 
@@ -164,6 +171,40 @@ What is not part of Phase A:
 - real Razorpay keys and webhook secret
 - real OpenAI key
 - real Remotion/Higgsfield media execution config
+
+## Current External Blockers
+
+These are no longer build or architecture blockers. They are external-state blockers.
+
+- current WhatsApp access token is invalid
+  - Graph API returns:
+    - `The session is invalid because the user logged out.`
+- Vercel CLI on this machine is not authenticated
+- existing Vercel `x7-dashboard` project is wired to a different repo, not this repo
+
+## Immediate Next Actions
+
+1. Regenerate the WhatsApp temporary access token in Meta and replace the expired one locally.
+2. Import `https://github.com/rohitkag07/x7-realestate-os` into a fresh Vercel project, or reconnect the existing dashboard project to this repo.
+3. Set the public webhook URL to the active Summoner public ingress and verify it in Meta.
+4. Send one inbound WhatsApp test message and confirm lead creation or routing in Supabase.
+
+## Automation Added
+
+Use this command from repo root any time you want a hard-proof rollout snapshot:
+
+```bash
+npm run phase-a:check
+```
+
+It checks:
+
+- git remote and local `.vercel` link
+- env presence across dashboard, landing, and agents
+- local `/health` surfaces
+- dashboard readiness endpoints
+- live WhatsApp Graph token validity
+- Summoner webhook verify-token challenge
 
 ## Manual Inputs Still Needed From You
 

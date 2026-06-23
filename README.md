@@ -61,6 +61,7 @@ Run the agent mesh:
 ```bash
 ./scripts/start-phase6-local.sh
 ./scripts/check-phase6-local.sh
+./scripts/check-rollout-readiness.sh
 ```
 
 Stop the local mesh:
@@ -75,3 +76,10 @@ Stop the local mesh:
 - Summoner is the preferred central routing layer.
 - Meta WhatsApp, Razorpay, and other paid integrations can stay in simulated/local mode until real credentials are available.
 - Before production launch, follow `.docs/ghost-ai/PRODUCTION_READINESS.md`.
+- Use `npm run phase-a:check` from repo root for one-shot rollout proof:
+  - git + Vercel link present
+  - env files populated
+  - local services reachable
+  - dashboard readiness endpoints reachable
+  - WhatsApp Graph token validity
+  - Summoner webhook verify-token challenge
