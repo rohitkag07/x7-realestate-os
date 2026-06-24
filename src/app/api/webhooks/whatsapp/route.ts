@@ -5,13 +5,17 @@ import { createServiceClient } from '@/lib/supabase/server';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN || '';
-const META_APP_SECRET = process.env.META_APP_SECRET || '';
-const GRAPH_VERSION = process.env.WHATSAPP_GRAPH_VERSION || 'v22.0';
-const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID || '';
-const ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN || '';
-const DEFAULT_BUILDER_ID = process.env.DEFAULT_BUILDER_ID || null;
-const DEFAULT_PROJECT_ID = process.env.DEFAULT_PROJECT_ID || null;
+function getEnv() {
+  return {
+    verifyToken: process.env.WHATSAPP_VERIFY_TOKEN || '',
+    metaAppSecret: process.env.META_APP_SECRET || '',
+    graphVersion: process.env.WHATSAPP_GRAPH_VERSION || 'v22.0',
+    phoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID || '',
+    accessToken: process.env.WHATSAPP_ACCESS_TOKEN || '',
+    defaultBuilderId: process.env.DEFAULT_BUILDER_ID || null,
+    defaultProjectId: process.env.DEFAULT_PROJECT_ID || null,
+  };
+}
 
 function normalizePhone(value: string | null | undefined) {
   const digits = String(value || '').replace(/\D/g, '');
@@ -51,10 +55,11 @@ function extractBody(message: any) {
 }
 
 function validateSignature(rawBody: string, signature: string | null) {
-  if (!META_APP_SECRET) return true;
+  const { metaAppSecret } = getEnv();
+  if (!metaAppSecret) return true;
   if (!signature?.startsWith('sha256=')) return false;
 
-  const expected = `sha256=${crypto.createHmac('sha256', META_APP_SECRET).update(rawBody, 'utf8').digest('hex')}`;
+  const expected = `sha256=${crypto.createHmac('sha256', metaAppSecret).update(rawBody, 'utf8').digest('hex')}`;
   try {
     return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
   } catch {
@@ -81,15 +86,16 @@ function buildResidentReply(name: string) {
 }
 
 async function sendWhatsAppText(to: string, body: string) {
-  if (!PHONE_NUMBER_ID || !ACCESS_TOKEN) {
+  const { phoneNumberId, accessToken, graphVersion } = getEnv();
+  if (!phoneNumberId || !accessToken) {
     return { ok: false, error: 'missing_whatsapp_env' };
   }
 
-  const response = await fetch(`https://graph.facebook.com/${GRAPH_VERSION}/${PHONE_NUMBER_ID}/messages`, {
+  const response = await fetch(`https://graph.facebook.com/${graphVersion}/${phoneNumberId}/messages`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${ACCESS_TOKEN}`,
+      Authorization: `Bearer ${accessToken}`,
     },
     body: JSON.stringify({
       messaging_product: 'whatsapp',
@@ -164,6 +170,7 @@ async function findLeadByPhone(supabase: ReturnType<typeof createServiceClient>,
 }
 
 async function resolveBuilderProject(supabase: ReturnType<typeof createServiceClient>, resident: any, lead: any) {
+  const { defaultBuilderId, defaultProjectId } = getEnv();
   if (resident?.project_id) {
     const { data } = await (supabase.from('projects') as any)
       .select('id, builder_id')
@@ -173,8 +180,8 @@ async function resolveBuilderProject(supabase: ReturnType<typeof createServiceCl
   }
 
   return {
-    builderId: lead?.builder_id || DEFAULT_BUILDER_ID,
-    projectId: resident?.project_id || lead?.project_id || DEFAULT_PROJECT_ID,
+    builderId: lead?.builder_id || defaultBuilderId,
+    projectId: resident?.project_id || lead?.project_id || defaultProjectId,
   };
 }
 
@@ -279,12 +286,13 @@ async function handleInboundMessage(supabase: ReturnType<typeof createServiceCli
 }
 
 export async function GET(request: Request) {
+  const { verifyToken } = getEnv();
   const { searchParams } = new URL(request.url);
   const mode = searchParams.get('hub.mode');
   const token = searchParams.get('hub.verify_token');
   const challenge = searchParams.get('hub.challenge');
 
-  if (mode === 'subscribe' && token === VERIFY_TOKEN) {
+  if (mode === 'subscribe' && token === verifyToken) {
     return new NextResponse(String(challenge ?? ''), { status: 200 });
   }
 
