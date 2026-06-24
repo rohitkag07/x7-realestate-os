@@ -24,6 +24,13 @@ Turn the current local demo stack into a real, env-backed app foundation by:
 
 This is the current hard-proof status, not a future plan.
 
+- Latest production checkpoint:
+  - Vercel production env now includes live Supabase and WhatsApp credentials.
+  - Production `GET /api/ping` returns `200`.
+  - Production `GET /api/webhooks/whatsapp` verify challenge returns `200`.
+  - Production signed inbound webhook writes to live `whatsapp_messages` and `agent_runs`.
+  - Remaining last-mile item is a fresh production deploy after WhatsApp token rotation so outbound reply can be rechecked on the live alias.
+
 - Supabase schema is deployed through Phase 6 orchestration tables.
 - Runtime seed data is present for:
   - `builders`
