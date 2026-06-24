@@ -1,4 +1,10 @@
-# X7 RealEstate OS
+# X7 RealEstate OS - Builder Sales + Colony Management Platform
+
+**Tech Stack:** Next.js, TypeScript, Supabase, React Query, Recharts, Express, Prisma, SQLite
+
+## Overview
+- Built a builder operating system for Tier 2 real-estate businesses covering leads, qualification, site visits, bookings, campaigns, colony management, reports, and settings.
+- Created an Express/Prisma agent service with multi-tenant organizations, projects, leads, conversations, messages, and site-visit booking models.
 
 X7 RealEstate OS is a full-stack AI operating system for Tier 2 Indian real estate builders. It combines sales CRM, WhatsApp qualification, booking workflows, content generation, campaign operations, colony management, and agent orchestration.
 
