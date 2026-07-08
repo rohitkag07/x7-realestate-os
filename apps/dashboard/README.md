@@ -1,7 +1,8 @@
-# X7 RealEstate OS — Builder Dashboard
+# X7 WhatsAI Assistant - Operator Dashboard
 
-Next.js 14 (App Router) + TypeScript + TailwindCSS + shadcn/ui dashboard for
-Tier 2 Indian real estate builders. The frontend slice of Project NEEV.
+Next.js 14 (App Router) + TypeScript + TailwindCSS + shadcn/ui dashboard.
+
+This dashboard is now the operator console for WhatsAI Assistant trials and vertical packs. The old builder-only workflows remain as the SiteVisit AI vertical pack while the product moves horizontal.
 
 ## Quickstart
 
@@ -11,40 +12,45 @@ npm install
 npm run dev                        # http://localhost:3000
 ```
 
-## Structure
+## Current Structure
 
-```
+```text
 src/
 ├── app/
-│   ├── (auth)/login          — Builder login
+│   ├── (auth)/login          - operator login
 │   ├── (dashboard)/
-│   │   ├── page.tsx          — KPI home
-│   │   ├── leads             — Lead pipeline (Kanban)
-│   │   ├── site-visits       — Site visit scheduler
-│   │   ├── bookings          — Confirmed bookings
-│   │   ├── content           — Content calendar
-│   │   ├── campaigns         — Meta / Google ad campaigns
-│   │   ├── colony            — Colony management (residents / complaints / visitors)
-│   │   ├── reports           — Analytics
-│   │   └── settings          — Builder profile, brand, integrations
-│   └── guard                 — Mobile-only guard interface
+│   │   ├── page.tsx          - KPI home
+│   │   ├── leads             - current lead pipeline
+│   │   ├── site-visits       - first vertical appointment flow
+│   │   ├── bookings          - conversion records
+│   │   ├── content           - deferred content calendar
+│   │   ├── campaigns         - deferred campaign operations
+│   │   ├── colony            - later society/resident vertical pack
+│   │   ├── reports           - analytics
+│   │   └── settings          - business profile, integrations, readiness
+│   └── guard                 - retained for society/visitor vertical behavior
 ├── components/
-│   ├── ui/                   — shadcn primitives
-│   ├── shared/               — Sidebar, KPI cards, charts
-│   ├── leads/                — LeadPipeline, LeadCard, LeadModal
-│   ├── content/              — ContentCalendar, ContentCard, MediaPreview
-│   └── colony/               — ResidentTable, ComplaintKanban, VisitorLog
+│   ├── ui/                   - shadcn primitives
+│   ├── shared/               - Sidebar, KPI cards, charts
+│   ├── leads/                - LeadPipeline, LeadCard, LeadModal
+│   ├── content/              - ContentCalendar, ContentCard, MediaPreview
+│   └── colony/               - ResidentTable, ComplaintKanban, VisitorLog
 ├── lib/
-│   ├── supabase/             — Browser + server Supabase clients
-│   ├── i18n.ts               — Hindi / English bilingual strings
-│   └── utils.ts              — cn() and friends
+│   ├── supabase/             - Browser + server Supabase clients
+│   ├── i18n.ts               - Hindi / English bilingual strings
+│   └── utils.ts              - cn() and friends
 └── types/
-    └── database.ts           — TS types matching supabase/migrations/001
+    └── database.ts           - TS types matching Supabase migrations
 ```
 
-## Build phase
+## Pivot UI Direction
 
-This commit corresponds to **Phase 1 — Foundation** of the blueprint:
-schema migrations, dashboard shell, and component scaffolding. Sales
-agent, content engine, ads engine, and colony agents live in the
-`agents/` directory and are wired in subsequent phases.
+New dashboard work should move from builder-only language to operator/business language:
+
+- builder -> business
+- project -> offering/location
+- site visit -> appointment/visit/demo
+- booking -> conversion
+- colony -> society/resident vertical pack
+
+Do not remove working real-estate pages yet. They are the first vertical pack and should be migrated gradually.

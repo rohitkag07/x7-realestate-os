@@ -16,7 +16,7 @@ export function FullFunnelDialog() {
   const [builderId, setBuilderId] = useState('11111111-1111-1111-1111-111111111111');
   function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!projectId || !builderId) return toast.error('Builder + Project ID required');
+    if (!projectId || !builderId) return toast.error('Business + offer ID required');
     start(async () => {
       try {
         const res = await fetch('/api/campaigns/full-funnel', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ builder_id: builderId, project_id: projectId }) });
@@ -38,8 +38,8 @@ export function FullFunnelDialog() {
             <DialogDescription>Creates Awareness + Consideration + Click-to-WhatsApp + Retargeting in Meta Ads, all paused.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            <div className="space-y-1.5"><Label htmlFor="b">Builder ID</Label><Input id="b" value={builderId} onChange={(e) => setBuilderId(e.target.value)} required /></div>
-            <div className="space-y-1.5"><Label htmlFor="p">Project ID</Label><Input id="p" value={projectId} onChange={(e) => setProjectId(e.target.value)} required /></div>
+            <div className="space-y-1.5"><Label htmlFor="b">Business ID</Label><Input id="b" value={builderId} onChange={(e) => setBuilderId(e.target.value)} required /></div>
+            <div className="space-y-1.5"><Label htmlFor="p">Offer ID</Label><Input id="p" value={projectId} onChange={(e) => setProjectId(e.target.value)} required /></div>
           </div>
           <DialogFooter><Button type="button" variant="ghost" onClick={() => setOpen(false)}>Cancel</Button><Button type="submit" disabled={pending}>{pending ? 'Provisioning…' : 'Provision'}</Button></DialogFooter>
         </form>

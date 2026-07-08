@@ -1,37 +1,60 @@
-# X7 RealEstate OS - Project Overview
+# X7 WhatsAI Assistant - Project Overview
 
-## What This Project Is
+## What This Project Is Now
 
-X7 RealEstate OS is a builder operating system for:
+X7 WhatsAI Assistant is a WhatsApp-first AI receptionist and lead conversion platform for Indian businesses.
 
-1. marketing
-2. sales
-3. post-sale colony management
-
-It is designed for Tier 2 Indian builders who currently run fragmented operations across WhatsApp chats, Excel sheets, ad agencies, and manual staff coordination.
+It is a pivot from X7 RealEstate OS. The existing real-estate product remains the first vertical pack, but the core product direction is now horizontal.
 
 ## Product Goal
 
-Replace scattered tools with one operator stack:
+Replace missed WhatsApp replies and manual follow-up with one assistant stack:
 
-- Sales Engine: leads, qualification, visits, bookings, follow-ups
-- Content Engine: calendar, media generation, scheduling
-- Marketing Engine: ad campaigns, outbound prospecting, retargeting
-- Colony Engine: residents, complaints, visitors, notices, amenities, billing
-- Agent Infrastructure: Summoner + specialist agents + tool gateway
+1. capture every inbound WhatsApp message
+2. answer basic business questions instantly
+3. qualify the lead using a vertical playbook
+4. book an appointment, site visit, demo, or callback
+5. hand off hot or confused leads to the owner
+6. send follow-up reminders
+7. summarize the day for the owner
+
+## First Customers
+
+Prioritize WhatsApp-heavy Indian SMBs:
+
+- real-estate builders and brokers
+- clinics and healthcare practices
+- coaching institutes
+- gyms and dietitians
+- local service businesses
 
 ## Current Reality
 
 The repo already contains:
 
 - a working dashboard shell
-- major Phase 2 sales flows
-- major Phase 5 colony flows
+- major real-estate sales flows
+- WhatsApp-oriented webhook and send paths
+- major colony/society flows that can become a later vertical pack
 - a Phase 6 local agent mesh with Summoner orchestration
+- Supabase-backed persistence paths
+- readiness and integration status surfaces
 
-The remaining work is mainly:
+The remaining pivot work is mainly:
 
-- live external credentials
-- production cron/scheduler wiring
-- deployment hardening
-- final real-world integration proof
+- create a generic business/profile/playbook layer
+- generalize lead, conversation, appointment, and handoff language
+- keep real estate as the first vertical playbook
+- prove one 7-day trial flow end-to-end
+- reduce dependency on fallback/demo behavior
+
+## Current Business Strategy
+
+Do not sell AI SaaS first. Sell a simple trial:
+
+> 7-day WhatsApp AI receptionist trial for missed lead recovery and appointment/site-visit booking.
+
+Target conversion:
+
+- intro trial: free or Rs 999
+- paid plan: Rs 2,999 to Rs 14,999 per month depending on volume and handoff needs

@@ -1,4 +1,4 @@
-# X7 RealEstate OS Deployment Checklist
+# X7 WhatsAI Assistant Deployment Checklist
 
 Use this file for production or near-production rollout verification.
 
@@ -9,20 +9,23 @@ Use this file for production or near-production rollout verification.
 - confirm one shared `AGENT_SECRET` for all backend services
 - confirm final public URLs for dashboard, Summoner, and specialist agents
 - confirm WhatsApp and Razorpay credentials are production-safe
+- confirm at least one `business` / `assistant_playbook` / trial context exists once the pivot schema is added
 
 ## 2. Supabase
 
 - verify `SUPABASE_URL` is correct in all backend services
 - verify `SUPABASE_SERVICE_ROLE_KEY` is set only where write access is needed
 - verify latest migrations, including orchestration tables, are applied
-- verify seed or baseline builder/project records exist for `DEFAULT_BUILDER_ID` and `DEFAULT_PROJECT_ID`
+- verify seed or baseline records exist for the current compatibility layer:
+  - `DEFAULT_BUILDER_ID` and `DEFAULT_PROJECT_ID` for real-estate vertical
+  - `DEFAULT_BUSINESS_ID` and `DEFAULT_ASSISTANT_PLAYBOOK_ID` once generic schema exists
 
 ## 3. Service Deploy Order
 
 Recommended order:
 
 1. `x7-re-tool-gateway`
-2. `x7-re-sales-agent`
+2. `x7-re-sales-agent` / assistant-agent compatibility service
 3. `x7-re-content-agent`
 4. `x7-re-ads-agent`
 5. `x7-re-ghost-closer`
@@ -69,7 +72,7 @@ Also verify dependency endpoints where available:
   - `POST /cron/run-all`
 - verify dashboard routes that depend on Summoner are using the correct base URL
 
-## 6. WhatsApp Proof
+## 6. WhatsAI Trial Proof
 
 Preferred public ingress:
 
@@ -81,31 +84,38 @@ Checklist:
 - verify Meta challenge returns the expected `hub.challenge`
 - verify `META_APP_SECRET` signature validation is enabled in production
 - send one inbound test message
-- confirm resident-path messages route to colony flows when resident context exists
-- confirm lead-path messages route to sales flows or create a lead using default builder/project context
-- confirm message status updates land in Supabase
+- confirm business context resolves from phone/channel/default trial config
+- confirm assistant playbook is selected
+- confirm message is persisted in generic conversation tables once built
+- confirm reply is sent over WhatsApp
+- confirm hot/confused lead creates owner handoff
+- confirm follow-up or daily summary is queued
 
-## 7. Colony and Finance Proof
+## 7. Real-Estate Vertical Proof
 
-- create or fetch a resident successfully
-- create a visitor or amenity/complaint action from the dashboard or agent path
-- generate one booking or invoice path that touches finance records
-- verify finance webhook signature handling with a Razorpay test event
+Use X7 SiteVisit AI as the first vertical pack.
+
+- inbound buyer inquiry enters WhatsApp
+- assistant asks budget/location/property/timeline questions
+- lead appears in dashboard
+- site visit or owner handoff is created
+- follow-up queue persists
+- owner receives summary or handoff
+
+## 8. Finance Proof
+
+- verify payment state path using Razorpay test event where available
+- verify webhook signature handling
 - verify receipt or payment state updates persist in Supabase
-
-## 8. Content and Ads Proof
-
-- run one content generation request
-- verify tool-gateway connectivity from content agent
-- run one publish or simulated publish path for Meta
-- verify ads agent can read/write expected campaign records
+- do not claim subscription success without verified payment or manual invoice state
 
 ## 9. Dashboard Proof
 
 - homepage loads without broken styling
-- dashboard navigation works across sales and colony surfaces
-- agent mesh health page reflects current service state
+- dashboard navigation works across lead/conversation surfaces
+- settings/readiness reflects current service state
 - at least one live data surface loads from Supabase instead of fallback/demo state
+- trial business can be inspected by owner/operator
 
 ## 10. Evidence To Capture
 
@@ -114,16 +124,19 @@ Keep a short evidence packet after rollout:
 - deployed URLs for each service
 - `/health` responses
 - WhatsApp webhook verification screenshot or curl output
-- one successful queue or cron execution result
-- one successful finance or colony write
+- one inbound message and outbound reply proof
+- one successful lead/conversation write
+- one handoff or follow-up queue proof
 - one dashboard screenshot using live data
 
 ## Launch Rule
 
-Do not call the system production-ready until:
+Do not call the pivot trial-ready until:
 
 1. live Supabase is connected
 2. Summoner-first ingress is proven
 3. WhatsApp webhook flow is proven
-4. Razorpay test webhook is proven
-5. at least one live dashboard surface reads real data
+4. business/playbook context resolves
+5. one vertical flow works end-to-end
+6. owner handoff or daily summary works
+7. at least one live dashboard surface reads real data

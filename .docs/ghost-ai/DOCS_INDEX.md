@@ -1,51 +1,54 @@
-# X7 RealEstate OS Docs Index
+# X7 WhatsAI Assistant Docs Index
 
 This repo has two documentation layers:
 
-1. reference docs
-2. working build docs
+1. pivot and working build docs
+2. long reference docs from the pre-pivot real-estate product
 
-Do not rewrite the long reference docs unless Rohit explicitly asks for a blueprint rewrite.
+## Start Here
+
+| File | Purpose |
+| --- | --- |
+| `X7_WhatsAI_Pivot_Strategy.md` | Master pivot decision, business model, reusable architecture, MVP scope, and migration plan. |
+| `README.md` | Current project entrypoint and positioning. |
+| `project_overview.md` | Short product overview for the new WhatsAI direction. |
+| `CURRENT_SYSTEM_MAP.md` | Current apps, agents, database direction, and what is actually implemented now. |
+| `NEXT_BUILD_PLAN.md` | The next highest-leverage build order for the pivot. |
+| `ENV_CONTRACT.md` | Runtime environment variable contract. |
+| `PRODUCTION_READINESS.md` | What is real, simulated, blocked, or still awaiting live proof. |
+| `DEPLOYMENT_CHECKLIST.md` | Step-by-step deploy and verification checklist. |
+| `progress_tracker.md` | Working build archive and status history. |
 
 ## Reference Docs
 
-| File | Purpose |
-| --- | --- |
-| `/Users/rohit/Documents/Claude/Projects/X7 Real estate/X7_RealEstate_Blueprint.md` | Master product vision, modules, flows, and long-form architecture. Use this when product intent or a phase definition is unclear. |
-| `/Users/rohit/Documents/Claude/Projects/X7 Real estate/X7_Evolution_Blueprint.md` | Shared X7 patterns, deployment ideas, and cross-project architecture thinking. |
-| `/Users/rohit/Documents/Claude/Projects/X7 Real estate/SSMA.md` | Colony and society-management detail that still informs Phase 5 behavior. |
-| `progress_tracker.md` | Root shorthand tracker for humans. Useful for quick orientation, not detailed implementation history. |
-
-## Working Build Docs
-
-Read these first when continuing the repo:
+These remain useful, but read them as pre-pivot context unless a section was explicitly updated with a pivot note.
 
 | File | Purpose |
 | --- | --- |
-| `CURRENT_SYSTEM_MAP.md` | Current apps, agents, database, routes, and what is actually implemented now. |
-| `LOCAL_RUNBOOK.md` | Local start commands, ports, verification, and smoke checks. |
-| `ENV_CONTRACT.md` | Exact environment variable contract by app and agent, derived from current code. |
-| `DEPLOYMENT_CHECKLIST.md` | Step-by-step deploy and verification checklist for dashboard, agents, webhooks, and payments. |
-| `NEXT_BUILD_PLAN.md` | The next highest-leverage build order. |
-| `PRODUCTION_READINESS.md` | What is real, simulated, blocked, or still awaiting live credentials. |
-| `progress_tracker.md` | Working build archive inside `.docs/ghost-ai`. Use for status and handoff history. |
+| `X7_RealEstate_Blueprint.md` | Original builder OS blueprint and first vertical pack reference. |
+| `X7_Evolution_Blueprint.md` | Shared X7 agent/platform history and cross-project architecture thinking. |
+| `SSMA.md` | Society/colony management detail for later resident vertical pack. |
+| `X7_Revenue_Engines.md` | Pre-pivot revenue engine thinking and automation assets. |
+| `X7_Superprojects_Portfolio.md` | Portfolio reference, not primary product direction. |
 
 ## Recommended Reading Order
 
-1. `DOCS_INDEX.md`
-2. `CURRENT_SYSTEM_MAP.md`
-3. `LOCAL_RUNBOOK.md`
-4. `ENV_CONTRACT.md`
-5. `NEXT_BUILD_PLAN.md`
-6. `PRODUCTION_READINESS.md`
-7. `DEPLOYMENT_CHECKLIST.md`
-8. `progress_tracker.md` only when old implementation history is needed
-9. `X7_RealEstate_Blueprint.md` only when repo state and blueprint intent diverge
+1. `X7_WhatsAI_Pivot_Strategy.md`
+2. `README.md`
+3. `project_overview.md`
+4. `.docs/ghost-ai/CURRENT_SYSTEM_MAP.md`
+5. `.docs/ghost-ai/NEXT_BUILD_PLAN.md`
+6. `.docs/ghost-ai/ENV_CONTRACT.md`
+7. `.docs/ghost-ai/PRODUCTION_READINESS.md`
+8. `.docs/ghost-ai/DEPLOYMENT_CHECKLIST.md`
+9. `.docs/ghost-ai/progress_tracker.md`
+10. `X7_RealEstate_Blueprint.md` only for real-estate vertical behavior
 
 ## Rule For Future Agents
 
-Do not dump long phase logs into every doc.
+Do not restart or rewrite the product from scratch.
 
+- Preserve existing real-estate flows while adding the generic WhatsAI layer.
 - Update `CURRENT_SYSTEM_MAP.md` only when the actual system shape changes.
 - Update `LOCAL_RUNBOOK.md` only when commands, ports, or smoke checks change.
 - Update `ENV_CONTRACT.md` when env variables change in code.

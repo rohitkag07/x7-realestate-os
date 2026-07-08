@@ -1,4 +1,4 @@
-# X7 RealEstate OS - Local Runbook
+# X7 WhatsAI Assistant - Local Runbook
 
 ## Install
 
@@ -39,7 +39,7 @@ Stop:
 
 ## Default Local Ports
 
-- sales `8080`
+- sales / assistant compatibility service `8080`
 - tool-gateway `8081`
 - summoner `8082`
 - content `8083`
@@ -67,10 +67,11 @@ curl -s http://localhost:3000/api/agent-mesh/health
 ## High-Value Local Smoke Tests
 
 1. open `http://localhost:3000`
-2. verify colony pages render with styling
+2. verify lead/conversation-ready dashboard surfaces render with styling
 3. verify `http://localhost:3000/api/agent-mesh/health`
 4. verify `http://localhost:8082/health`
 5. if testing webhook ingress, hit Summoner `GET /webhooks/whatsapp` with challenge params
+6. for pivot work, verify default business/playbook fallback before sending WhatsApp messages
 
 ## Notes
 
@@ -78,3 +79,4 @@ curl -s http://localhost:3000/api/agent-mesh/health
 - production-like behavior requires real env vars from `ENV_CONTRACT.md`
 - if UI looks stale, restart local dev servers and hard refresh
 - if a page renders unstyled, check the dashboard dev server first before assuming the page code is broken
+- do not remove current real-estate local paths while building the generic WhatsAI layer

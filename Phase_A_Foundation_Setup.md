@@ -1,4 +1,7 @@
 # Phase A Foundation Setup
+> [!IMPORTANT]
+> Pivot note (2026-07-08): Phase A remains useful as foundation history. New work should follow `X7_WhatsAI_Pivot_Strategy.md`: preserve the existing real-estate foundation and add the generic WhatsAI business/playbook layer beside it.
+
 
 This file is the single source of truth for Phase A foundation work on X7 RealEstate OS.
 

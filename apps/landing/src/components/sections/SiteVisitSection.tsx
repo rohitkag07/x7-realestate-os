@@ -23,8 +23,8 @@ export function SiteVisitSection({ project, builder }: { project: LandingProject
   return (
     <section id="booking" className="py-20 px-6 lg:px-12" style={{ background: primary }}>
       <div className="max-w-2xl mx-auto text-white">
-        <h2 className="text-3xl font-bold">Book a Site Visit</h2>
-        <p className="mt-2 text-white/80">Free transport · 30-minute walkthrough</p>
+        <h2 className="text-3xl font-bold">Request a WhatsApp Callback</h2>
+        <p className="mt-2 text-white/80">Quick qualification · Appointment slot · Owner handoff when needed</p>
         <form onSubmit={onSubmit} className="mt-8 space-y-3">
           <Inp ph="Your full name *" req v={state.name} on={(v) => setState({ ...state, name: v })} />
           <Inp ph="Phone (with +91) *" req v={state.phone} on={(v) => setState({ ...state, phone: v })} />
@@ -33,7 +33,7 @@ export function SiteVisitSection({ project, builder }: { project: LandingProject
           <textarea placeholder="Anything we should know?" rows={3} value={state.notes} onChange={(e) => setState({ ...state, notes: e.target.value })} className="w-full rounded-lg bg-white/10 border border-white/20 px-4 py-3 text-white placeholder:text-white/50" />
           {error && <p className="text-red-300 text-sm">{error}</p>}
           <button type="submit" disabled={status === 'sending'} className="w-full rounded-lg px-6 py-4 font-bold inline-flex items-center justify-center gap-2" style={{ background: accent, color: primary }}>
-            {status === 'sending' && <Loader2 className="h-5 w-5 animate-spin" />}{status === 'sending' ? 'Sending…' : 'Request Visit'}
+            {status === 'sending' && <Loader2 className="h-5 w-5 animate-spin" />}{status === 'sending' ? 'Sending…' : 'Request Callback'}
           </button>
         </form>
       </div>

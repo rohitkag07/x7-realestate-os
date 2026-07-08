@@ -1,4 +1,4 @@
-# X7 RealEstate OS - Agent Guide
+# X7 WhatsAI Assistant - Agent Guide
 
 ## Agent Contract Rules
 
@@ -10,7 +10,7 @@
 
 ## Current Local Ports
 
-- sales `8080`
+- sales / assistant compatibility service `8080`
 - tool-gateway `8081`
 - summoner `8082`
 - content `8083`
@@ -23,11 +23,13 @@
 
 Summoner is responsible for:
 
+- WhatsApp ingress
+- business context resolution
+- assistant playbook selection
 - intent routing
 - queue orchestration
 - cron fan-out
-- central WhatsApp ingress
 
-## Tool Gateway Rule
+## Pivot Rule
 
-If an agent needs external execution, prefer Tool Gateway rather than embedding direct vendor logic in multiple services.
+Do not expose agent names to SMB customers. Customer-facing language is WhatsApp receptionist, lead qualifier, follow-up assistant, appointment booking, and owner handoff.

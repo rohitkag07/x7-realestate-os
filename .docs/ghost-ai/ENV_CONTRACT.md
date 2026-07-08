@@ -1,6 +1,8 @@
-# X7 RealEstate OS Env Contract
+# X7 WhatsAI Assistant Env Contract
 
 This file is the source of truth for runtime environment variables expected by the current codebase.
+
+The repo still uses several `x7-re-*` service names and real-estate defaults. During the pivot, keep those env vars working for backward compatibility while adding generic business/playbook envs only when code requires them.
 
 ## Shared Rules
 
@@ -9,6 +11,20 @@ This file is the source of truth for runtime environment variables expected by t
 - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are client-safe dashboard values.
 - Local defaults are acceptable for development, but production must use explicit values.
 - Prefer Summoner as the public ingress for WhatsApp webhooks and agent fan-out.
+- New WhatsAI work should resolve business context before falling back to old `DEFAULT_BUILDER_ID` / `DEFAULT_PROJECT_ID` values.
+
+## Pivot Compatibility Values
+
+Use these for the generic WhatsAI layer when implemented:
+
+- `DEFAULT_BUSINESS_ID`
+- `DEFAULT_ASSISTANT_PLAYBOOK_ID`
+- `DEFAULT_VERTICAL` such as `real_estate`, `clinic`, `coaching`, `fitness`, `local_service`
+- `OWNER_HANDOFF_PHONE`
+- `TRIAL_MODE_ENABLED`
+- `DAILY_SUMMARY_TIMEZONE` default `Asia/Kolkata`
+
+These values do not replace existing real-estate env vars until code migration is complete.
 
 ## Dashboard
 
@@ -53,6 +69,11 @@ Optional external integrations exposed in dashboard workflows:
 - `OPENAI_API_KEY`
 - `DEFAULT_BUILDER_ID`
 - `DEFAULT_PROJECT_ID`
+- `DEFAULT_BUSINESS_ID`
+- `DEFAULT_ASSISTANT_PLAYBOOK_ID`
+- `DEFAULT_VERTICAL`
+- `OWNER_HANDOFF_PHONE`
+- `TRIAL_MODE_ENABLED`
 
 ## Summoner
 
@@ -69,6 +90,9 @@ Routing and default context:
 
 - `DEFAULT_BUILDER_ID`
 - `DEFAULT_PROJECT_ID`
+- `DEFAULT_BUSINESS_ID`
+- `DEFAULT_ASSISTANT_PLAYBOOK_ID`
+- `DEFAULT_VERTICAL`
 - `SALES_AGENT_URL`
 - `CONTENT_AGENT_URL`
 - `ADS_AGENT_URL`
@@ -84,9 +108,11 @@ WhatsApp ingress:
 - `WHATSAPP_GRAPH_VERSION`
 - `META_APP_SECRET`
 
-## Sales Agent
+## Sales / Assistant Agent
 
 File: `agents/x7-re-sales-agent/.env`
+
+This service remains named sales-agent for now, but it is the first candidate to become the generic assistant-agent.
 
 Required:
 
@@ -95,10 +121,14 @@ Required:
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
 
-Sales and WhatsApp:
+Sales, assistant, and WhatsApp:
 
 - `DEFAULT_BUILDER_ID`
 - `DEFAULT_PROJECT_ID`
+- `DEFAULT_BUSINESS_ID`
+- `DEFAULT_ASSISTANT_PLAYBOOK_ID`
+- `DEFAULT_VERTICAL`
+- `OWNER_HANDOFF_PHONE`
 - `WHATSAPP_PHONE_NUMBER_ID`
 - `WHATSAPP_ACCESS_TOKEN`
 - `WHATSAPP_VERIFY_TOKEN`
@@ -238,7 +268,7 @@ Payments:
 | Service | Port |
 | --- | --- |
 | Dashboard | `3000` |
-| Sales Agent | `8080` |
+| Sales / Assistant Agent | `8080` |
 | Tool Gateway | `8081` |
 | Summoner | `8082` |
 | Content Agent | `8083` |
@@ -255,3 +285,4 @@ Before any production rollout:
 2. ensure all agent URLs point to the correct deployed services
 3. verify `AGENT_SECRET` matches everywhere
 4. verify Supabase service credentials are present only in backend services
+5. verify the default business/playbook context before enabling a trial business

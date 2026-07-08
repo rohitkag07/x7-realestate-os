@@ -9,7 +9,7 @@ const reportCards = [
   { title: 'Monthly Sales Report',     description: 'Bookings, revenue, agent attribution',           icon: BarChart3 },
   { title: 'Marketing Performance',    description: 'CPL by source, content engagement, ad CTR',     icon: Activity  },
   { title: 'Colony Maintenance Report',description: 'Collections, outstanding dues, defaulters',     icon: FileText  },
-  { title: 'Builder GST Summary',      description: 'GST-ready summary for CA / filing',             icon: FileText  },
+  { title: 'Business GST Summary',     description: 'GST-ready summary for CA / filing',             icon: FileText  },
 ];
 
 export default function ReportsPage() {
@@ -33,7 +33,7 @@ export default function ReportsPage() {
         />
         <ReportMetricPanel
           title="Revenue Summary"
-          description="Builder-side collections and forward pipeline view."
+          description="Business-side collections and forward pipeline view."
           items={[
             { label: 'Booked Revenue', value: '₹18L', detail: '1 fresh booking recorded today' },
             { label: 'Pending Closures', value: '₹42L', detail: 'Warm pipeline under follow-up' },

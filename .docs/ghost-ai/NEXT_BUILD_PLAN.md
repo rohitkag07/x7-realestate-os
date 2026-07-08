@@ -1,41 +1,74 @@
-# X7 RealEstate OS - Next Build Plan
+# X7 WhatsAI Assistant - Next Build Plan
 
 ## Priority Order
 
-1. live integration hardening
-2. production verification proof
-3. production orchestration confidence
-4. residual product gaps
+1. generic WhatsAI core layer
+2. first trial-ready WhatsApp flow
+3. real-estate vertical parity as SiteVisit AI
+4. production verification proof
+5. secondary vertical playbooks
 
 ## Best Next Technical Moves
 
-### 1. Prove Live Supabase Wiring
+### 1. Add Generic Business and Playbook Layer
 
-- use dashboard Settings -> Ops and `/api/ops/readiness` as the first truth source
-- move the most important surfaces off fallback/demo mode
-- verify at least one real builder/project context end-to-end
-- confirm queue and write paths persist correctly
+- add tables for businesses, profiles, channels, playbooks, knowledge items, trials, conversations, appointments, handoffs, and summaries
+- map existing builder/project defaults to a real-estate business profile
+- keep current real-estate tables working
+- add migration notes so old flows are not broken
 
-### 2. Prove Summoner-First WhatsApp Ingress
+### 2. Generalize WhatsApp Ingress
 
-- verify public webhook challenge on the deployed Summoner
-- verify inbound WhatsApp routing into sales and colony contexts
-- verify message status updates persist
+- route inbound WhatsApp messages by phone/channel/business context
+- if no business match exists, use a configured trial/default business
+- persist inbound/outbound messages in generic conversation tables
+- keep current Summoner webhook verification and signature validation behavior
 
-### 3. Prove Finance Path With Razorpay Test Events
+### 3. Create Assistant Response Contract
 
-- validate webhook signature handling
-- confirm payment state updates and receipts or invoice-linked records
-- remove ambiguity around simulated versus live finance behavior
+- define response types: answer, ask_qualification, appointment_offer, handoff, fallback, stop
+- define required metadata: confidence, lead_stage, next_question, handoff_reason, follow_up_at
+- enforce vertical guardrails, especially healthcare no-diagnosis rules
 
-### 4. Production Scheduler Confidence
+### 4. Build Trial Console
 
-- prove at least one cron job execution through Summoner
-- confirm queue drain works against live data
-- decide whether additional worker isolation is needed before launch
+- business onboarding form
+- playbook setup form
+- FAQ/service/offering input
+- conversations and hot leads view
+- owner handoff settings
+- 7-day trial state
+- daily summary surface
 
-### 5. Residual Product Gaps
+### 5. Real Estate As First Vertical Pack
 
-- visitor export/report UI
-- final WhatsApp conversation hydration polish
-- final live credential proofs for media and ad providers
+- rename customer-facing language to X7 SiteVisit AI
+- use existing lead, visit, booking, and follow-up logic
+- prove one flow: inbound WhatsApp inquiry -> qualification -> site visit/handoff -> dashboard lead -> follow-up queue
+
+### 6. Production Proof
+
+- prove live Supabase write path
+- prove live Summoner-first WhatsApp ingress
+- prove at least one outbound WhatsApp reply
+- prove daily summary or follow-up queue execution
+- capture evidence packet
+
+### 7. Secondary Vertical Playbooks
+
+After real-estate parity:
+
+- clinic appointment playbook
+- coaching admission playbook
+- gym/dietitian intake playbook
+- local service callback playbook
+
+## What Not To Build Next
+
+- full colony management as primary product
+- full ad automation
+- full content factory
+- mobile app
+- marketplace
+- complex self-serve billing before 10 trials
+- large refactor that breaks existing real-estate flow

@@ -31,7 +31,7 @@ function entry(
     content_type, platform, pillar,
     caption,
     caption_hindi: null,
-    hashtags: [`${'Indore'}RealEstate`, 'ReraApproved', 'PlotsForSale'],
+    hashtags: ['IndoreBusiness', 'WhatsAppLeads', 'AppointmentReady'],
     media_url: null,
     thumbnail_url: null,
     media_type: isVideo ? 'video' : 'image',

@@ -16,17 +16,17 @@ export function Hero({ project, builder, heroImageUrl }: { project: LandingProje
       </nav>
       <div className="flex-1 flex items-center px-6 lg:px-12 pb-20">
         <div className="max-w-3xl">
-          {project.rera_number && <div className="inline-block mb-6 px-3 py-1 rounded-md bg-emerald-500/20 text-emerald-200 text-xs font-medium border border-emerald-500/30">RERA · {project.rera_number}</div>}
+          {project.rera_number && <div className="inline-block mb-6 px-3 py-1 rounded-md bg-emerald-500/20 text-emerald-200 text-xs font-medium border border-emerald-500/30">Verified offer · {project.rera_number}</div>}
           <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tight leading-tight">{project.name}</h1>
           <p className="mt-3 text-xl flex items-center gap-2 text-white/85"><MapPin className="h-5 w-5" /> {project.location}</p>
           {project.description && <p className="mt-6 text-lg text-white/80 max-w-2xl leading-relaxed">{project.description}</p>}
           <div className="mt-8 inline-block px-6 py-4 rounded-xl" style={{ background: accent, color: primary }}>
-            <div className="text-xs uppercase tracking-widest opacity-70 font-semibold">Plots starting from</div>
+            <div className="text-xs uppercase tracking-widest opacity-70 font-semibold">Starting from</div>
             <div className="text-4xl font-black mt-1">₹{project.price_range_min ?? '—'} Lakh</div>
           </div>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link href={`https://wa.me/${wa}`} className="inline-flex items-center gap-2 rounded-md px-6 py-3 font-semibold" style={{ background: accent, color: primary }}><MessageCircle className="h-5 w-5" /> Book Site Visit</Link>
-            <a href="#pricing" className="inline-flex items-center gap-2 rounded-md px-6 py-3 font-semibold bg-white/10 hover:bg-white/20 border border-white/20">See Pricing</a>
+            <Link href={`https://wa.me/${wa}`} className="inline-flex items-center gap-2 rounded-md px-6 py-3 font-semibold" style={{ background: accent, color: primary }}><MessageCircle className="h-5 w-5" /> Ask on WhatsApp</Link>
+            <a href="#pricing" className="inline-flex items-center gap-2 rounded-md px-6 py-3 font-semibold bg-white/10 hover:bg-white/20 border border-white/20">See Offer</a>
           </div>
         </div>
       </div>

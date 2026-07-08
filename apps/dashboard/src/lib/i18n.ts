@@ -11,8 +11,8 @@ export const strings = {
   // Sidebar / nav
   nav_dashboard:    { hi: 'डैशबोर्ड',           en: 'Dashboard' },
   nav_leads:        { hi: 'लीड्स',              en: 'Leads' },
-  nav_site_visits:  { hi: 'साइट विज़िट',         en: 'Site Visits' },
-  nav_bookings:     { hi: 'बुकिंग्स',            en: 'Bookings' },
+  nav_site_visits:  { hi: 'अपॉइंटमेंट्स',        en: 'Appointments' },
+  nav_bookings:     { hi: 'कन्वर्ज़न',            en: 'Conversions' },
   nav_content:      { hi: 'कंटेंट',              en: 'Content' },
   nav_campaigns:    { hi: 'कैम्पेन',             en: 'Campaigns' },
   nav_colony:       { hi: 'कॉलोनी',             en: 'Colony' },
@@ -21,8 +21,8 @@ export const strings = {
 
   // KPIs
   kpi_leads_today:     { hi: 'आज के लीड्स',         en: 'Leads Today' },
-  kpi_site_visits:     { hi: 'साइट विज़िट्स',       en: 'Site Visits' },
-  kpi_bookings:        { hi: 'बुकिंग्स',             en: 'Bookings' },
+  kpi_site_visits:     { hi: 'अपॉइंटमेंट्स',       en: 'Appointments' },
+  kpi_bookings:        { hi: 'हैंडऑफ',              en: 'Handoffs' },
   kpi_revenue_month:   { hi: 'इस महीने रेवेन्यू',     en: 'Revenue This Month' },
   kpi_content_today:   { hi: 'आज पोस्ट हुआ',        en: 'Content Posted Today' },
 

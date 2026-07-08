@@ -24,7 +24,7 @@ export function GenerateCalendarDialog() {
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!projectId || !builderId) return toast.error('Builder ID and Project ID required');
+    if (!projectId || !builderId) return toast.error('Business ID and offer ID required');
     start(async () => {
       try {
         const res = await fetch('/api/content/calendar/generate', {
@@ -60,11 +60,11 @@ export function GenerateCalendarDialog() {
           </DialogHeader>
           <div className="space-y-3">
             <div className="space-y-1.5">
-              <Label htmlFor="builder_id">Builder ID</Label>
+              <Label htmlFor="builder_id">Business ID</Label>
               <Input id="builder_id" value={builderId} onChange={(e) => setBuilderId(e.target.value)} required />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="project_id">Project ID</Label>
+              <Label htmlFor="project_id">Offer ID</Label>
               <Input id="project_id" value={projectId} onChange={(e) => setProjectId(e.target.value)} required />
             </div>
             <div className="space-y-1.5">

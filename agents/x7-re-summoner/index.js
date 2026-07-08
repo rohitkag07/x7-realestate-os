@@ -8,7 +8,18 @@ const AGENT_SECRET = process.env.AGENT_SECRET || '';
 const DEFAULT_BUILDER_ID = process.env.DEFAULT_BUILDER_ID || '';
 const DEFAULT_PROJECT_ID = process.env.DEFAULT_PROJECT_ID || '';
 const WHATSAPP_VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN || '';
+const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID || process.env.WHATSAPP_PHONE_ID || '';
+const WHATSAPP_ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN || process.env.WHATSAPP_TOKEN || '';
+const WHATSAPP_GRAPH_VERSION = process.env.WHATSAPP_GRAPH_VERSION || 'v22.0';
 const META_APP_SECRET = process.env.META_APP_SECRET || '';
+const SUPABASE_FETCH_TIMEOUT_MS = Number(process.env.SUPABASE_FETCH_TIMEOUT_MS || 8000);
+const WEBHOOK_HANDLER_TIMEOUT_MS = Number(process.env.WEBHOOK_HANDLER_TIMEOUT_MS || 10000);
+const TIMEOUT_FALLBACK_MESSAGE = 'Pandit ji abhi busy hain... kripya thodi der baad try karein. 🙏';
+// Default business ID for trial/fallback — same as DEFAULT_BUILDER_ID in the
+// mapping layer (builders.id == businesses.id after migration 009).
+const DEFAULT_BUSINESS_ID = process.env.DEFAULT_BUSINESS_ID || DEFAULT_BUILDER_ID || '';
+// Usage limits: messages_per_day for trial plan (overridden per plan from DB)
+const TRIAL_MESSAGES_PER_DAY = Number(process.env.TRIAL_MESSAGES_PER_DAY || 50);
 
 const AGENT_TARGETS = {
   sales: {
@@ -52,6 +63,14 @@ app.use(express.json({
 }));
 
 let _supabase = null;
+function fetchWithTimeout(input, init = {}) {
+  const timeoutSignal = AbortSignal.timeout(SUPABASE_FETCH_TIMEOUT_MS);
+  const signal = init.signal
+    ? AbortSignal.any([init.signal, timeoutSignal])
+    : timeoutSignal;
+  return fetch(input, { ...init, signal });
+}
+
 function supabase() {
   if (_supabase) return _supabase;
   const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -59,6 +78,7 @@ function supabase() {
   if (!url || !key) return null;
   _supabase = createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
+    global: { fetch: fetchWithTimeout },
   });
   return _supabase;
 }
@@ -156,6 +176,68 @@ function validateMetaSignature(req) {
   }
 }
 
+function withTimeout(promise, ms, label) {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => {
+      const error = new Error(`${label}_timeout`);
+      error.code = 'timeout';
+      reject(error);
+    }, ms);
+  });
+
+  return Promise.race([
+    promise.finally(() => clearTimeout(timer)),
+    timeout,
+  ]);
+}
+
+function extractFirstIncomingPhone(payload) {
+  for (const entry of payload?.entry || []) {
+    for (const change of entry?.changes || []) {
+      const message = change?.value?.messages?.[0];
+      if (message?.from) return normalizePhone(message.from);
+    }
+  }
+  return '';
+}
+
+async function sendWebhookTimeoutFallback(to) {
+  if (!to || !WHATSAPP_PHONE_NUMBER_ID || !WHATSAPP_ACCESS_TOKEN) {
+    return { ok: false, skipped: true, reason: 'missing_whatsapp_env' };
+  }
+
+  try {
+    const response = await fetch(
+      `https://graph.facebook.com/${WHATSAPP_GRAPH_VERSION}/${WHATSAPP_PHONE_NUMBER_ID}/messages`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${WHATSAPP_ACCESS_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messaging_product: 'whatsapp',
+          to: normalizeOutboundPhone(to),
+          type: 'text',
+          text: {
+            preview_url: false,
+            body: TIMEOUT_FALLBACK_MESSAGE,
+          },
+        }),
+        signal: AbortSignal.timeout(5000),
+      }
+    );
+
+    const payload = await response.json().catch(() => ({}));
+    return response.ok
+      ? { ok: true, message_id: payload?.messages?.[0]?.id ?? null }
+      : { ok: false, status: response.status, error: payload?.error?.message || 'whatsapp_fallback_failed' };
+  } catch (error) {
+    return { ok: false, error: error.message };
+  }
+}
+
 function normalizePhone(value) {
   const digits = String(value || '').replace(/\D/g, '');
   return digits ? `+${digits}` : '';
@@ -202,6 +284,174 @@ async function updateMessageStatus(status) {
     error: status?.errors?.[0]?.title ?? null,
   }).eq('wa_message_id', status.id);
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Generic business/channel resolution (Phase 2 — WhatsAI pivot)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Look up which business owns a given WhatsApp phone_number_id.
+ * Falls back to DEFAULT_BUSINESS_ID if no channel mapping is found.
+ */
+async function findBusinessByChannel(channelId) {
+  const sb = supabase();
+  if (!sb || !channelId) return DEFAULT_BUSINESS_ID || null;
+
+  const { data } = await sb
+    .from('business_channels')
+    .select('business_id, channel_phone')
+    .eq('channel_id', channelId)
+    .eq('is_active', true)
+    .maybeSingle();
+
+  return data?.business_id || DEFAULT_BUSINESS_ID || null;
+}
+
+/**
+ * Find or create a conversation_contact for this business+phone.
+ * Returns the contact row.
+ */
+async function upsertConversationContact(businessId, phone, name) {
+  const sb = supabase();
+  if (!sb || !businessId || !phone) return null;
+
+  const { data, error } = await sb
+    .from('conversation_contacts')
+    .upsert(
+      {
+        business_id: businessId,
+        phone,
+        name: name || null,
+        last_active_at: new Date().toISOString(),
+      },
+      { onConflict: 'business_id,phone', ignoreDuplicates: false }
+    )
+    .select('id, business_id, phone, name')
+    .single();
+
+  if (error) {
+    logEvent('upsert_contact_failed', { error: error.message, businessId, phone });
+    return null;
+  }
+  return data;
+}
+
+/**
+ * Find or create an active conversation_thread for this contact.
+ * We use the most recent active or bot_paused thread; create one if none exists.
+ */
+async function findOrCreateThread(businessId, contactId, playbookId = null) {
+  const sb = supabase();
+  if (!sb || !businessId || !contactId) return null;
+
+  const { data: existing } = await sb
+    .from('conversation_threads')
+    .select('id, status, lead_stage, temperature, playbook_id')
+    .eq('business_id', businessId)
+    .eq('contact_id', contactId)
+    .in('status', ['active', 'bot_paused'])
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (existing) return existing;
+
+  const { data: created, error } = await sb
+    .from('conversation_threads')
+    .insert({
+      business_id: businessId,
+      contact_id: contactId,
+      playbook_id: playbookId || null,
+      status: 'active',
+      lead_stage: 'new',
+      temperature: 'cold',
+    })
+    .select('id, status, lead_stage, temperature, playbook_id')
+    .single();
+
+  if (error) {
+    logEvent('create_thread_failed', { error: error.message, businessId, contactId });
+    return null;
+  }
+  return created;
+}
+
+/**
+ * Find the active assistant_playbook for this business.
+ */
+async function findActivePlaybook(businessId) {
+  const sb = supabase();
+  if (!sb || !businessId) return null;
+
+  const { data } = await sb
+    .from('assistant_playbooks')
+    .select('id, name, vertical')
+    .eq('business_id', businessId)
+    .eq('is_active', true)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  return data || null;
+}
+
+/**
+ * Persist the inbound message in conversation_messages (generic layer).
+ */
+async function recordGenericInboundMessage({ threadId, content, messageType, providerMsgId, mediaUrl = null, metadata = {} }) {
+  const sb = supabase();
+  if (!sb || !threadId) return;
+
+  const { error } = await sb.from('conversation_messages').insert({
+    thread_id: threadId,
+    direction: 'inbound',
+    role: 'user',
+    content: content || null,
+    media_url: mediaUrl,
+    message_type: messageType || 'text',
+    provider_msg_id: providerMsgId || null,
+    metadata,
+  });
+
+  if (error) {
+    logEvent('record_generic_message_failed', { error: error.message, threadId });
+  }
+}
+
+async function getQualificationAnswers(threadId) {
+  const sb = supabase();
+  if (!sb || !threadId) return {};
+
+  const { data, error } = await sb
+    .from('lead_qualification_answers')
+    .select('question_key, answer_value')
+    .eq('thread_id', threadId);
+
+  if (error || !data?.length) return {};
+  return Object.fromEntries(data.map((row) => [row.question_key, row.answer_value]));
+}
+
+async function getLastPlaybookQuestionKey(threadId) {
+  const sb = supabase();
+  if (!sb || !threadId) return null;
+
+  const { data, error } = await sb
+    .from('conversation_messages')
+    .select('metadata')
+    .eq('thread_id', threadId)
+    .eq('direction', 'outbound')
+    .eq('role', 'assistant')
+    .order('created_at', { ascending: false })
+    .limit(10);
+
+  if (error || !data?.length) return null;
+  const row = data.find((item) => typeof item?.metadata?.question_key === 'string');
+  return row?.metadata?.question_key || null;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Legacy real-estate helpers (kept intact for parity)
+// ─────────────────────────────────────────────────────────────────────────────
 
 async function findResidentByPhone(phone) {
   const sb = supabase();
@@ -580,7 +830,40 @@ function missingFields(entries) {
 async function handleInboundWhatsAppMessage(message, envelope) {
   const phone = normalizePhone(message?.from);
   const body = extractMessageBody(message);
+  const channelId = envelope?.metadata?.phone_number_id || null;
+
+  // ── Phase 2: Generic business context resolution ──────────────────────────
+  const businessId = await findBusinessByChannel(channelId);
+
+  let contact = null;
+  let thread = null;
+  let playbook = null;
+
+  if (businessId) {
+    // Ensure a contact record exists for this phone in the generic layer.
+    const contactName = message?.profile?.name || null;
+    contact = await upsertConversationContact(businessId, phone, contactName);
+
+    if (contact) {
+      playbook = await findActivePlaybook(businessId);
+      thread = await findOrCreateThread(businessId, contact.id, playbook?.id ?? null);
+    }
+  }
+  // ── End Phase 2 generic resolution ───────────────────────────────────────
+
+  // ── Phase 5: Usage limit gate ─────────────────────────────────────────────
+  if (businessId) {
+    const limited = await checkUsageLimit(businessId);
+    if (limited) {
+      logEvent('usage_limit_exceeded', { businessId, phone });
+      return { ok: true, skipped: true, reason: 'usage_limit_exceeded' };
+    }
+  }
+  // ── End Phase 5 gate ─────────────────────────────────────────────────────
+
+  // ── Legacy real-estate resolution (kept intact until generic routes prove parity) ──
   const resident = await findResidentByPhone(phone);
+
   let lead = resident ? null : await findLeadByPhone(phone);
 
   let { builderId, projectId } = await resolveBuilderContext({ resident, lead });
@@ -597,6 +880,7 @@ async function handleInboundWhatsAppMessage(message, envelope) {
   if (!builderId && lead?.builder_id) builderId = lead.builder_id;
   if (!projectId && lead?.project_id) projectId = lead.project_id;
 
+  // ── Dual-write: persist in both legacy and generic tables ─────────────────
   if (builderId) {
     await recordWhatsAppMessage({
       builderId,
@@ -614,9 +898,55 @@ async function handleInboundWhatsAppMessage(message, envelope) {
     });
   }
 
+  if (thread) {
+    await recordGenericInboundMessage({
+      threadId: thread.id,
+      content: body,
+      messageType: mapInboundMessageType(message.type),
+      providerMsgId: message.id,
+      metadata: {
+        interactive: message.interactive ?? undefined,
+        envelope_metadata: envelope?.metadata ?? undefined,
+      },
+    });
+  }
+  // ── End dual-write ───────────────────────────────────────────────────────
+
   if (!body && !message?.interactive?.button_reply?.title && !message?.interactive?.list_reply?.title) {
     return { ok: true, skipped: true, reason: 'empty_body' };
   }
+
+  // Generic context to append to all agent payloads for downstream awareness.
+  const genericCtx = businessId
+    ? { business_id: businessId, contact_id: contact?.id ?? null, thread_id: thread?.id ?? null, playbook_vertical: playbook?.vertical ?? null }
+    : {};
+
+  // ── Phase 4: non-real-estate verticals route through generic /playbook/qualify
+  if (genericCtx.playbook_vertical && genericCtx.playbook_vertical !== 'real_estate') {
+    const answers = thread ? await getQualificationAnswers(thread.id) : {};
+    const questionKey = thread ? await getLastPlaybookQuestionKey(thread.id) : null;
+    const result = await agentFetch('sales', '/playbook/qualify', {
+      vertical: genericCtx.playbook_vertical,
+      business_id: businessId,
+      thread_id: thread?.id ?? null,
+      contact_id: contact?.id ?? null,
+      phone,
+      message: body,
+      question_key: questionKey || undefined,
+      answers,
+      send_via_whatsapp: true,
+    });
+
+    await logRun({
+      builderId: businessId,
+      action: 'webhook-inbound-playbook',
+      input: { from: phone, body, vertical: genericCtx.playbook_vertical },
+      output: result,
+    });
+
+    return result;
+  }
+  // ── End Phase 4 routing
 
   if (resident) {
     const result = await agentFetch('colony', '/inbound', {
@@ -626,6 +956,7 @@ async function handleInboundWhatsAppMessage(message, envelope) {
       },
       resident,
       builder: builderId ? { id: builderId } : undefined,
+      ...genericCtx,
     });
 
     await logRun({
@@ -636,6 +967,7 @@ async function handleInboundWhatsAppMessage(message, envelope) {
         body,
         message_type: message.type,
         metadata: envelope?.metadata ?? null,
+        ...genericCtx,
       },
       output: result,
     });
@@ -655,6 +987,7 @@ async function handleInboundWhatsAppMessage(message, envelope) {
       name: lead?.name,
       phone,
     },
+    ...genericCtx,
   });
 
   await logRun({
@@ -665,6 +998,7 @@ async function handleInboundWhatsAppMessage(message, envelope) {
       body,
       message_type: message.type,
       metadata: envelope?.metadata ?? null,
+      ...genericCtx,
     },
     output: result,
   });
@@ -752,6 +1086,145 @@ const CRON_JOBS = [
     buildPayload: ({ month }) => (month ? { month } : {}),
   },
 ];
+// ─────────────────────────────────────────────────────────────────────────────
+// Phase 5: Revenue — native Summoner cron jobs (run inside the Summoner, no sub-agent needed)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Check all trialing subscriptions for expiry and mark them.
+ * Called by /cron/run-job with cron_key = 'trial.expire_check'
+ */
+async function runTrialExpireCheck() {
+  const sb = supabase();
+  if (!sb) return { ok: false, error: 'supabase_not_configured' };
+
+  const now = new Date().toISOString();
+
+  // Find all trialing subscriptions that have passed their trial_end
+  const { data: expired } = await sb
+    .from('business_subscriptions')
+    .select('id, business_id, trial_end, upgrade_prompted_at')
+    .eq('status', 'trialing')
+    .lt('trial_end', now);
+
+  if (!expired?.length) return { ok: true, expired: 0 };
+
+  const results = [];
+  for (const sub of expired) {
+    // Mark as expired
+    await sb.from('business_subscriptions')
+      .update({ status: 'expired', cancelled_at: now })
+      .eq('id', sub.id);
+
+    // Add a daily summary entry nudging the owner to upgrade
+    await sb.from('daily_owner_summaries').insert({
+      business_id: sub.business_id,
+      date: now.split('T')[0],
+      summary_text: '\u23F0 Aapka 7-day WhatsApp AI trial khatam ho gaya hai.\n\nUpgrade karke automatic lead replies, follow-up queue, aur daily hot-lead summary continue rakhein.\n\n⚡ Plans start at ₹2,999/month.\n\n\u23F0 Your 7-day WhatsApp AI trial has ended.\n\nUpgrade to continue automatic replies, follow-up, and daily summaries. Plans from ₹2,999/month.',
+      metrics: { trial_expired: 1, upgrade_cta: true },
+    });
+
+    logEvent('trial_expired', { business_id: sub.business_id, trial_end: sub.trial_end });
+    results.push({ business_id: sub.business_id, expired: true });
+  }
+
+  return { ok: true, expired: results.length, results };
+}
+
+/**
+ * Roll up daily message counts from conversation_messages into business_usage.
+ * Called by /cron/run-job with cron_key = 'usage.track_daily'
+ */
+async function runUsageTracking() {
+  const sb = supabase();
+  if (!sb) return { ok: false, error: 'supabase_not_configured' };
+
+  const today = new Date().toISOString().split('T')[0];
+
+  // Aggregate per business from conversation_threads -> conversation_messages for today
+  const { data: businesses } = await sb
+    .from('businesses')
+    .select('id')
+    .eq('status', 'active')
+    .limit(200);
+
+  if (!businesses?.length) return { ok: true, tracked: 0 };
+
+  const results = [];
+  for (const biz of businesses) {
+    const { count: msgIn } = await sb
+      .from('conversation_messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('direction', 'inbound')
+      .gte('created_at', `${today}T00:00:00Z`);
+
+    const { count: msgOut } = await sb
+      .from('conversation_messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('direction', 'outbound')
+      .gte('created_at', `${today}T00:00:00Z`);
+
+    const { count: handoffs } = await sb
+      .from('handoff_events')
+      .select('id', { count: 'exact', head: true })
+      .eq('business_id', biz.id)
+      .gte('created_at', `${today}T00:00:00Z`);
+
+    await sb.from('business_usage').upsert({
+      business_id: biz.id,
+      date: today,
+      messages_in:  msgIn  ?? 0,
+      messages_out: msgOut ?? 0,
+      handoffs:     handoffs ?? 0,
+    }, { onConflict: 'business_id,date' });
+
+    results.push({ business_id: biz.id });
+  }
+
+  return { ok: true, tracked: results.length };
+}
+
+// Register Phase 5 cron jobs into CRON_JOBS after the array is defined.
+// These run inside the Summoner directly (no sub-agent needed).
+const INTERNAL_CRON_JOBS = [
+  { key: 'trial.expire_check', run: runTrialExpireCheck },
+  { key: 'usage.track_daily',  run: runUsageTracking   },
+];
+
+/**
+ * Check if a business has exceeded their plan's daily message limit.
+ * Returns true if they are over-quota and should be blocked.
+ */
+async function checkUsageLimit(businessId) {
+  const sb = supabase();
+  if (!sb || !businessId) return false;
+
+  const today = new Date().toISOString().split('T')[0];
+
+  // Fetch today's usage
+  const { data: usage } = await sb
+    .from('business_usage')
+    .select('messages_in, messages_out')
+    .eq('business_id', businessId)
+    .eq('date', today)
+    .maybeSingle();
+
+  if (!usage) return false;
+  const totalToday = (usage.messages_in ?? 0) + (usage.messages_out ?? 0);
+
+  // Fetch plan limit
+  const { data: sub } = await sb
+    .from('business_subscriptions')
+    .select('status, subscription_plans(limits)')
+    .eq('business_id', businessId)
+    .maybeSingle();
+
+  // If expired, always block
+  if (sub?.status === 'expired') return true;
+
+  const limit = sub?.subscription_plans?.limits?.messages_per_day ?? TRIAL_MESSAGES_PER_DAY;
+  return totalToday >= limit;
+}
 
 async function logCronRun({ builderId = null, cronKey, targetAgent, input = {}, output = {}, status = 'success', durationMs = null, error = null }) {
   const sb = supabase();
@@ -846,8 +1319,28 @@ app.post('/webhooks/whatsapp', async (req, res) => {
     return res.status(401).json({ ok: false, error: 'Invalid Meta signature.' });
   }
 
-  await handleWhatsAppWebhook(req.body);
-  return res.status(200).json({ ok: true });
+  try {
+    await withTimeout(handleWhatsAppWebhook(req.body), WEBHOOK_HANDLER_TIMEOUT_MS, 'whatsapp_webhook');
+    return res.status(200).json({ ok: true });
+  } catch (error) {
+    if (error?.code === 'timeout') {
+      const to = extractFirstIncomingPhone(req.body);
+      const fallback = await sendWebhookTimeoutFallback(to);
+      logEvent('webhook_timeout_fallback', {
+        phone: to ? `***${to.slice(-4)}` : null,
+        fallback,
+      });
+      return res.status(200).json({
+        ok: true,
+        fallback_sent: fallback.ok === true,
+        fallback,
+        reason: 'handler_timeout',
+      });
+    }
+
+    logEvent('webhook_failed', { error: error.message });
+    return res.status(500).json({ ok: false, error: 'Webhook processing failed.' });
+  }
 });
 
 app.use(requireSecret);
@@ -1085,10 +1578,29 @@ app.post('/cron/run-job', async (req, res) => {
   }
 
   const cronKey = parsed.data.cron_key;
+
+  // Phase 5: check internal (Summoner-native) cron jobs first
+  const internalJob = INTERNAL_CRON_JOBS.find((j) => j.key === cronKey);
+  if (internalJob) {
+    if (parsed.data.dry_run) {
+      return res.json({ ok: true, dry_run: true, job: { key: cronKey, internal: true } });
+    }
+    const started = Date.now();
+    try {
+      const result = await internalJob.run();
+      await logCronRun({ cronKey, targetAgent: 'summoner-internal', input: {}, output: result, durationMs: Date.now() - started });
+      return res.json({ ok: true, job: cronKey, result });
+    } catch (err) {
+      await logCronRun({ cronKey, targetAgent: 'summoner-internal', input: {}, output: {}, status: 'failure', durationMs: Date.now() - started, error: err.message });
+      return res.status(502).json({ ok: false, job: cronKey, error: err.message });
+    }
+  }
+
   const job = CRON_JOBS.find((entry) => entry.key === cronKey);
   if (!job) {
     return res.status(404).json({ ok: false, error: 'unknown cron_key' });
   }
+
 
   const input = {
     limit: parsed.data.limit ?? 25,
@@ -1208,7 +1720,105 @@ app.post('/cron/run-all', async (req, res) => {
   });
 });
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Phase 5: Revenue endpoints
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * POST /trial/upgrade-prompt
+ * Records that an upgrade nudge was shown to a business and returns plan options.
+ */
+app.post('/trial/upgrade-prompt', async (req, res) => {
+  const { business_id } = req.body ?? {};
+  if (!business_id) {
+    return res.status(400).json({ ok: false, error: 'business_id is required' });
+  }
+
+  const sb = supabase();
+  if (sb) {
+    try {
+      await sb.from('business_subscriptions')
+        .update({ upgrade_prompted_at: new Date().toISOString() })
+        .eq('business_id', business_id);
+    } catch {
+      // non-fatal
+    }
+  }
+
+  return res.json({
+    ok: true,
+    business_id,
+    plans: [
+      {
+        key: 'basic',
+        name: 'Basic',
+        price_inr: 2999,
+        setup_fee_inr: 5000,
+        features: ['WhatsApp receptionist 24/7', '1 vertical playbook', 'Lead qualification', 'Follow-up queue', 'Daily summary'],
+        limits: { messages_per_day: 150, contacts: 500 },
+        cta: 'Start Basic — ₹2,999/mo',
+      },
+      {
+        key: 'growth',
+        name: 'Growth',
+        price_inr: 7999,
+        setup_fee_inr: 10000,
+        features: ['Everything in Basic', '2 vertical playbooks', 'Handoff SLA alerts', 'Appointment booking', 'CSV export'],
+        limits: { messages_per_day: 500, contacts: 2000 },
+        cta: 'Upgrade to Growth — ₹7,999/mo',
+        badge: 'Most Popular',
+      },
+      {
+        key: 'pro',
+        name: 'Pro',
+        price_inr: 14999,
+        setup_fee_inr: 25000,
+        features: ['Everything in Growth', '5 vertical playbooks', 'Custom playbook editor', 'White-label dashboard', 'Dedicated onboarding'],
+        limits: { messages_per_day: 2000, contacts: 10000 },
+        cta: 'Go Pro — ₹14,999/mo',
+      },
+    ],
+  });
+});
+
+/**
+ * GET /trial/status/:businessId
+ * Returns the current trial/subscription state for a business.
+ */
+app.get('/trial/status/:businessId', async (req, res) => {
+  const { businessId } = req.params;
+  const sb = supabase();
+  if (!sb) return res.status(503).json({ ok: false, error: 'supabase_not_configured' });
+
+  const { data: sub } = await sb
+    .from('business_subscriptions')
+    .select('*, subscription_plans(key, name, price_inr, limits, features)')
+    .eq('business_id', businessId)
+    .maybeSingle();
+
+  const { data: usage } = await sb
+    .from('business_usage')
+    .select('messages_in, messages_out, handoffs')
+    .eq('business_id', businessId)
+    .eq('date', new Date().toISOString().split('T')[0])
+    .maybeSingle();
+
+  const { data: checklist } = await sb
+    .from('business_setup_checklist')
+    .select('step_key, step_label, is_done')
+    .eq('business_id', businessId)
+    .order('created_at');
+
+  return res.json({
+    ok: true,
+    subscription: sub ?? null,
+    today_usage: usage ?? { messages_in: 0, messages_out: 0, handoffs: 0 },
+    setup_checklist: checklist ?? [],
+  });
+});
+
 app.use((error, _req, res, _next) => {
+
   logEvent('unhandled_error', { error: error?.message || 'unknown error' });
   res.status(500).json({ ok: false, error: error?.message || 'internal error' });
 });

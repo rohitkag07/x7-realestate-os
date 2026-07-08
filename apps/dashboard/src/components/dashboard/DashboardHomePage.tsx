@@ -10,21 +10,21 @@ export function DashboardHomePage() {
       <PageHeader
         title="Today's Snapshot"
         titleHi="आज का स्नैपशॉट"
-        description="Marketing engine, sales pipeline, and colony health — at a glance."
+        description="WhatsApp conversations, qualification, handoffs, and follow-ups — at a glance."
       />
 
       <section className="grid grid-cols-2 gap-3 mb-6 md:grid-cols-3 lg:grid-cols-5">
         <KPICard label="Leads Today" labelHi="आज के लीड्स" value={12} delta={20} icon={Users} accent="primary" />
-        <KPICard label="Site Visits" labelHi="साइट विज़िट्स" value={3} delta={50} icon={Calendar} accent="success" />
-        <KPICard label="Bookings" labelHi="बुकिंग्स" value={1} delta={0} icon={IndianRupee} accent="warning" />
-        <KPICard label="Revenue (Month)" labelHi="इस महीने रेवेन्यू" value="₹18L" delta={12} icon={IndianRupee} accent="success" />
-        <KPICard label="Content Posted" labelHi="आज पोस्ट हुआ" value={2} delta={-25} icon={ImageIcon} accent="primary" />
+        <KPICard label="Appointments" labelHi="अपॉइंटमेंट्स" value={3} delta={50} icon={Calendar} accent="success" />
+        <KPICard label="Handoffs" labelHi="हैंडऑफ" value={1} delta={0} icon={IndianRupee} accent="warning" />
+        <KPICard label="Trial Value" labelHi="ट्रायल वैल्यू" value="₹18L" delta={12} icon={IndianRupee} accent="success" />
+        <KPICard label="Follow-ups Sent" labelHi="फॉलो-अप" value={2} delta={-25} icon={ImageIcon} accent="primary" />
       </section>
 
       <section className="grid grid-cols-1 gap-4 mb-6 lg:grid-cols-2">
         <MetricPanel
           title="Lead Momentum"
-          description="This week's lead intake is strongest from Meta and referral loops."
+          description="This week's WhatsApp intake is strongest from Meta and referral loops."
           items={[
             { label: 'Meta Ads', value: '18 leads', detail: '+22% vs last week' },
             { label: 'WhatsApp', value: '11 leads', detail: 'Fastest response time' },
@@ -33,11 +33,11 @@ export function DashboardHomePage() {
         />
         <MetricPanel
           title="Revenue Pulse"
-          description="Collections are healthy and site visits are converting on schedule."
+          description="Handoffs and appointment-ready conversations are moving on schedule."
           items={[
-            { label: 'Token Revenue', value: '₹3.2L', detail: '1 booking confirmed today' },
-            { label: 'Visit Conversion', value: '33%', detail: '3 visits, 1 booking' },
-            { label: 'Pending Closures', value: '₹14.8L', detail: '6 warm leads in follow-up' },
+            { label: 'Handoff Value', value: '₹3.2L', detail: '1 owner handoff confirmed today' },
+            { label: 'Appointment Conversion', value: '33%', detail: '3 appointment-ready chats, 1 confirmed' },
+            { label: 'Pending Follow-ups', value: '₹14.8L', detail: '6 warm leads in follow-up' },
           ]}
         />
       </section>
@@ -64,11 +64,11 @@ export function DashboardHomePage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <AgentRow name="Sales Agent" status="active" detail="Replied to 7 WhatsApp leads · last 1 hr" />
-            <AgentRow name="Content Agent" status="active" detail="Rendered 2 reels via Remotion · last 24 hr" />
-            <AgentRow name="Ads Agent" status="active" detail="Reallocated ₹1,200 to best-performing creative" />
-            <AgentRow name="Colony Agent" status="idle" detail="No new complaints today" />
-            <AgentRow name="Finance Agent" status="idle" detail="June invoices scheduled for 1st" />
+            <AgentRow name="WhatsAI Assistant" status="active" detail="Replied to 7 WhatsApp leads · last 1 hr" />
+            <AgentRow name="Qualification Playbook" status="active" detail="Captured 4 answers · last 24 hr" />
+            <AgentRow name="Handoff Monitor" status="active" detail="Escalated 1 hot lead to owner" />
+            <AgentRow name="Follow-up Queue" status="idle" detail="No overdue replies today" />
+            <AgentRow name="Billing Watch" status="idle" detail="Trial usage within plan limit" />
           </CardContent>
         </Card>
       </section>

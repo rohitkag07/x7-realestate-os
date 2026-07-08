@@ -1,6 +1,6 @@
-# X7 RealEstate OS - Working Progress
+# X7 WhatsAI Assistant - Working Progress
 
-This root file is intentionally short. The working tracker lives at:
+This root file is intentionally short. The detailed working tracker lives at:
 
 ```text
 .docs/ghost-ai/progress_tracker.md
@@ -8,20 +8,30 @@ This root file is intentionally short. The working tracker lives at:
 
 Treat that file as the build archive and current working tracker.
 
+## Pivot Status
+
+Direction changed on 2026-07-08:
+
+- from builder-only X7 RealEstate OS
+- to horizontal WhatsApp AI assistant for Indian SMBs
+- with real estate preserved as first vertical pack: X7 SiteVisit AI
+
 ## Current Status
 
-X7 RealEstate OS currently has:
+The project currently has:
 
 - dashboard shell
-- major sales engine implementation
-- major colony engine implementation
+- major real-estate sales engine implementation
+- WhatsApp-oriented sales and webhook paths
+- major colony engine implementation for later society/resident verticals
 - agent mesh and Summoner orchestration
-- structured documentation pack aligned to the photography project pattern
+- structured documentation pack
 - settings page readiness and integration status layer backed by runtime checks
 
 ## Current Focus
 
-1. fill the missing env and service gaps shown by the settings readiness panel
-2. prove live integrations instead of fallback behavior
-3. finish production wiring
-4. keep verification evidence current
+1. document and execute the WhatsAI pivot without rebuilding from scratch
+2. add generic business/profile/playbook concepts
+3. convert real-estate flows into the first vertical pack
+4. prove one 7-day WhatsApp assistant trial flow
+5. keep verification evidence current

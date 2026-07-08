@@ -7,12 +7,12 @@ import { Input } from '@/components/ui/input';
 import { LanguageToggle } from './LanguageToggle';
 
 interface TopBarProps {
-  builderName?: string;
+  businessName?: string;
   onMenuClick?: () => void;
 }
 
-export function TopBar({ builderName = 'Shree Krishna Developers', onMenuClick }: TopBarProps) {
-  const fallback = builderName.split(' ').slice(0, 2).map((p) => p[0]).join('').toUpperCase();
+export function TopBar({ businessName = 'Phase 6 Trial Business', onMenuClick }: TopBarProps) {
+  const fallback = businessName.split(' ').slice(0, 2).map((p) => p[0]).join('').toUpperCase();
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b bg-background/80 px-4 backdrop-blur lg:px-6">
@@ -23,7 +23,7 @@ export function TopBar({ builderName = 'Shree Krishna Developers', onMenuClick }
       <div className="relative flex-1 max-w-md">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Search leads, plots, residents..."
+          placeholder="Search leads, conversations, handoffs..."
           className="pl-9 h-9 bg-muted/40 border-transparent focus:border-input"
         />
       </div>
@@ -39,7 +39,7 @@ export function TopBar({ builderName = 'Shree Krishna Developers', onMenuClick }
           <AvatarFallback className="bg-primary text-primary-foreground text-xs">{fallback}</AvatarFallback>
         </Avatar>
         <div className="hidden md:block leading-tight">
-          <div className="text-sm font-medium">{builderName}</div>
+          <div className="text-sm font-medium">{businessName}</div>
           <div className="text-[10px] text-muted-foreground">Growth Plan</div>
         </div>
       </div>

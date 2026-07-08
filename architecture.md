@@ -1,34 +1,56 @@
-# X7 RealEstate OS - Architecture
+# X7 WhatsAI Assistant - Architecture
 
 ## Core Pattern
 
-The system follows a multi-agent architecture:
+The system follows a WhatsApp-first, Summoner-routed, multi-agent architecture:
 
 - Dashboard is the operator UI
+- WhatsApp is the primary customer channel
 - Summoner is the preferred central routing layer
+- Assistant playbooks define vertical behavior
 - Specialist agents handle domain logic
 - Tool Gateway owns external API/tool execution
 - Supabase is the system of record
 
+## Pivot Architecture Rule
+
+Do not replace the real-estate implementation. Add a generic layer over it.
+
+New generic concepts should be introduced as:
+
+- businesses
+- business profiles
+- assistant playbooks
+- conversation threads
+- leads
+- appointments
+- handoffs
+- owner summaries
+- trial accounts
+
+Real estate remains a vertical pack until generic routes prove parity.
+
 ## Agent Roles
 
-- `x7-re-summoner`: routing, orchestration, cron fan-out, central ingress
-- `x7-re-sales-agent`: qualification, follow-up, visit booking, brochure sends
-- `x7-re-content-agent`: content calendar, rendering, scoring, publishing
-- `x7-re-ads-agent`: campaign creation, insights, optimization, CAPI queue
-- `x7-re-ghost-closer`: outbound prospecting and outreach batches
-- `x7-re-colony-agent`: complaints, visitors, notices, amenities, billing reminders
-- `x7-re-finance-agent`: payment confirmation, receipts, monthly summaries
-- `x7-re-tool-gateway`: WhatsApp send, UPI links, PDF generation, media helpers
+- `x7-re-summoner`: routing, WhatsApp ingress, orchestration, cron fan-out
+- `x7-re-sales-agent`: current lead qualification engine and first generic assistant base
+- `x7-re-tool-gateway`: WhatsApp send, payment links, PDF/media helpers
+- `x7-re-content-agent`: deferred content generation
+- `x7-re-ads-agent`: deferred campaign operations
+- `x7-re-ghost-closer`: deferred outbound prospecting
+- `x7-re-colony-agent`: society/resident vertical pack, not first MVP wedge
+- `x7-re-finance-agent`: payment confirmation, receipts, subscription support
 
 ## Data Flow
 
-1. user or webhook enters through dashboard or Summoner
-2. Summoner resolves intent and target agent
-3. target agent performs business logic
-4. Tool Gateway is used when external side effects are needed
-5. results are written back to Supabase
-6. dashboard reads Supabase-first with fallback behavior where applicable
+1. customer message enters through WhatsApp webhook
+2. Summoner resolves business context from phone/channel/default trial config
+3. Summoner selects assistant playbook and target agent
+4. target agent replies or asks qualification question
+5. Tool Gateway sends external WhatsApp/payment/PDF actions
+6. results are written back to Supabase
+7. dashboard shows lead, thread, appointment, and handoff state
+8. owner receives hot-lead handoff or daily summary
 
 ## Current Architectural Rule
 

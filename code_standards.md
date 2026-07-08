@@ -1,31 +1,18 @@
-# X7 RealEstate OS - Code Standards
+# X7 WhatsAI Assistant - Code Standards
 
-## General
+## Product-Specific Standards
 
-- use ESM for agents
-- use TypeScript strict mode in dashboard code
-- keep environment defaults explicit
-- prefer ASCII unless the file already uses non-ASCII deliberately
+- Preserve backwards compatibility with current real-estate flows until generic WhatsAI parity is proven.
+- Add generic business/playbook/conversation models beside existing tables before migration.
+- Prefer explicit vertical metadata over hard-coded real-estate assumptions.
+- Keep WhatsApp webhook handling deterministic and auditable.
+- Persist all lead-changing events.
+- Keep owner handoff and manual takeover paths simple.
 
-## APIs
+## General Standards
 
-- validate request bodies
-- keep error responses structured
-- keep health endpoints lightweight
-- do not spread vendor logic across many services if Tool Gateway can own it
-
-## Data
-
-- Supabase is the source of truth
-- prefer append/audit style logging where relevant
-- keep builder/project context explicit in mutations
-
-## Frontend
-
-- dashboard should prefer Supabase-first reads with safe fallback behavior
-- avoid dead routes and fake “coming soon” placeholders
-- keep mobile and desktop layouts usable
-
-## Docs
-
-- if the repo reality changes, update the working docs and blueprint snapshot
+- TypeScript for app code where available.
+- Express services expose `/health`.
+- Supabase is the system of record.
+- `x-agent-secret` protects inter-service calls.
+- Avoid broad refactors during pivot work unless needed for the specific migration step.

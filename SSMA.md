@@ -1,4 +1,7 @@
 # 🏢 SSMA — Smart Society Management App
+> [!IMPORTANT]
+> Pivot note (2026-07-08): this file is now pre-pivot reference material. The active product direction is `X7_WhatsAI_Pivot_Strategy.md`. Real estate remains the first vertical pack (`X7 SiteVisit AI`), but new work should build the generic WhatsAI business/playbook/conversation layer without rebuilding from scratch.
+
 ### V1 Product Blueprint | India Market | Build-Ready Document
 > **Author:** Rohit Kag — Founder, Xero Seven
 > **Date:** May 2026

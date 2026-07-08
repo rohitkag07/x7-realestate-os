@@ -40,10 +40,10 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
   const { project, builder, config } = data;
   return {
     title: config?.seo_title ?? `${project.name} — ${project.location}`,
-    description: config?.seo_description ?? `RERA approved plots in ${project.location}, ${project.city}. Plots from ₹${project.price_range_min} Lakh. By ${builder.company_name}.`,
+    description: config?.seo_description ?? `WhatsApp-assisted offer page for ${project.name} in ${project.location}, ${project.city}. Starting from ₹${project.price_range_min} Lakh. By ${builder.company_name}.`,
     openGraph: {
       title: project.name,
-      description: `Plots from ₹${project.price_range_min} Lakh · RERA · ${project.location}`,
+      description: `Starting from ₹${project.price_range_min} Lakh · WhatsApp callback · ${project.location}`,
       images: config?.hero_image_url ? [config.hero_image_url] : (project.hero_image_url ? [project.hero_image_url] : []),
     },
   };
@@ -77,11 +77,11 @@ export default async function LandingPage({ params }: PageParams) {
 
 function defaultFaqs(project: LandingProject, builder: LandingBuilder) {
   return [
-    { q: 'Is the project RERA approved?', a: project.rera_number ? `Yes — RERA registration number ${project.rera_number}.` : 'RERA approval is currently in process.' },
-    { q: 'What is the minimum booking amount?', a: 'You can block a plot with a token amount of ₹50,000 via UPI.' },
-    { q: 'How are plots priced?', a: `Plots are priced between ₹${project.price_range_min} Lakh and ₹${project.price_range_max} Lakh based on size and location.` },
-    { q: 'Is there a clear title?', a: 'Every plot has a verified clear title with all approvals in place.' },
-    { q: 'How do I book a site visit?', a: `WhatsApp ${builder.whatsapp_number ?? builder.phone} — we will share a Google Maps location and arrange a time slot.` },
+    { q: 'Is this offer verified?', a: project.rera_number ? `Yes — verification reference ${project.rera_number}.` : 'The business team will confirm verification details on WhatsApp.' },
+    { q: 'What is the next step?', a: 'Share your name and phone number. The WhatsAI assistant will qualify your need and route hot enquiries to the owner.' },
+    { q: 'How is pricing shared?', a: `The business team can share current packages between ₹${project.price_range_min} Lakh and ₹${project.price_range_max} Lakh based on fit and availability.` },
+    { q: 'Can I speak to a person?', a: 'Yes. Qualified or urgent enquiries are handed off to the business owner or team.' },
+    { q: 'How do I book an appointment?', a: `WhatsApp ${builder.whatsapp_number ?? builder.phone} — we will confirm the right callback or appointment slot.` },
   ];
 }
 

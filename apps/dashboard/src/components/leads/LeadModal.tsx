@@ -273,7 +273,7 @@ export function LeadModal({ lead, open, onClose }: LeadModalProps) {
             </a>
           </Button>
           <Button>
-            <Calendar className="h-4 w-4 mr-2" /> Book Site Visit
+            <Calendar className="h-4 w-4 mr-2" /> Book Appointment
           </Button>
         </DialogFooter>
       </DialogContent>
