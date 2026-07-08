@@ -152,7 +152,7 @@ export function AmenityBookingPanel({ amenities, bookings, residents }: AmenityB
             <div className="md:col-span-2">
               <Button type="submit" disabled={pending}>
                 <DoorOpen className="mr-2 h-4 w-4" />
-                {pending ? 'Booking…' : 'Confirm Booking'}
+                {pending ? 'Saving…' : 'Confirm Slot'}
               </Button>
             </div>
           </form>
@@ -163,14 +163,14 @@ export function AmenityBookingPanel({ amenities, bookings, residents }: AmenityB
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
             <IndianRupee className="h-4 w-4 text-emerald-500" />
-            Upcoming Bookings
+            Upcoming Slots
           </CardTitle>
           <CardDescription>Recent amenity reservations and collection status.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           {todayBookings.length === 0 ? (
             <div className="rounded-lg border border-dashed px-4 py-10 text-center text-sm text-muted-foreground">
-              No amenity bookings yet.
+              No amenity slots yet.
             </div>
           ) : (
             todayBookings.map((booking) => (

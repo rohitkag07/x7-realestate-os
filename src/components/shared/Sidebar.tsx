@@ -19,12 +19,12 @@ type Item = {
 const items: Item[] = [
   { href: '/',             labelHi: 'डैशबोर्ड',      labelEn: 'Dashboard',    icon: LayoutDashboard },
   { href: '/leads',        labelHi: 'लीड्स',         labelEn: 'Leads',        icon: Users },
-  { href: '/site-visits',  labelHi: 'साइट विज़िट',    labelEn: 'Site Visits',  icon: Calendar },
-  { href: '/bookings',     labelHi: 'बुकिंग्स',       labelEn: 'Bookings',     icon: IndianRupee },
-  { href: '/content',      labelHi: 'कंटेंट',         labelEn: 'Content',      icon: ImageIcon },
+  { href: '/site-visits',  labelHi: 'अपॉइंटमेंट',     labelEn: 'Appointments', icon: Calendar },
+  { href: '/bookings',     labelHi: 'हैंडऑफ',         labelEn: 'Handoffs',     icon: IndianRupee },
+  { href: '/content',      labelHi: 'कंटेंट',         labelEn: 'Playbooks',    icon: ImageIcon },
   { href: '/campaigns',    labelHi: 'कैम्पेन',        labelEn: 'Campaigns',    icon: Megaphone },
   { href: '/ghost-closer', labelHi: 'आउटबाउंड',       labelEn: 'Ghost Closer', icon: Zap },
-  { href: '/colony',       labelHi: 'कॉलोनी',        labelEn: 'Colony',       icon: Building2 },
+  { href: '/colony',       labelHi: 'ऑपरेशंस',       labelEn: 'Ops',          icon: Building2 },
   { href: '/reports',      labelHi: 'रिपोर्ट्स',      labelEn: 'Reports',      icon: BarChart3 },
   { href: '/settings',     labelHi: 'सेटिंग्स',       labelEn: 'Settings',     icon: Settings },
 ];
@@ -77,7 +77,7 @@ export function Sidebar() {
       </nav>
 
       <div className="p-4 border-t text-[11px] text-muted-foreground">
-        v0.1.0 · Phase 1 — Foundation
+        v0.2.0 · WhatsAI Production Proof
       </div>
     </aside>
   );

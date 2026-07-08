@@ -22,7 +22,7 @@ export function LeadsTrendChart({ data }: { data?: LeadsTrendPoint[] }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Leads & Site Visits — Last 7 days</CardTitle>
+        <CardTitle className="text-base">Leads & Appointments — Last 7 days</CardTitle>
       </CardHeader>
       <CardContent className="h-[260px]">
         <ResponsiveContainer width="100%" height="100%">

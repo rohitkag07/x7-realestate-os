@@ -152,8 +152,8 @@ export function SiteVisitPlanner({ visits, leads }: SiteVisitPlannerProps) {
         <Card>
           <CardHeader className="flex flex-row items-start justify-between gap-4">
             <div>
-              <CardTitle className="text-base">Weekly Visit Board</CardTitle>
-              <CardDescription>Qualified buyers, confirmed site visits, and on-ground conversion slots for the next 7 days.</CardDescription>
+              <CardTitle className="text-base">Weekly Appointment Board</CardTitle>
+              <CardDescription>Qualified leads, confirmed WhatsApp appointments, and owner handoff slots for the next 7 days.</CardDescription>
             </div>
             <Button size="sm" onClick={() => setOpen(true)} disabled={!eligibleLeads.length}>
               <Plus className="h-4 w-4 mr-2" /> Quick Schedule

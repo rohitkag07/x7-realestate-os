@@ -18,7 +18,7 @@ export default async function SettingsPage() {
 
   return (
     <>
-      <PageHeader title="Settings" titleHi="सेटिंग्स" description="Builder profile, live integrations, launch readiness, and billing." />
+      <PageHeader title="Settings" titleHi="सेटिंग्स" description="Business profile, WhatsApp integrations, launch readiness, and billing." />
 
       <Tabs defaultValue="ops">
         <TabsList>
@@ -36,19 +36,19 @@ export default async function SettingsPage() {
         <TabsContent value="profile">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Builder Profile</CardTitle>
-              <CardDescription>Public-facing name, address, and contact details.</CardDescription>
+              <CardTitle className="text-base">Business Profile</CardTitle>
+              <CardDescription>Public-facing business name, address, and contact details.</CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Field label="Company Name" defaultValue="Shree Krishna Developers" />
+              <Field label="Company Name" defaultValue="Demo SMB Trial" />
               <Field label="Founder Name" defaultValue="Rohit Kag" />
               <Field label="Phone"        defaultValue="+91 98765 43210" />
               <Field label="WhatsApp Business Number" defaultValue="+91 98765 43210" />
-              <Field label="Email"        defaultValue="rohit@shreekrishna.in" />
+              <Field label="Email"        defaultValue="owner@business.in" />
               <Field label="City"         defaultValue="Indore" />
               <div className="md:col-span-2">
                 <Label htmlFor="about">About</Label>
-                <Textarea id="about" rows={3} defaultValue="Tier-2 Indian builder. RERA registered. Focus on Super Corridor, Indore." />
+                <Textarea id="about" rows={3} defaultValue="Indian SMB using WhatsApp for leads, appointments, and customer follow-up." />
               </div>
               <div className="md:col-span-2 flex justify-end">
                 <Button><Save className="h-4 w-4 mr-2" /> Save Profile</Button>
@@ -89,18 +89,18 @@ export default async function SettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <CreditCard className="h-4 w-4" /> Growth Plan
+                <CreditCard className="h-4 w-4" /> WhatsAI Trial Plan
                 <Badge variant="success">Active</Badge>
               </CardTitle>
-              <CardDescription>₹35,000 / month · Next invoice on 1 Jun 2026</CardDescription>
+              <CardDescription>7-day managed trial · Upgrade after proof of qualified leads</CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="text-sm space-y-2 text-muted-foreground">
-                <li>· 30 social posts / month</li>
-                <li>· 12 videos / month (Remotion + Higgsfield)</li>
-                <li>· Full Meta Ads management</li>
-                <li>· Multi-project CRM</li>
-                <li>· Colony Management module</li>
+                <li>· WhatsApp Cloud API setup</li>
+                <li>· Vertical qualification playbook</li>
+                <li>· Appointment booking and hot-lead alerts</li>
+                <li>· Conversation summaries and handoff tracking</li>
+                <li>· Usage and billing readiness</li>
               </ul>
               <div className="mt-4 flex gap-2">
                 <Button variant="outline" size="sm">Change Plan</Button>

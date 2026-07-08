@@ -11,20 +11,20 @@ export const strings = {
   // Sidebar / nav
   nav_dashboard:    { hi: 'डैशबोर्ड',           en: 'Dashboard' },
   nav_leads:        { hi: 'लीड्स',              en: 'Leads' },
-  nav_site_visits:  { hi: 'साइट विज़िट',         en: 'Site Visits' },
-  nav_bookings:     { hi: 'बुकिंग्स',            en: 'Bookings' },
-  nav_content:      { hi: 'कंटेंट',              en: 'Content' },
+  nav_site_visits:  { hi: 'अपॉइंटमेंट्स',        en: 'Appointments' },
+  nav_bookings:     { hi: 'हैंडऑफ',              en: 'Handoffs' },
+  nav_content:      { hi: 'प्लेबुक्स',            en: 'Playbooks' },
   nav_campaigns:    { hi: 'कैम्पेन',             en: 'Campaigns' },
-  nav_colony:       { hi: 'कॉलोनी',             en: 'Colony' },
+  nav_colony:       { hi: 'ऑपरेशंस',             en: 'Ops' },
   nav_reports:      { hi: 'रिपोर्ट्स',           en: 'Reports' },
   nav_settings:     { hi: 'सेटिंग्स',            en: 'Settings' },
 
   // KPIs
-  kpi_leads_today:     { hi: 'आज के लीड्स',         en: 'Leads Today' },
-  kpi_site_visits:     { hi: 'साइट विज़िट्स',       en: 'Site Visits' },
-  kpi_bookings:        { hi: 'बुकिंग्स',             en: 'Bookings' },
-  kpi_revenue_month:   { hi: 'इस महीने रेवेन्यू',     en: 'Revenue This Month' },
-  kpi_content_today:   { hi: 'आज पोस्ट हुआ',        en: 'Content Posted Today' },
+  kpi_leads_today:     { hi: 'WhatsApp लीड्स',      en: 'WhatsApp Leads' },
+  kpi_site_visits:     { hi: 'अपॉइंटमेंट्स',        en: 'Appointments' },
+  kpi_bookings:        { hi: 'हैंडऑफ',              en: 'Handoffs' },
+  kpi_revenue_month:   { hi: 'ट्रायल वैल्यू',         en: 'Trial Value' },
+  kpi_content_today:   { hi: 'भेजे गए जवाब',        en: 'Replies Sent' },
 
   // Lead pipeline stages
   stage_new:               { hi: 'नया',                en: 'New' },

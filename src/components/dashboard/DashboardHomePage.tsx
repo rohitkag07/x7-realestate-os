@@ -1,6 +1,6 @@
 'use client';
 
-import { Users, Calendar, IndianRupee, ImageIcon, Activity, ArrowUpRight, CircleDot } from 'lucide-react';
+import { Users, Calendar, MessageCircle, BellRing, Activity, ArrowUpRight, CircleDot } from 'lucide-react';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { KPICard } from '@/components/shared/KPICard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,36 +10,36 @@ export function DashboardHomePage() {
   return (
     <>
       <PageHeader
-        title="Today's Snapshot"
-        titleHi="आज का स्नैपशॉट"
-        description="Marketing engine, sales pipeline, and colony health — at a glance."
+        title="WhatsAI Trial Console"
+        titleHi="WhatsApp AI डैशबोर्ड"
+        description="WhatsApp conversations, lead qualification, hot handoffs, and follow-ups in one live view."
       />
 
       <section className="grid grid-cols-2 gap-3 mb-6 md:grid-cols-3 lg:grid-cols-5">
-        <KPICard label="Leads Today" labelHi="आज के लीड्स" value={12} delta={20} icon={Users} accent="primary" />
-        <KPICard label="Site Visits" labelHi="साइट विज़िट्स" value={3} delta={50} icon={Calendar} accent="success" />
-        <KPICard label="Bookings" labelHi="बुकिंग्स" value={1} delta={0} icon={IndianRupee} accent="warning" />
-        <KPICard label="Revenue (Month)" labelHi="इस महीने रेवेन्यू" value="₹18L" delta={12} icon={IndianRupee} accent="success" />
-        <KPICard label="Content Posted" labelHi="आज पोस्ट हुआ" value={2} delta={-25} icon={ImageIcon} accent="primary" />
+        <KPICard label="WhatsApp Leads" labelHi="WhatsApp लीड्स" value={12} delta={20} icon={MessageCircle} accent="primary" />
+        <KPICard label="Qualified" labelHi="क्वालिफाइड" value={7} delta={18} icon={Users} accent="success" />
+        <KPICard label="Appointments" labelHi="अपॉइंटमेंट्स" value={3} delta={50} icon={Calendar} accent="success" />
+        <KPICard label="Hot Handoffs" labelHi="हॉट हैंडऑफ" value={2} delta={0} icon={BellRing} accent="warning" />
+        <KPICard label="Replies Sent" labelHi="भेजे गए जवाब" value={42} delta={31} icon={Activity} accent="primary" />
       </section>
 
       <section className="grid grid-cols-1 gap-4 mb-6 lg:grid-cols-2">
         <MetricPanel
           title="Lead Momentum"
-          description="This week's lead intake is strongest from Meta and referral loops."
+          description="This week's WhatsApp intake is strongest from Meta ads and direct referrals."
           items={[
             { label: 'Meta Ads', value: '18 leads', detail: '+22% vs last week' },
-            { label: 'WhatsApp', value: '11 leads', detail: 'Fastest response time' },
-            { label: 'Referrals', value: '6 leads', detail: 'Highest booking intent' },
+            { label: 'WhatsApp Organic', value: '11 leads', detail: 'Fastest response time' },
+            { label: 'Referrals', value: '6 leads', detail: 'Highest appointment intent' },
           ]}
         />
         <MetricPanel
-          title="Revenue Pulse"
-          description="Collections are healthy and site visits are converting on schedule."
+          title="Assistant Pulse"
+          description="Qualification, appointment booking, and owner alerts are moving without manual follow-up."
           items={[
-            { label: 'Token Revenue', value: '₹3.2L', detail: '1 booking confirmed today' },
-            { label: 'Visit Conversion', value: '33%', detail: '3 visits, 1 booking' },
-            { label: 'Pending Closures', value: '₹14.8L', detail: '6 warm leads in follow-up' },
+            { label: 'Avg First Reply', value: '3 sec', detail: 'Always-on WhatsApp response' },
+            { label: 'Qualification Rate', value: '58%', detail: '7 qualified from 12 new chats' },
+            { label: 'Pending Follow-ups', value: '6', detail: 'Warm leads waiting for next nudge' },
           ]}
         />
       </section>
@@ -53,9 +53,9 @@ export function DashboardHomePage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3 sm:grid-cols-3">
-            <SourceCard source="Meta Ads" quality="High" insight="Most scalable top-of-funnel channel right now." />
-            <SourceCard source="Google" quality="Medium" insight="Intent is strong but volume is still modest." />
-            <SourceCard source="Referral" quality="High" insight="Small volume, strongest close probability." />
+            <SourceCard source="Meta Ads" quality="High" insight="Most scalable top-of-funnel channel for WhatsApp trials." />
+            <SourceCard source="Google" quality="Medium" insight="Intent is strong but WhatsApp volume is still modest." />
+            <SourceCard source="Referral" quality="High" insight="Small volume, strongest handoff probability." />
           </CardContent>
         </Card>
         <Card>
@@ -66,11 +66,11 @@ export function DashboardHomePage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <AgentRow name="Sales Agent" status="active" detail="Replied to 7 WhatsApp leads · last 1 hr" />
-            <AgentRow name="Content Agent" status="active" detail="Rendered 2 reels via Remotion · last 24 hr" />
-            <AgentRow name="Ads Agent" status="active" detail="Reallocated ₹1,200 to best-performing creative" />
-            <AgentRow name="Colony Agent" status="idle" detail="No new complaints today" />
-            <AgentRow name="Finance Agent" status="idle" detail="June invoices scheduled for 1st" />
+            <AgentRow name="WhatsAI Receptionist" status="active" detail="Replied to 7 WhatsApp leads · last 1 hr" />
+            <AgentRow name="Qualification Playbook" status="active" detail="Captured budget, need, and appointment intent" />
+            <AgentRow name="Owner Handoff" status="active" detail="Sent 2 hot-lead alerts to the business owner" />
+            <AgentRow name="Follow-up Engine" status="idle" detail="Next warm lead nudge scheduled" />
+            <AgentRow name="Setup Monitor" status="idle" detail="Meta webhook and Supabase checks ready" />
           </CardContent>
         </Card>
       </section>

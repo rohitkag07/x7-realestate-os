@@ -22,8 +22,8 @@ export default async function AmenitiesPage() {
     <div className="space-y-6">
       <section className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <KPICard label="Enabled Amenities" labelHi="चालू सुविधाएं" value={amenities.length} icon={MapPinned} accent="primary" />
-        <KPICard label="Upcoming Bookings" labelHi="आने वाली बुकिंग" value={upcoming} icon={CalendarCheck2} accent="success" />
-        <KPICard label="Booking Revenue" labelHi="बुकिंग रेवेन्यू" value={formatINR(revenue)} icon={IndianRupee} accent="warning" />
+        <KPICard label="Upcoming Slots" labelHi="आने वाले स्लॉट" value={upcoming} icon={CalendarCheck2} accent="success" />
+        <KPICard label="Slot Revenue" labelHi="स्लॉट रेवेन्यू" value={formatINR(revenue)} icon={IndianRupee} accent="warning" />
       </section>
 
       <Card>

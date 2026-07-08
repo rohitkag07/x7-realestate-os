@@ -77,9 +77,9 @@ function LoginCard({
           <span className="font-semibold">{APP_NAME}</span>
         </div>
         <div>
-          <CardTitle className="text-2xl">Builder Login</CardTitle>
+          <CardTitle className="text-2xl">WhatsAI Console Login</CardTitle>
           <CardDescription>
-            Sahab, namaste! Apne dashboard me wapas swagat hai.
+            Namaste! Apne WhatsApp assistant trial console me wapas swagat hai.
           </CardDescription>
         </div>
       </CardHeader>
@@ -89,7 +89,7 @@ function LoginCard({
             <Label htmlFor="email">Email</Label>
             <Input
               id="email" type="email" autoComplete="email" required
-              placeholder="rohit@shreekrishna.in"
+              placeholder="owner@business.in"
               value={email}
               onChange={(e) => onEmailChange?.(e.target.value)}
             />

@@ -33,7 +33,7 @@ export function ResidentTable({ residents }: ResidentTableProps) {
           {residents.length === 0 && (
             <TableRow>
               <TableCell colSpan={6} className="text-center text-muted-foreground py-12">
-                No residents yet — onboard buyers from the Bookings page.
+                No contacts yet — onboard customers from the Handoffs page.
               </TableCell>
             </TableRow>
           )}

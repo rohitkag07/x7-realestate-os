@@ -6,10 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 export const metadata = { title: 'Reports' };
 
 const reportCards = [
-  { title: 'Monthly Sales Report',     description: 'Bookings, revenue, agent attribution',           icon: BarChart3 },
-  { title: 'Marketing Performance',    description: 'CPL by source, content engagement, ad CTR',     icon: Activity  },
-  { title: 'Colony Maintenance Report',description: 'Collections, outstanding dues, defaulters',     icon: FileText  },
-  { title: 'Builder GST Summary',      description: 'GST-ready summary for CA / filing',             icon: FileText  },
+  { title: 'WhatsApp Trial Report',    description: 'Qualified leads, replies, handoff attribution', icon: BarChart3 },
+  { title: 'Channel Performance',      description: 'Lead source, reply rate, appointment intent',   icon: Activity  },
+  { title: 'Follow-up Report',         description: 'Warm leads, pending nudges, owner actions',     icon: FileText  },
+  { title: 'Billing Usage Summary',    description: 'Usage-ready summary for SMB invoicing',         icon: FileText  },
 ];
 
 export default function ReportsPage() {
@@ -28,16 +28,16 @@ export default function ReportsPage() {
           items={[
             { label: 'New Leads', value: '84', detail: 'Meta + WhatsApp remain strongest' },
             { label: 'Qualified', value: '31', detail: '37% qualification rate this week' },
-            { label: 'Visits Done', value: '12', detail: '3 converted into active negotiations' },
+            { label: 'Appointments', value: '12', detail: '3 moved into active handoff' },
           ]}
         />
         <ReportMetricPanel
-          title="Revenue Summary"
-          description="Builder-side collections and forward pipeline view."
+          title="Handoff Summary"
+          description="Owner-side action queue and forward pipeline view."
           items={[
-            { label: 'Booked Revenue', value: '₹18L', detail: '1 fresh booking recorded today' },
-            { label: 'Pending Closures', value: '₹42L', detail: 'Warm pipeline under follow-up' },
-            { label: 'Maintenance Collections', value: '₹6.4L', detail: '92% monthly recovery pace' },
+            { label: 'Hot Handoffs', value: '18', detail: '2 fresh handoffs recorded today' },
+            { label: 'Pending Closures', value: '42', detail: 'Warm pipeline under follow-up' },
+            { label: 'Follow-up Completion', value: '92%', detail: 'Owner action pace this week' },
           ]}
         />
       </section>
