@@ -62,10 +62,21 @@ const config: Config = {
           DEFAULT: 'hsl(var(--warning))',
           foreground: 'hsl(var(--warning-foreground))',
         },
+        ink: {
+          950: '#070A12',
+          900: '#0B1020',
+          850: '#0D1424',
+        },
+        signal: {
+          green: '#25D366',
+          teal: '#28E7C5',
+          amber: '#F5B84B',
+          rose: '#FF5E7A',
+        },
         // Lead-temperature semantic colors used across pipeline UI
-        hot:  '#EF4444',
-        warm: '#F59E0B',
-        cold: '#3B82F6',
+        hot:  '#FF5E7A',
+        warm: '#F5B84B',
+        cold: '#4EA5FF',
       },
       borderRadius: {
         lg: 'var(--radius)',

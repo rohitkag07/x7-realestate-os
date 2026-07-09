@@ -4,41 +4,41 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 222 46% 5%;
+    --foreground: 213 42% 92%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 221 40% 10%;
+    --card-foreground: 213 42% 92%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 221 42% 9%;
+    --popover-foreground: 213 42% 92%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 146 68% 48%;
+    --primary-foreground: 220 46% 6%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 220 32% 16%;
+    --secondary-foreground: 210 36% 91%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 219 32% 14%;
+    --muted-foreground: 216 20% 65%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 174 77% 47%;
+    --accent-foreground: 220 46% 6%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 349 100% 68%;
+    --destructive-foreground: 220 46% 6%;
 
-    --success: 142.1 76.2% 36.3%;
-    --success-foreground: 355.7 100% 97.3%;
+    --success: 146 68% 48%;
+    --success-foreground: 220 46% 6%;
 
-    --warning: 32.1 94.6% 43.7%;
-    --warning-foreground: 355.7 100% 97.3%;
+    --warning: 39 91% 63%;
+    --warning-foreground: 220 46% 6%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 217 28% 21%;
+    --input: 217 28% 21%;
+    --ring: 174 77% 47%;
 
-    --radius: 0.5rem;
+    --radius: 0.875rem;
   }
 
   .dark {
@@ -79,9 +79,68 @@
   body {
     @apply bg-background text-foreground font-sans;
   }
+  ::selection {
+    background: hsl(var(--primary) / 0.32);
+    color: hsl(var(--foreground));
+  }
 }
 
 /* Hindi text helper — apply lang="hi" on any element to render Devanagari nicely */
 [lang='hi'] {
   font-family: var(--font-noto-devanagari), var(--font-inter), system-ui, sans-serif;
+}
+
+@layer components {
+  .glass-panel {
+    @apply border border-white/10 bg-card/75 shadow-[0_24px_80px_rgba(0,0,0,0.32)] backdrop-blur-xl;
+  }
+
+  .metric-card {
+    @apply glass-panel relative overflow-hidden transition duration-300 hover:-translate-y-0.5 hover:border-emerald-300/30 hover:shadow-[0_28px_90px_rgba(37,211,102,0.14)];
+  }
+
+  .signal-rail {
+    @apply relative;
+  }
+
+  .signal-rail::before {
+    content: '';
+    position: absolute;
+    left: 0.8125rem;
+    top: 1.25rem;
+    bottom: 1.25rem;
+    width: 1px;
+    background: linear-gradient(to bottom, transparent, rgba(37, 211, 102, 0.72), rgba(40, 231, 197, 0.42), transparent);
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 420ms ease-out both;
+  }
+
+  .animate-rise-in {
+    animation: rise-in 520ms ease-out both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-fade-in,
+    .animate-rise-in {
+      animation: none;
+    }
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
