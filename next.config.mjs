@@ -2,8 +2,9 @@
 const nextConfig = {
   distDir: process.env.VERCEL ? '.next' : '.next-dev',
   reactStrictMode: true,
-  experimental: {
-    typedRoutes: false,
+  typedRoutes: false,
+  turbopack: {
+    root: new URL('.', import.meta.url).pathname,
   },
   images: {
     remotePatterns: [

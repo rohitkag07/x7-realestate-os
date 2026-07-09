@@ -13,7 +13,8 @@ const schema = z.object({
   emergency_contact: z.record(z.string(), z.string()).optional(),
 });
 
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json({ ok: false, error: 'invalid resident patch' }, { status: 400 });
@@ -39,7 +40,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 
   const { data, error } = await (supabase.from('residents') as any)
     .update(patch)
-    .eq('id', params.id)
+    .eq('id', id)
     .select('*')
     .single();
 

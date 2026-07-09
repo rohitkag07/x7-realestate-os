@@ -26,7 +26,7 @@ export async function loadLeadsPageData(): Promise<{
   leads: Lead[];
   source: SalesReadSource;
 }> {
-  const client = getReadClientOrNull();
+  const client = await getReadClientOrNull();
   if (!client) return { leads: demoLeads, source: 'demo' };
 
   const leadsResult = await (client.from('leads') as any)
@@ -47,7 +47,7 @@ export async function loadSiteVisitsPageData(): Promise<{
   visits: VisitBoardItem[];
   source: SalesReadSource;
 }> {
-  const client = getReadClientOrNull();
+  const client = await getReadClientOrNull();
   if (!client) return { leads: demoLeads, visits: demoSiteVisits, source: 'demo' };
 
   const [leadsResult, visitsResult, projectsResult] = await Promise.all([
@@ -77,7 +77,7 @@ export async function loadBookingsPageData(): Promise<{
   bookings: BookingWorkbenchItem[];
   source: SalesReadSource;
 }> {
-  const client = getReadClientOrNull();
+  const client = await getReadClientOrNull();
   if (!client) {
     return {
       leads: demoLeads,
@@ -116,9 +116,9 @@ export async function loadBookingsPageData(): Promise<{
   };
 }
 
-function getReadClientOrNull(): any {
+async function getReadClientOrNull(): Promise<any> {
   try {
-    return createClient();
+    return await createClient();
   } catch {
     return serviceClientOrNull();
   }

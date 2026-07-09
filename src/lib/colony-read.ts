@@ -16,16 +16,16 @@ export function colonyReadSourceLabel(source: ColonyReadSource) {
     : 'Supabase unavailable, so the Phase 5 fallback demo dataset is being shown.';
 }
 
-function getReadClientOrNull(): any {
+async function getReadClientOrNull(): Promise<any> {
   try {
-    return createClient();
+    return await createClient();
   } catch {
     return serviceClientOrNull();
   }
 }
 
 export async function loadResidentsPageData(): Promise<{ residents: Resident[]; kpis: ColonyKpis; source: ColonyReadSource }> {
-  const client = getReadClientOrNull();
+  const client = await getReadClientOrNull();
   if (!client) return { residents: demoResidents, kpis: demoColonyKpis, source: 'demo' };
 
   const [residentsResult, complaintsResult, visitorsResult, monthRow] = await Promise.all([
@@ -50,7 +50,7 @@ export async function loadResidentsPageData(): Promise<{ residents: Resident[]; 
 }
 
 export async function loadComplaintsPageData(): Promise<{ complaints: Complaint[]; source: ColonyReadSource }> {
-  const client = getReadClientOrNull();
+  const client = await getReadClientOrNull();
   if (!client) return { complaints: demoComplaints, source: 'demo' };
   const result = await (client.from('complaints') as any).select('*').order('created_at', { ascending: false }).limit(200);
   if (result.error) return { complaints: demoComplaints, source: 'demo' };
@@ -58,7 +58,7 @@ export async function loadComplaintsPageData(): Promise<{ complaints: Complaint[
 }
 
 export async function loadVisitorsPageData(): Promise<{ visitors: Visitor[]; source: ColonyReadSource }> {
-  const client = getReadClientOrNull();
+  const client = await getReadClientOrNull();
   if (!client) return { visitors: demoVisitors, source: 'demo' };
   const start = new Date(); start.setHours(0, 0, 0, 0);
   const result = await (client.from('visitors') as any).select('*').gte('entry_time', start.toISOString()).order('entry_time', { ascending: false }).limit(200);
@@ -67,7 +67,7 @@ export async function loadVisitorsPageData(): Promise<{ visitors: Visitor[]; sou
 }
 
 export async function loadNoticesPageData(): Promise<{ notices: NoticeItem[]; source: ColonyReadSource }> {
-  const client = getReadClientOrNull();
+  const client = await getReadClientOrNull();
   if (!client) return { notices: demoNotices, source: 'demo' };
   const result = await (client.from('notices') as any).select('*').order('created_at', { ascending: false }).limit(50);
   if (result.error) return { notices: demoNotices, source: 'demo' };
@@ -80,7 +80,7 @@ export async function loadAmenitiesPageData(): Promise<{
   residents: Resident[];
   source: ColonyReadSource;
 }> {
-  const client = getReadClientOrNull();
+  const client = await getReadClientOrNull();
   if (!client) {
     return {
       amenities: demoAmenities,
@@ -122,7 +122,7 @@ export async function loadColonyWorkspaceContext(projectIdHint?: string): Promis
   builderId: string;
   source: ColonyReadSource;
 }> {
-  const client = getReadClientOrNull();
+  const client = await getReadClientOrNull();
   if (!client) {
     return {
       projectId: projectIdHint ?? DEMO_PROJECT_ID,

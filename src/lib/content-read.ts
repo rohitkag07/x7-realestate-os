@@ -18,7 +18,7 @@ export async function loadContentPageData(): Promise<{
   stats: ReturnType<typeof contentStats>;
   source: ContentReadSource;
 }> {
-  const client = getReadClientOrNull();
+  const client = await getReadClientOrNull();
   if (!client) {
     return { entries: demoContent, stats: contentStats(demoContent), source: 'demo' };
   }
@@ -36,9 +36,9 @@ export async function loadContentPageData(): Promise<{
   return { entries, stats: contentStats(entries), source: 'supabase' };
 }
 
-function getReadClientOrNull(): any {
+async function getReadClientOrNull(): Promise<any> {
   try {
-    return createClient();
+    return await createClient();
   } catch {
     return serviceClientOrNull();
   }

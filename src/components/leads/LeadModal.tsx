@@ -23,12 +23,13 @@ interface LeadModalProps {
 }
 
 export function LeadModal({ lead, open, onClose }: LeadModalProps) {
+  const [pending, startTransition] = useTransition();
+  const [automationPreview, setAutomationPreview] = useState<string | null>(null);
+
   if (!lead) return null;
 
   const currentLead = lead;
   const profile = leadProfileById(currentLead.id);
-  const [pending, startTransition] = useTransition();
-  const [automationPreview, setAutomationPreview] = useState<string | null>(null);
 
   function generateFollowUp() {
     startTransition(async () => {

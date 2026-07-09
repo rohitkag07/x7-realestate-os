@@ -16,9 +16,9 @@ export function marketingReadSourceLabel(source: MarketingReadSource) {
     : 'Supabase unavailable, so the Phase 4 fallback demo dataset is being shown.';
 }
 
-function getReadClientOrNull(): any {
+async function getReadClientOrNull(): Promise<any> {
   try {
-    return createClient();
+    return await createClient();
   } catch {
     return serviceClientOrNull();
   }
@@ -29,7 +29,7 @@ export async function loadCampaignsPageData(): Promise<{
   totals: ReturnType<typeof campaignTotals>;
   source: MarketingReadSource;
 }> {
-  const client = getReadClientOrNull();
+  const client = await getReadClientOrNull();
   if (!client) return { campaigns: demoCampaigns, totals: campaignTotals(demoCampaigns), source: 'demo' };
 
   const result = await (client.from('ad_campaigns') as any).select('*').order('created_at', { ascending: false }).limit(120);
@@ -44,7 +44,7 @@ export async function loadGhostCloserPageData(): Promise<{
   funnel: GhostFunnel;
   source: MarketingReadSource;
 }> {
-  const client = getReadClientOrNull();
+  const client = await getReadClientOrNull();
   if (!client) return { prospects: demoProspects, funnel: demoFunnel, source: 'demo' };
 
   const [prospectsResult, funnelResult] = await Promise.all([
