@@ -1,9 +1,12 @@
 import {
   Save, Sparkles, MessageCircle, CreditCard, Palette, ServerCog,
-  CheckCircle2, Circle, ChevronRight, Zap,
+  Zap,
 } from 'lucide-react';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { ReadinessPanel } from '@/components/settings/ReadinessPanel';
+import { BillingPlanGrid } from '@/components/settings/BillingPlanGrid';
+import { SetupChecklistClient } from '@/components/settings/SetupChecklistClient';
+import { TrialStatusCard } from '@/components/settings/TrialStatusCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,6 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { getOpsReadiness } from '@/lib/ops-readiness';
+import { getTrialConsoleData } from '@/lib/trial-console';
 
 export const metadata = { title: 'Settings — X7 WhatsAI' };
 export const dynamic = 'force-dynamic';
@@ -20,7 +24,6 @@ const PLANS = [
   {
     key: 'trial',
     name: 'Trial',
-    price: 0,
     priceLabel: 'Free / ₹999',
     period: '7 days',
     badge: null,
@@ -33,7 +36,6 @@ const PLANS = [
   {
     key: 'basic',
     name: 'Basic',
-    price: 2999,
     priceLabel: '₹2,999',
     period: '/month',
     badge: null,
@@ -46,7 +48,6 @@ const PLANS = [
   {
     key: 'growth',
     name: 'Growth',
-    price: 7999,
     priceLabel: '₹7,999',
     period: '/month',
     badge: 'Most Popular',
@@ -59,7 +60,6 @@ const PLANS = [
   {
     key: 'pro',
     name: 'Pro',
-    price: 14999,
     priceLabel: '₹14,999',
     period: '/month',
     badge: null,
@@ -71,29 +71,32 @@ const PLANS = [
   },
 ];
 
-const SETUP_STEPS = [
-  { key: 'business_profile',     label: 'Complete business profile (name, phone, city)' },
-  { key: 'whatsapp_channel',     label: 'Connect WhatsApp Business number' },
-  { key: 'playbook_selected',    label: 'Select or create an assistant playbook' },
-  { key: 'owner_handoff_number', label: 'Set owner WhatsApp number for handoffs' },
-  { key: 'test_message_sent',    label: 'Send a test WhatsApp message' },
-  { key: 'daily_summary_on',     label: 'Enable daily hot-lead summary' },
-  { key: 'first_lead_captured',  label: 'Capture first real lead' },
-  { key: 'trial_reviewed',       label: 'Review 7-day trial results with team' },
-];
+type SettingsPageProps = {
+  searchParams?: Promise<{ tab?: string }> | { tab?: string };
+};
 
-export default async function SettingsPage() {
-  const readiness = await getOpsReadiness();
+export default async function SettingsPage({ searchParams }: SettingsPageProps) {
+  const [readiness, trialConsole, params] = await Promise.all([
+    getOpsReadiness(),
+    getTrialConsoleData(),
+    Promise.resolve(searchParams),
+  ]);
+  const requestedTab = params?.tab;
+  const activeTab = ['billing', 'checklist', 'ops', 'profile', 'brand', 'integrations'].includes(requestedTab ?? '')
+    ? requestedTab
+    : 'billing';
 
   return (
     <>
       <PageHeader
         title="Settings"
         titleHi="सेटिंग्स"
-        description="Business profile, live integrations, billing, and white-label setup checklist."
+        description="Live trial status, billing, setup checklist, and operational readiness."
       />
 
-      <Tabs defaultValue="billing">
+      <TrialStatusCard trial={trialConsole.trial} />
+
+      <Tabs defaultValue={activeTab}>
         <TabsList>
           <TabsTrigger value="billing"><CreditCard className="h-3.5 w-3.5 mr-1.5" /> Billing</TabsTrigger>
           <TabsTrigger value="checklist"><Zap className="h-3.5 w-3.5 mr-1.5" /> Setup</TabsTrigger>
@@ -108,51 +111,18 @@ export default async function SettingsPage() {
           <div className="mb-5">
             <p className="text-sm font-medium">Current Plan</p>
             <div className="mt-2 inline-flex items-center gap-2 rounded-full bg-blue-50 border border-blue-200 px-4 py-1.5">
-              <span className="text-sm font-semibold text-blue-800">Trial</span>
-              <span className="text-xs text-blue-600">· 7 days · Free</span>
+              <span className="text-sm font-semibold text-blue-800">{trialConsole.trial.planName}</span>
+              <span className="text-xs text-blue-600">
+                · Day {trialConsole.trial.trialDay} of {trialConsole.trial.trialLengthDays} · {trialConsole.trial.status}
+              </span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-            {PLANS.map((plan) => (
-              <div
-                key={plan.key}
-                className={`relative rounded-xl border p-5 flex flex-col gap-4 ${
-                  plan.highlight
-                    ? 'border-primary bg-primary/5 shadow-md'
-                    : 'bg-card'
-                }`}
-              >
-                {plan.badge && (
-                  <span className={`absolute -top-2.5 left-4 text-[10px] font-bold px-2 py-0.5 rounded-full ${plan.badgeColor}`}>
-                    {plan.badge}
-                  </span>
-                )}
-
-                <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide font-semibold">{plan.name}</p>
-                  <div className="flex items-baseline gap-1 mt-1">
-                    <span className="text-2xl font-bold">{plan.priceLabel}</span>
-                    <span className="text-xs text-muted-foreground">{plan.period}</span>
-                  </div>
-                </div>
-
-                <ul className="space-y-1.5 flex-1">
-                  {plan.features.map((f) => (
-                    <li key={f} className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-
-                <Button variant={plan.ctaVariant} size="sm" className="w-full" disabled={plan.key === 'trial'}>
-                  {plan.cta}
-                  {plan.key !== 'trial' && <ChevronRight className="h-3.5 w-3.5 ml-1" />}
-                </Button>
-              </div>
-            ))}
-          </div>
+          <BillingPlanGrid
+            plans={PLANS}
+            currentPlanKey={trialConsole.trial.planKey}
+            ownerPhone={trialConsole.trial.ownerPhone}
+          />
 
           <p className="mt-4 text-xs text-muted-foreground">
             Setup fee billed once. Monthly subscription via Razorpay. Cancel anytime.
@@ -162,37 +132,7 @@ export default async function SettingsPage() {
 
         {/* ── SETUP CHECKLIST ──────────────────────────────────────── */}
         <TabsContent value="checklist">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Zap className="h-4 w-4 text-amber-500" />
-                White-Label Setup Checklist
-              </CardTitle>
-              <CardDescription>
-                Complete these steps before going live with your first trial business.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ol className="space-y-3">
-                {SETUP_STEPS.map((step, i) => (
-                  <li key={step.key} className="flex items-start gap-3">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground">
-                      {i + 1}
-                    </span>
-                    <div className="flex-1 flex items-center justify-between pt-0.5">
-                      <span className="text-sm">{step.label}</span>
-                      <Circle className="h-4 w-4 text-muted-foreground/40 shrink-0" />
-                    </div>
-                  </li>
-                ))}
-              </ol>
-              <div className="mt-6">
-                <Button size="sm">
-                  <CheckCircle2 className="h-4 w-4 mr-2" /> Mark Steps as Done
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          <SetupChecklistClient initialSteps={trialConsole.checklist} />
         </TabsContent>
 
         {/* ── OPS ──────────────────────────────────────────────────── */}

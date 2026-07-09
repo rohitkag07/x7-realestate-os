@@ -11,7 +11,7 @@ const WHATSAPP_VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN || '';
 const WHATSAPP_PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID || process.env.WHATSAPP_PHONE_ID || '';
 const WHATSAPP_ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN || process.env.WHATSAPP_TOKEN || '';
 const WHATSAPP_GRAPH_VERSION = process.env.WHATSAPP_GRAPH_VERSION || 'v22.0';
-const META_APP_SECRET = process.env.META_APP_SECRET || '';
+const META_APP_SECRET = process.env.META_APP_SECRET || process.env.WHATSAPP_APP_SECRET || process.env.APP_SECRET || '';
 const SUPABASE_FETCH_TIMEOUT_MS = Number(process.env.SUPABASE_FETCH_TIMEOUT_MS || 8000);
 const WEBHOOK_HANDLER_TIMEOUT_MS = Number(process.env.WEBHOOK_HANDLER_TIMEOUT_MS || 10000);
 const TIMEOUT_FALLBACK_MESSAGE = 'Pandit ji abhi busy hain... kripya thodi der baad try karein. 🙏';
@@ -93,7 +93,7 @@ function logEvent(event, details = {}) {
 }
 
 function requireSecret(req, res, next) {
-  if (req.path === '/health' || req.path === '/health/dependencies' || req.path === '/webhooks/whatsapp') return next();
+  if (req.path === '/health' || req.path === '/health/dependencies' || req.path === '/webhook' || req.path === '/webhooks/whatsapp') return next();
   if (!AGENT_SECRET) return next();
 
   const presented = req.header('x-agent-secret')
@@ -159,7 +159,10 @@ async function logRun({ builderId, action, input = {}, output = {}, status = 'su
 }
 
 function validateMetaSignature(req) {
-  if (!META_APP_SECRET) return true;
+  if (!META_APP_SECRET) {
+    logEvent('webhook_signature_secret_missing', { production: process.env.NODE_ENV === 'production' });
+    return process.env.NODE_ENV !== 'production';
+  }
 
   const signature = req.header('x-hub-signature-256') || '';
   if (!signature.startsWith('sha256=')) return false;
@@ -304,7 +307,13 @@ async function findBusinessByChannel(channelId) {
     .eq('is_active', true)
     .maybeSingle();
 
-  return data?.business_id || DEFAULT_BUSINESS_ID || null;
+  const businessId = data?.business_id || DEFAULT_BUSINESS_ID || null;
+  logEvent('business_channel_resolved', {
+    channelId,
+    businessId,
+    source: data?.business_id ? 'business_channels' : 'default',
+  });
+  return businessId;
 }
 
 /**
@@ -395,10 +404,47 @@ async function findActivePlaybook(businessId) {
   return data || null;
 }
 
+async function incrementBusinessUsage(businessId, field, amount = 1) {
+  const sb = supabase();
+  if (!sb || !businessId || !['messages_in', 'messages_out', 'handoffs', 'qual_answers'].includes(field)) return;
+
+  const today = new Date().toISOString().split('T')[0];
+  try {
+    await sb.from('business_usage').upsert({
+      business_id: businessId,
+      date: today,
+    }, { onConflict: 'business_id,date' });
+
+    const { data, error } = await sb
+      .from('business_usage')
+      .select(field)
+      .eq('business_id', businessId)
+      .eq('date', today)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    const current = Number(data?.[field] ?? 0);
+    const update = {};
+    update[field] = current + amount;
+
+    const { error: updateError } = await sb
+      .from('business_usage')
+      .update(update)
+      .eq('business_id', businessId)
+      .eq('date', today);
+
+    if (updateError) throw updateError;
+    logEvent('usage_incremented', { businessId, field, amount });
+  } catch (error) {
+    logEvent('usage_increment_failed', { businessId, field, error: error.message });
+  }
+}
+
 /**
  * Persist the inbound message in conversation_messages (generic layer).
  */
-async function recordGenericInboundMessage({ threadId, content, messageType, providerMsgId, mediaUrl = null, metadata = {} }) {
+async function recordGenericInboundMessage({ businessId, threadId, content, messageType, providerMsgId, mediaUrl = null, metadata = {} }) {
   const sb = supabase();
   if (!sb || !threadId) return;
 
@@ -415,7 +461,16 @@ async function recordGenericInboundMessage({ threadId, content, messageType, pro
 
   if (error) {
     logEvent('record_generic_message_failed', { error: error.message, threadId });
+    return;
   }
+
+  logEvent('conversation_message_saved', {
+    businessId,
+    threadId,
+    direction: 'inbound',
+    messageType: messageType || 'text',
+  });
+  await incrementBusinessUsage(businessId, 'messages_in');
 }
 
 async function getQualificationAnswers(threadId) {
@@ -900,6 +955,7 @@ async function handleInboundWhatsAppMessage(message, envelope) {
 
   if (thread) {
     await recordGenericInboundMessage({
+      businessId,
       threadId: thread.id,
       content: body,
       messageType: mapInboundMessageType(message.type),
@@ -1252,6 +1308,12 @@ app.get('/health', (_req, res) => {
     ok: true,
     service: 'x7-re-summoner',
     phase: 'phase-6',
+    supabase: Boolean(supabase()),
+    whatsapp: {
+      configured: Boolean(WHATSAPP_PHONE_NUMBER_ID && WHATSAPP_ACCESS_TOKEN),
+      verify_token: Boolean(WHATSAPP_VERIFY_TOKEN),
+      signature: Boolean(META_APP_SECRET),
+    },
     uptime_s: Math.round((Date.now() - startedAt) / 1000),
     targets: Object.fromEntries(Object.entries(AGENT_TARGETS).map(([key, value]) => [key, value.baseUrl])),
     whatsapp_webhook: Boolean(WHATSAPP_VERIFY_TOKEN),
@@ -1302,20 +1364,60 @@ app.get('/health/dependencies', async (_req, res) => {
   });
 });
 
-app.get('/webhooks/whatsapp', (req, res) => {
+function verifyWhatsAppWebhook(req, res) {
   const mode = req.query['hub.mode'];
   const verifyToken = req.query['hub.verify_token'];
   const challenge = req.query['hub.challenge'];
+  logEvent('webhook_verify_hit', {
+    path: req.path,
+    mode,
+    token_match: verifyToken === WHATSAPP_VERIFY_TOKEN,
+    has_challenge: Boolean(challenge),
+  });
 
   if (mode === 'subscribe' && verifyToken === WHATSAPP_VERIFY_TOKEN) {
     return res.status(200).send(String(challenge ?? ''));
   }
 
   return res.status(403).json({ ok: false, error: 'Webhook verification failed.' });
-});
+}
 
-app.post('/webhooks/whatsapp', async (req, res) => {
+app.get('/webhook', verifyWhatsAppWebhook);
+app.get('/webhooks/whatsapp', verifyWhatsAppWebhook);
+
+async function receiveWhatsAppWebhook(req, res) {
+  const entries = Array.isArray(req.body?.entry) ? req.body.entry.length : 0;
+  const changes = Array.isArray(req.body?.entry?.[0]?.changes) ? req.body.entry[0].changes.length : 0;
+  const firstChange = req.body?.entry?.[0]?.changes?.[0] || {};
+  const firstValue = firstChange?.value || {};
+  const messageCount = req.body?.entry?.reduce((count, entry) => {
+    return count + (entry?.changes || []).reduce((innerCount, change) => {
+      return innerCount + (change?.value?.messages || []).length;
+    }, 0);
+  }, 0) || 0;
+  const statusCount = req.body?.entry?.reduce((count, entry) => {
+    return count + (entry?.changes || []).reduce((innerCount, change) => {
+      return innerCount + (change?.value?.statuses || []).length;
+    }, 0);
+  }, 0) || 0;
+  logEvent('webhook_post_hit', {
+    path: req.path,
+    has_signature: Boolean(req.header('x-hub-signature-256')),
+    object: req.body?.object || null,
+    field: firstChange?.field || null,
+    value_keys: Object.keys(firstValue),
+    entries,
+    changes,
+    message_count: messageCount,
+    status_count: statusCount,
+  });
+
   if (!validateMetaSignature(req)) {
+    logEvent('webhook_signature_invalid', {
+      path: req.path,
+      has_signature: Boolean(req.header('x-hub-signature-256')),
+      raw_body_bytes: Buffer.byteLength(req.rawBody || '', 'utf8'),
+    });
     return res.status(401).json({ ok: false, error: 'Invalid Meta signature.' });
   }
 
@@ -1326,7 +1428,7 @@ app.post('/webhooks/whatsapp', async (req, res) => {
     if (error?.code === 'timeout') {
       const to = extractFirstIncomingPhone(req.body);
       const fallback = await sendWebhookTimeoutFallback(to);
-      logEvent('webhook_timeout_fallback', {
+      logEvent('handler_timeout', {
         phone: to ? `***${to.slice(-4)}` : null,
         fallback,
       });
@@ -1341,7 +1443,10 @@ app.post('/webhooks/whatsapp', async (req, res) => {
     logEvent('webhook_failed', { error: error.message });
     return res.status(500).json({ ok: false, error: 'Webhook processing failed.' });
   }
-});
+}
+
+app.post('/webhook', receiveWhatsAppWebhook);
+app.post('/webhooks/whatsapp', receiveWhatsAppWebhook);
 
 app.use(requireSecret);
 

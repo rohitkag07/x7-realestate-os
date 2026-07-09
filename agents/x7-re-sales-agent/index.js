@@ -14,11 +14,11 @@ const port = Number(process.env.PORT || 8080);
 const agentSecret = process.env.AGENT_SECRET || '';
 const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-const whatsappPhoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID || '';
-const whatsappAccessToken = process.env.WHATSAPP_ACCESS_TOKEN || '';
+const whatsappPhoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID || process.env.WHATSAPP_PHONE_ID || '';
+const whatsappAccessToken = process.env.WHATSAPP_ACCESS_TOKEN || process.env.WHATSAPP_TOKEN || '';
 const whatsappVerifyToken = process.env.WHATSAPP_VERIFY_TOKEN || '';
 const whatsappGraphVersion = process.env.WHATSAPP_GRAPH_VERSION || 'v22.0';
-const metaAppSecret = process.env.META_APP_SECRET || '';
+const metaAppSecret = process.env.META_APP_SECRET || process.env.WHATSAPP_APP_SECRET || process.env.APP_SECRET || '';
 const metaAccessToken = process.env.META_ACCESS_TOKEN || '';
 const metaAdAccountId = process.env.META_AD_ACCOUNT_ID || '';
 const defaultBuilderId = process.env.DEFAULT_BUILDER_ID || '';
@@ -56,7 +56,11 @@ app.get('/health', (_req, res) => {
     service: 'x7-re-sales-agent',
     phase: 'phase-2',
     supabase: Boolean(supabase),
-    whatsapp: whatsappReady,
+    whatsapp: {
+      configured: whatsappReady,
+      verify_token: Boolean(whatsappVerifyToken),
+      signature: Boolean(metaAppSecret),
+    },
     time: new Date().toISOString(),
   });
 });
@@ -94,7 +98,7 @@ app.get('/health/dependencies', async (_req, res) => {
   });
 });
 
-app.get('/webhooks/whatsapp', (req, res) => {
+function verifyWhatsAppWebhook(req, res) {
   if (summonerUrl) {
     const url = new URL(`${summonerUrl}/webhooks/whatsapp`);
     Object.entries(req.query).forEach(([key, value]) => {
@@ -125,9 +129,12 @@ app.get('/webhooks/whatsapp', (req, res) => {
   }
 
   return res.status(403).json({ ok: false, error: 'Webhook verification failed.' });
-});
+}
 
-app.post('/webhooks/whatsapp', async (req, res) => {
+app.get('/webhook', verifyWhatsAppWebhook);
+app.get('/webhooks/whatsapp', verifyWhatsAppWebhook);
+
+async function receiveWhatsAppWebhook(req, res) {
   if (summonerUrl) {
     try {
       const response = await fetch(`${summonerUrl}/webhooks/whatsapp`, {
@@ -136,7 +143,7 @@ app.post('/webhooks/whatsapp', async (req, res) => {
           'Content-Type': 'application/json',
           ...(req.header('x-hub-signature-256') ? { 'x-hub-signature-256': req.header('x-hub-signature-256') } : {}),
         },
-        body: JSON.stringify(req.body),
+        body: req.rawBody || JSON.stringify(req.body),
       });
 
       const payload = await response.text();
@@ -147,15 +154,19 @@ app.post('/webhooks/whatsapp', async (req, res) => {
   }
 
   if (!validateMetaSignature(req)) {
+    log('warn', 'webhook_signature_invalid', { path: req.path });
     return res.status(401).json({ ok: false, error: 'Invalid Meta signature.' });
   }
 
   await handleWhatsAppWebhook(req.body);
   return res.status(200).json({ ok: true });
-});
+}
+
+app.post('/webhook', receiveWhatsAppWebhook);
+app.post('/webhooks/whatsapp', receiveWhatsAppWebhook);
 
 app.use((req, res, next) => {
-  if (req.path === '/health' || req.path === '/health/dependencies' || req.path === '/webhooks/whatsapp') return next();
+  if (req.path === '/health' || req.path === '/health/dependencies' || req.path === '/webhook' || req.path === '/webhooks/whatsapp') return next();
   if (!agentSecret) {
     if (process.env.NODE_ENV !== 'production') return next();
     return res.status(500).json({ ok: false, error: 'AGENT_SECRET is not configured.' });
@@ -801,6 +812,42 @@ async function persistAnswer({ supabase: sb, threadId, businessId, key, answer }
   }
 }
 
+async function incrementBusinessUsage(businessId, field, amount = 1) {
+  if (!supabase || !businessId || !['messages_in', 'messages_out', 'handoffs', 'qual_answers'].includes(field)) return;
+
+  const today = new Date().toISOString().split('T')[0];
+  try {
+    await supabase.from('business_usage').upsert({
+      business_id: businessId,
+      date: today,
+    }, { onConflict: 'business_id,date' });
+
+    const { data, error } = await supabase
+      .from('business_usage')
+      .select(field)
+      .eq('business_id', businessId)
+      .eq('date', today)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    const current = Number(data?.[field] ?? 0);
+    const update = {};
+    update[field] = current + amount;
+
+    const { error: updateError } = await supabase
+      .from('business_usage')
+      .update(update)
+      .eq('business_id', businessId)
+      .eq('date', today);
+
+    if (updateError) throw updateError;
+    log('info', 'usage_incremented', { businessId, field, amount });
+  } catch (error) {
+    log('warn', 'usage_increment_failed', { businessId, field, error: error instanceof Error ? error.message : 'unknown_error' });
+  }
+}
+
 async function recordOutboundGeneric({ supabase: sb, threadId, content, metadata = {} }) {
   if (!sb || !threadId || !content) return;
   try {
@@ -973,7 +1020,10 @@ function bilingual(hi, en, locale = 'hi-en') {
 }
 
 function validateMetaSignature(req) {
-  if (!metaAppSecret) return true;
+  if (!metaAppSecret) {
+    log('warn', 'webhook_signature_secret_missing', { production: process.env.NODE_ENV === 'production' });
+    return process.env.NODE_ENV !== 'production';
+  }
 
   const signature = req.header('x-hub-signature-256') || '';
   if (!signature.startsWith('sha256=')) return false;
@@ -983,7 +1033,11 @@ function validateMetaSignature(req) {
     .update(req.rawBody || '', 'utf8')
     .digest('hex')}`;
 
-  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+  try {
+    return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+  } catch {
+    return false;
+  }
 }
 
 async function handleWhatsAppWebhook(payload) {
@@ -1030,6 +1084,7 @@ async function handleInboundMessage(message, envelope) {
       mediaUrl: null,
       agent: 'sales-agent-webhook',
     });
+    await incrementBusinessUsage(lead.builder_id, 'messages_in');
   }
 
   const body = extractMessageBody(message);
@@ -1139,6 +1194,21 @@ async function sendWhatsAppText({ to, body, builderId, leadId, projectId, agent 
       agent,
     });
 
+    if (!response.ok && (response.status === 401 || payload?.error?.type === 'OAuthException')) {
+      log('error', 'whatsapp_token_error', {
+        status: response.status,
+        code: payload?.error?.code ?? null,
+        type: payload?.error?.type ?? null,
+        message: payload?.error?.message ?? 'whatsapp_send_failed',
+        details: payload?.error?.error_data?.details ?? null,
+        fbtrace_id: payload?.error?.fbtrace_id ?? null,
+      });
+    }
+
+    if (response.ok) {
+      await incrementBusinessUsage(builderId, 'messages_out');
+    }
+
     return response.ok
       ? { ok: true, message_id: messageId }
       : { ok: false, error: payload?.error?.message || 'whatsapp_send_failed' };
@@ -1201,6 +1271,21 @@ async function sendWhatsAppDocument({ to, link, filename, caption, builderId, le
       agent,
       projectId,
     });
+
+    if (!response.ok && (response.status === 401 || payload?.error?.type === 'OAuthException')) {
+      log('error', 'whatsapp_token_error', {
+        status: response.status,
+        code: payload?.error?.code ?? null,
+        type: payload?.error?.type ?? null,
+        message: payload?.error?.message ?? 'whatsapp_document_failed',
+        details: payload?.error?.error_data?.details ?? null,
+        fbtrace_id: payload?.error?.fbtrace_id ?? null,
+      });
+    }
+
+    if (response.ok) {
+      await incrementBusinessUsage(builderId, 'messages_out');
+    }
 
     return response.ok
       ? { ok: true, message_id: messageId, media_url: link }

@@ -20,6 +20,7 @@ node_modules/
 .next/
 .next-dev/
 out/
+*.tsbuildinfo
 
 # misc
 coverage/

@@ -23,10 +23,31 @@ import { createClient } from '@supabase/supabase-js';
 
 const PORT         = Number(process.env.PORT) || 8081;
 const AGENT_SECRET = process.env.AGENT_SECRET || '';
-const META_BASE    = 'https://graph.facebook.com/v20.0';
+const WHATSAPP_GRAPH_VERSION = process.env.WHATSAPP_GRAPH_VERSION || 'v17.0';
+const META_BASE    = `https://graph.facebook.com/${WHATSAPP_GRAPH_VERSION}`;
 
 const app = express();
 app.use(express.json({ limit: '8mb' }));
+
+let _supabase = null;
+function supabase() {
+  if (_supabase) return _supabase;
+  const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || '';
+  if (!url || !key) return null;
+  _supabase = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+  return _supabase;
+}
+
+function log(level, event, extra = {}) {
+  console.log(JSON.stringify({
+    level,
+    event,
+    service: 'x7-re-tool-gateway',
+    time: new Date().toISOString(),
+    ...extra,
+  }));
+}
 
 function requireSecret(req, res, next) {
   if (!AGENT_SECRET) return next();
@@ -35,16 +56,29 @@ function requireSecret(req, res, next) {
   }
   next();
 }
-const safe = (res, fn) => Promise.resolve().then(fn).then((r) => res.json(r)).catch((e) => res.status(500).json({ ok: false, error: e.message }));
+const safe = (res, fn) => Promise.resolve().then(fn).then((r) => res.json(r)).catch((e) => {
+  log('error', 'request_failed', { error: e.message });
+  res.status(500).json({ ok: false, error: e.message });
+});
 
 // ---------------------------------------------------------------------------
 // HEALTH
 // ---------------------------------------------------------------------------
 const startedAt = Date.now();
-app.get('/health', (_req, res) => res.json({ service: 'x7-re-tool-gateway', status: 'ok', uptime_s: Math.round((Date.now() - startedAt) / 1000) }));
+app.get('/health', (_req, res) => res.json({
+  ok: true,
+  service: 'x7-re-tool-gateway',
+  status: 'ok',
+  supabase: Boolean(supabase()),
+  whatsapp: {
+    configured: Boolean((process.env.WHATSAPP_PHONE_NUMBER_ID || process.env.WHATSAPP_PHONE_ID) && (process.env.WHATSAPP_ACCESS_TOKEN || process.env.WHATSAPP_TOKEN)),
+    graph_version: WHATSAPP_GRAPH_VERSION,
+  },
+  uptime_s: Math.round((Date.now() - startedAt) / 1000),
+}));
 app.get('/health/dependencies', (_req, res) => res.json({
   service: 'x7-re-tool-gateway',
-  whatsapp: Boolean(process.env.WHATSAPP_PHONE_NUMBER_ID && process.env.WHATSAPP_ACCESS_TOKEN),
+  whatsapp: Boolean((process.env.WHATSAPP_PHONE_NUMBER_ID || process.env.WHATSAPP_PHONE_ID) && (process.env.WHATSAPP_ACCESS_TOKEN || process.env.WHATSAPP_TOKEN)),
   meta:     Boolean(process.env.META_ACCESS_TOKEN),
   remotion: process.env.REMOTION_MODE ?? 'local',
   higgsfield: Boolean(process.env.HIGGSFIELD_API_KEY),
@@ -55,20 +89,93 @@ app.use(requireSecret);
 // ---------------------------------------------------------------------------
 // WHATSAPP
 // ---------------------------------------------------------------------------
-async function metaSend(payload) {
-  const pid = process.env.WHATSAPP_PHONE_NUMBER_ID, token = process.env.WHATSAPP_ACCESS_TOKEN;
+async function incrementBusinessUsage(businessId, field, amount = 1) {
+  const sb = supabase();
+  if (!sb || !businessId || !['messages_in', 'messages_out', 'handoffs', 'qual_answers'].includes(field)) return;
+
+  const today = new Date().toISOString().split('T')[0];
+  try {
+    await sb.from('business_usage').upsert({
+      business_id: businessId,
+      date: today,
+    }, { onConflict: 'business_id,date' });
+
+    const { data, error } = await sb
+      .from('business_usage')
+      .select(field)
+      .eq('business_id', businessId)
+      .eq('date', today)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    const current = Number(data?.[field] ?? 0);
+    const update = {};
+    update[field] = current + amount;
+
+    const { error: updateError } = await sb
+      .from('business_usage')
+      .update(update)
+      .eq('business_id', businessId)
+      .eq('date', today);
+
+    if (updateError) throw updateError;
+    log('info', 'usage_incremented', { businessId, field, amount });
+  } catch (error) {
+    log('warn', 'usage_increment_failed', { businessId, field, error: error.message });
+  }
+}
+
+function logMetaError(response, payload, context = {}) {
+  if (response.status === 401 || payload?.error?.type === 'OAuthException') {
+    log('error', 'whatsapp_token_error', {
+      status: response.status,
+      code: payload?.error?.code ?? null,
+      type: payload?.error?.type ?? null,
+      message: payload?.error?.message ?? response.statusText,
+      ...context,
+    });
+    return;
+  }
+
+  log('warn', 'whatsapp_send_failed', {
+    status: response.status,
+    code: payload?.error?.code ?? null,
+    type: payload?.error?.type ?? null,
+    message: payload?.error?.message ?? response.statusText,
+    ...context,
+  });
+}
+
+async function metaSend(payload, context = {}) {
+  const pid = process.env.WHATSAPP_PHONE_NUMBER_ID || process.env.WHATSAPP_PHONE_ID;
+  const token = process.env.WHATSAPP_ACCESS_TOKEN || process.env.WHATSAPP_TOKEN;
   if (!pid || !token) throw new Error('WhatsApp credentials missing');
   const res = await fetch(`${META_BASE}/${pid}/messages`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json', authorization: `Bearer ${token}` }, body: JSON.stringify(payload),
+    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(payload),
   });
-  const json = await res.json();
-  if (!res.ok) throw new Error(`WhatsApp send failed: ${json?.error?.message ?? res.statusText}`);
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    logMetaError(res, json, context);
+    throw new Error(`WhatsApp send failed: ${json?.error?.message ?? res.statusText}`);
+  }
+  await incrementBusinessUsage(context.businessId, 'messages_out');
+  log('info', 'whatsapp_send_succeeded', { to: payload?.to ? `***${String(payload.to).slice(-4)}` : null, type: payload?.type, businessId: context.businessId ?? null });
   return { ok: true, wa_message_id: json?.messages?.[0]?.id ?? null, status: 'sent' };
 }
-app.post('/whatsapp/send/text',     (req, res) => safe(res, () => metaSend({ messaging_product: 'whatsapp', to: req.body.to, type: 'text', text: { body: req.body.body, preview_url: true } })));
-app.post('/whatsapp/send/document', (req, res) => safe(res, () => metaSend({ messaging_product: 'whatsapp', to: req.body.to, type: 'document', document: { link: req.body.url, filename: req.body.filename, caption: req.body.caption } })));
-app.post('/whatsapp/send/image',    (req, res) => safe(res, () => metaSend({ messaging_product: 'whatsapp', to: req.body.to, type: 'image', image: { link: req.body.url, caption: req.body.caption } })));
-app.post('/whatsapp/send/buttons',  (req, res) => safe(res, () => metaSend({ messaging_product: 'whatsapp', to: req.body.to, type: 'interactive', interactive: { type: 'button', body: { text: req.body.body }, action: { buttons: (req.body.buttons ?? []).map((b) => ({ type: 'reply', reply: { id: b.id, title: b.title } })) } } })));
+function usageContext(req) {
+  return { businessId: req.body.business_id || req.body.businessId || req.body.builder_id || req.body.builderId || null };
+}
+
+app.post('/whatsapp/send', (req, res) => safe(res, () => {
+  const type = req.body.type || 'text';
+  if (type !== 'text') throw new Error('Use /whatsapp/send/document, /image, or /buttons for non-text messages');
+  return metaSend({ messaging_product: 'whatsapp', to: req.body.to, type: 'text', text: { body: req.body.body || req.body.text, preview_url: req.body.preview_url ?? true } }, usageContext(req));
+}));
+app.post('/whatsapp/send/text',     (req, res) => safe(res, () => metaSend({ messaging_product: 'whatsapp', to: req.body.to, type: 'text', text: { body: req.body.body, preview_url: true } }, usageContext(req))));
+app.post('/whatsapp/send/document', (req, res) => safe(res, () => metaSend({ messaging_product: 'whatsapp', to: req.body.to, type: 'document', document: { link: req.body.url, filename: req.body.filename, caption: req.body.caption } }, usageContext(req))));
+app.post('/whatsapp/send/image',    (req, res) => safe(res, () => metaSend({ messaging_product: 'whatsapp', to: req.body.to, type: 'image', image: { link: req.body.url, caption: req.body.caption } }, usageContext(req))));
+app.post('/whatsapp/send/buttons',  (req, res) => safe(res, () => metaSend({ messaging_product: 'whatsapp', to: req.body.to, type: 'interactive', interactive: { type: 'button', body: { text: req.body.body }, action: { buttons: (req.body.buttons ?? []).map((b) => ({ type: 'reply', reply: { id: b.id, title: b.title } })) } } }, usageContext(req))));
 
 // ---------------------------------------------------------------------------
 // UPI
