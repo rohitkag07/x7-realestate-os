@@ -116,7 +116,7 @@ export async function getTrialConsoleData(): Promise<TrialConsoleData> {
   const startAt = subscription.data?.current_period_start ?? business.data?.created_at ?? new Date().toISOString();
   const endAt = subscription.data?.trial_end ?? subscription.data?.current_period_end ?? null;
   const trialDay = computeTrialDay(startAt, trialLengthDays);
-  const limit = Number(plan?.limits?.messages_per_day ?? 50);
+  const limit = Number(plan?.limits?.messages_per_day ?? 500);
 
   return {
     trial: {

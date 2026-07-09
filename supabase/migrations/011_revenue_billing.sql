@@ -22,7 +22,7 @@ CREATE TABLE public.subscription_plans (
 -- Seed the four plans defined in the pivot strategy
 INSERT INTO public.subscription_plans (key, name, price_inr, setup_fee_inr, features, limits, sort_order) VALUES
   ('trial',  'Trial',        0,     0,     '["7-day WhatsApp AI receptionist","1 vertical playbook","Daily hot-lead summary","Operator dashboard"]',
-                                            '{"messages_per_day":50,"contacts":100,"verticals":1}', 0),
+                                            '{"messages_per_day":500,"contacts":100,"verticals":1}', 0),
   ('basic',  'Basic',        2999,  5000,  '["WhatsApp receptionist 24/7","1 vertical playbook","Lead qualification","Follow-up queue","Daily summary","Dashboard access"]',
                                             '{"messages_per_day":150,"contacts":500,"verticals":1}', 1),
   ('growth', 'Growth',       7999,  10000, '["Everything in Basic","2 vertical playbooks","Handoff SLA alerts","Appointment booking","CSV export","Priority support"]',

@@ -204,7 +204,7 @@ async function ensureTrialPlan(api) {
     price_inr: 0,
     setup_fee_inr: 0,
     features: ['7-day WhatsApp AI receptionist', '1 vertical playbook', 'Daily hot-lead summary', 'Operator dashboard'],
-    limits: { messages_per_day: 50, contacts: 100, verticals: 1 },
+    limits: { messages_per_day: 500, contacts: 100, verticals: 1 },
     is_active: true,
     sort_order: 0,
   });
