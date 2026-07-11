@@ -32,10 +32,10 @@ The repo already contains a meaningful base that should be reused:
 - WhatsApp-oriented sales paths
 - follow-up queue concepts
 - Summoner-first agent orchestration
-- specialist agents and Tool Gateway
+- sales-agent, Summoner, and Tool Gateway runtime
 - Supabase persistence
 - real-estate vertical implementation
-- colony/society module for later vertical expansion
+- deferred vertical modules for later expansion
 
 ## Main App
 
@@ -53,16 +53,19 @@ Do not use `/Users/rohit/Documents/Claude/Projects/X7 Real estate` for new Whats
 
 ## Backend Agents
 
-Agents live in `agents/`:
+Launch-critical agents live in `agents/`:
 
 - `x7-re-summoner` - routing, WhatsApp ingress, queue/cron orchestration
 - `x7-re-tool-gateway` - WhatsApp send, UPI/payment links, PDFs, media helpers
 - `x7-re-sales-agent` - first assistant logic layer and real-estate qualification
-- `x7-re-content-agent` - deferred content generation
-- `x7-re-ads-agent` - deferred campaign operations
-- `x7-re-ghost-closer` - deferred outbound prospecting
-- `x7-re-colony-agent` - later society/resident vertical pack
-- `x7-re-finance-agent` - payment confirmation and receipt paths
+
+Deferred agents are not launch blockers for WhatsAI MVP:
+
+- `x7-re-content-agent`
+- `x7-re-ads-agent`
+- `x7-re-ghost-closer`
+- `x7-re-colony-agent`
+- `x7-re-finance-agent`
 
 ## Documentation
 
@@ -85,6 +88,12 @@ Long reference docs remain useful, but should be read as pre-pivot context:
 
 ## Local Setup
 
+Always work from the canonical path:
+
+```bash
+cd /Users/rohit/Projects/x7-realestate-os
+```
+
 Install dependencies inside the app or agent you are working on:
 
 ```bash
@@ -102,7 +111,7 @@ Default URL: `http://localhost:3000`.
 Run the agent mesh:
 
 ```bash
-pm2 start ecosystem.config.cjs
+pm2 start ecosystem.config.cjs --update-env
 pm2 list
 ```
 
@@ -112,6 +121,25 @@ Stop the local mesh:
 pm2 stop x7-sales-agent x7-tool-gateway x7-summoner
 ```
 
+Run the complete WhatsAI readiness proof:
+
+```bash
+npm run prove:whatsai
+```
+
+This checks required env, PM2 health on ports `8080`, `8081`, `8082`, WhatsApp webhook verification, and Supabase `conversation_threads`.
+
 ## Current Build Rule
 
 Do not rebuild from scratch. Add the generic WhatsAI business/playbook layer beside the current real-estate implementation, preserve working real-estate flows, and migrate to generic routes only after parity is proven.
+
+## Launch Blockers
+
+Launch blockers for the current WhatsAI MVP are only:
+
+- Supabase env and canonical conversation tables are not reachable.
+- The three active PM2 agents are not online: sales-agent, tool-gateway, summoner.
+- WhatsApp Cloud API token or verify token is missing/invalid.
+- Public webhook verification cannot return `200`.
+
+Razorpay, content generation, colony management, finance workflows, OpenAI content, and advanced Meta Ads are deferred modules. They are not blockers for the WhatsAI lead-to-appointment MVP.

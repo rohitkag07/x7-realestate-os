@@ -65,7 +65,7 @@ After real-estate parity:
 
 ## What Not To Build Next
 
-- full colony management as primary product
+- full colony management as primary product or launch blocker
 - full ad automation
 - full content factory
 - mobile app

@@ -2,17 +2,14 @@
 
 ## Repo Shape
 
-- `apps/dashboard`: main operator dashboard
+- root `src/`: active Next.js operator dashboard
 - `agents/x7-re-summoner`: routing, queue orchestration, cron fan-out, central WhatsApp ingress
 - `agents/x7-re-sales-agent`: lead qualification, follow-up, and current real-estate assistant logic
-- `agents/x7-re-content-agent`: content generation and rendering, deferred for pivot MVP
-- `agents/x7-re-ads-agent`: campaign management, deferred for pivot MVP
-- `agents/x7-re-ghost-closer`: outbound prospecting, deferred for pivot MVP
-- `agents/x7-re-colony-agent`: colony operations, later society/resident vertical pack
-- `agents/x7-re-finance-agent`: finance and receipts
 - `agents/x7-re-tool-gateway`: shared external execution
 - `supabase/migrations`: schema and RLS
 - `scripts`: local agent-mesh helpers
+
+Deferred modules, not launch blockers: content, ads, ghost-closer, colony, finance, Razorpay/payment automation.
 
 ## Runtime Pattern
 
@@ -61,12 +58,10 @@ The generic WhatsAI layer still needs to be built.
 - major Phase 6 orchestration and local mesh
 - pivot documentation layer
 
-## Current Critical Conditional Areas
+## Current Launch-Critical Areas
 
 - live Supabase credentials
 - live Meta WhatsApp credentials
-- live Razorpay credentials
-- production scheduler wiring
 - production-quality evidence capture
 - generic business/playbook schema and UI
 - generic WhatsApp assistant response contract
@@ -74,9 +69,8 @@ The generic WhatsAI layer still needs to be built.
 ## Current External Boundaries
 
 - WhatsApp uses Meta Cloud API
-- payments use Razorpay webhook and UPI helpers
-- content/media depends on OpenAI, Higgsfield, Remotion, and Meta publish paths
-- several integrations can simulate locally but still require real credential proof for launch
+- payments, content/media, colony, finance, and advanced Meta Ads are deferred external modules
+- WhatsAI launch proof requires only WhatsApp Cloud API, Supabase, Summoner, sales-agent, and Tool Gateway
 
 ## Current Routing Rule
 

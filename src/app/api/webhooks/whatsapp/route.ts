@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/supabase/server';
+import { persistLeadToAppointmentFlow } from '@/lib/whatsai-lead-flow';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -237,6 +238,19 @@ async function handleInboundMessage(supabase: ReturnType<typeof createServiceCli
       agent: resident ? 'public-whatsapp-colony' : 'public-whatsapp-sales',
       template_params: projectId ? [{ project_id: projectId }] : [],
     });
+
+    if (!resident) {
+      await persistLeadToAppointmentFlow(supabase, {
+        builderId,
+        projectId,
+        leadId: lead?.id ?? null,
+        phone,
+        name: lead?.name ?? null,
+        source: 'whatsapp',
+        body,
+        waMessageId: message.id,
+      });
+    }
   }
 
   if (!builderId || !body) return;

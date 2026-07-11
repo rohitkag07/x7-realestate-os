@@ -1,21 +1,35 @@
-# X7 WhatsAI Assistant - Operator Dashboard
+# X7 WhatsAI Assistant - Operator Dashboard Reference
 
-Next.js 14 (App Router) + TypeScript + TailwindCSS + shadcn/ui dashboard.
+The active dashboard now lives in the canonical repo root `src/`, not this `apps/dashboard/src` tree.
+Use this file only as historical structure reference.
 
-This dashboard is now the operator console for WhatsAI Assistant trials and vertical packs. The old builder-only workflows remain as the SiteVisit AI vertical pack while the product moves horizontal.
+Canonical path:
+
+```text
+/Users/rohit/Projects/x7-realestate-os
+```
+
+Current runbook:
+
+```text
+WHATSAI_RUNBOOK.md
+```
 
 ## Quickstart
 
 ```bash
-cp .env.local.example .env.local   # fill in Supabase + agent URLs
+cd /Users/rohit/Projects/x7-realestate-os
+cp .env.example apps/dashboard/.env.local
 npm install
+pm2 start ecosystem.config.cjs --update-env
+npm run prove:whatsai
 npm run dev                        # http://localhost:3000
 ```
 
 ## Current Structure
 
 ```text
-src/
+/Users/rohit/Projects/x7-realestate-os/src/
 ├── app/
 │   ├── (auth)/login          - operator login
 │   ├── (dashboard)/
@@ -23,9 +37,9 @@ src/
 │   │   ├── leads             - current lead pipeline
 │   │   ├── site-visits       - first vertical appointment flow
 │   │   ├── bookings          - conversion records
-│   │   ├── content           - deferred content calendar
-│   │   ├── campaigns         - deferred campaign operations
-│   │   ├── colony            - later society/resident vertical pack
+│   │   ├── content           - deferred content calendar, not launch blocker
+│   │   ├── campaigns         - deferred campaign operations, not launch blocker
+│   │   ├── colony            - later society/resident vertical pack, not launch blocker
 │   │   ├── reports           - analytics
 │   │   └── settings          - business profile, integrations, readiness
 │   └── guard                 - retained for society/visitor vertical behavior

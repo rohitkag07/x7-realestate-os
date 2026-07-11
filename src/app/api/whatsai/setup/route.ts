@@ -13,8 +13,13 @@ const schema = z.object({
   owner_name: z.string().optional().nullable(),
   owner_whatsapp: z.string().min(8),
   phone_number_id: z.string().optional().nullable(),
+  business_account_id: z.string().optional().nullable(),
+  verify_token: z.string().optional().nullable(),
+  core_offer: z.string().min(5).optional().nullable(),
   goal: z.string().min(10),
   knowledge: z.string().min(10),
+  qualification_questions: z.array(z.string().min(1)).optional().default([]),
+  persona: z.string().min(10).optional().nullable(),
 });
 
 export async function POST(request: Request) {
@@ -51,6 +56,10 @@ export async function POST(request: Request) {
           status: 'trial',
           plan: 'trial',
           daily_message_limit: 500,
+          metadata: {
+            core_offer: payload.core_offer ?? null,
+            onboarding_source: 'assistant_setup_wizard',
+          },
         })
         .eq('id', existing.data.id)
         .select()
@@ -67,6 +76,10 @@ export async function POST(request: Request) {
           status: 'trial',
           plan: 'trial',
           daily_message_limit: 500,
+          metadata: {
+            core_offer: payload.core_offer ?? null,
+            onboarding_source: 'assistant_setup_wizard',
+          },
         })
         .select()
         .single();
@@ -77,14 +90,30 @@ export async function POST(request: Request) {
 
   const business = businessWrite.data;
 
+  const phoneNumberId = payload.phone_number_id ?? process.env.WHATSAPP_PHONE_NUMBER_ID ?? null;
+  const channelPhone = normalizePhone(payload.owner_whatsapp);
+
   await (supabase.from('business_channels') as any).insert({
     business_id: business.id,
+    provider: 'meta_whatsapp',
+    channel_id: phoneNumberId || `pending-${business.id}`,
+    channel_phone: channelPhone,
     channel_type: 'whatsapp',
-    phone_number: normalizePhone(payload.owner_whatsapp),
-    phone_number_id: payload.phone_number_id ?? process.env.WHATSAPP_PHONE_NUMBER_ID ?? null,
+    phone_number: channelPhone,
+    phone_number_id: phoneNumberId,
+    business_account_id: payload.business_account_id ?? null,
+    verify_token: payload.verify_token ?? process.env.WHATSAPP_VERIFY_TOKEN ?? null,
     display_name: payload.name,
     is_primary: true,
-    status: payload.phone_number_id || process.env.WHATSAPP_PHONE_NUMBER_ID ? 'connected' : 'testing',
+    status: phoneNumberId ? 'connected' : 'testing',
+    config: {
+      source: 'assistant_setup_wizard',
+      webhook_path: '/api/webhooks/whatsapp',
+    },
+    metadata: {
+      webhook_ready: Boolean(payload.verify_token ?? process.env.WHATSAPP_VERIFY_TOKEN),
+      business_account_id: payload.business_account_id ?? null,
+    },
   });
 
   const playbook = await (supabase.from('assistant_playbooks') as any)
@@ -92,9 +121,9 @@ export async function POST(request: Request) {
       business_id: business.id,
       vertical: payload.category,
       name: `${payload.name} WhatsAI Playbook`,
-      goal: payload.goal,
-      tone: 'friendly_hinglish',
-      qualification_questions: defaultQuestions(payload.category),
+      goal: [payload.goal, payload.core_offer ? `Core offer: ${payload.core_offer}` : null].filter(Boolean).join('\n'),
+      tone: payload.persona ?? 'friendly_hinglish',
+      qualification_questions: payload.qualification_questions.length ? payload.qualification_questions : defaultQuestions(payload.category),
       hot_lead_rules: {
         score_threshold: 70,
         signals: ['appointment_intent', 'budget_shared', 'urgent_need', 'asked_price'],
@@ -116,7 +145,11 @@ export async function POST(request: Request) {
     playbook_id: playbook.data?.id ?? null,
     title: 'Initial Business Knowledge',
     kind: 'faq',
-    content: payload.knowledge,
+    content: [
+      payload.core_offer ? `Core offer:\n${payload.core_offer}` : null,
+      `Knowledge / FAQs:\n${payload.knowledge}`,
+      payload.persona ? `AI persona:\n${payload.persona}` : null,
+    ].filter(Boolean).join('\n\n'),
     active: true,
   });
 

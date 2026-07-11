@@ -11,6 +11,7 @@
     "start": "next start",
     "lint": "eslint src",
     "type-check": "node scripts/sanitize-next-types.js && tsc --noEmit",
+    "prove:whatsai": "node scripts/prove-whatsai.js",
     "phase-a:check": "./scripts/check-rollout-readiness.sh"
   },
   "dependencies": {

@@ -1,17 +1,18 @@
 # X7 WhatsAI Assistant Env Contract
 
-This file is the source of truth for runtime environment variables expected by the current codebase.
+This file is the source of truth for runtime environment variables required for the current WhatsAI lead-to-appointment MVP.
 
-The repo still uses several `x7-re-*` service names and real-estate defaults. During the pivot, keep those env vars working for backward compatibility while adding generic business/playbook envs only when code requires them.
+The repo still uses several `x7-re-*` service names and real-estate defaults. Keep those env vars working for backward compatibility while the generic WhatsAI naming is completed.
 
 ## Shared Rules
 
-- `AGENT_SECRET` must be identical across dashboard server routes, Summoner, and all agents.
+- `AGENT_SECRET` must be identical across dashboard server routes, Summoner, sales-agent, and tool-gateway.
 - `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are required for write-capable backend flows.
 - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are client-safe dashboard values.
 - Local defaults are acceptable for development, but production must use explicit values.
 - Prefer Summoner as the public ingress for WhatsApp webhooks and agent fan-out.
 - New WhatsAI work should resolve business context before falling back to old `DEFAULT_BUILDER_ID` / `DEFAULT_PROJECT_ID` values.
+- Razorpay, content, colony, finance, advanced Meta Ads, and OpenAI content generation are deferred modules and are not MVP launch blockers.
 
 ## Pivot Compatibility Values
 
@@ -43,30 +44,18 @@ Agent URLs:
 - `SUMMONER_URL`
 - `NEXT_PUBLIC_SUMMONER_URL`
 - `SALES_AGENT_URL`
-- `CONTENT_AGENT_URL`
-- `ADS_AGENT_URL`
-- `GHOST_CLOSER_URL`
-- `COLONY_AGENT_URL`
-- `FINANCE_AGENT_URL`
 - `TOOL_GATEWAY_URL`
 
-Optional external integrations exposed in dashboard workflows:
+WhatsApp:
 
-- `NEXT_PUBLIC_RAZORPAY_KEY_ID`
-- `RAZORPAY_KEY_SECRET`
 - `WHATSAPP_PHONE_NUMBER_ID`
 - `WHATSAPP_ACCESS_TOKEN`
 - `WHATSAPP_VERIFY_TOKEN`
 - `WHATSAPP_GRAPH_VERSION`
-- `META_APP_ID`
 - `META_APP_SECRET`
-- `META_ACCESS_TOKEN`
-- `META_AD_ACCOUNT_ID`
-- `GOOGLE_ADS_DEVELOPER_TOKEN`
-- `GOOGLE_ADS_CLIENT_ID`
-- `GOOGLE_ADS_CLIENT_SECRET`
-- `GOOGLE_ADS_REFRESH_TOKEN`
-- `OPENAI_API_KEY`
+
+Default context:
+
 - `DEFAULT_BUILDER_ID`
 - `DEFAULT_PROJECT_ID`
 - `DEFAULT_BUSINESS_ID`
@@ -74,6 +63,14 @@ Optional external integrations exposed in dashboard workflows:
 - `DEFAULT_VERTICAL`
 - `OWNER_HANDOFF_PHONE`
 - `TRIAL_MODE_ENABLED`
+
+Deferred optional integrations:
+
+- `OPENAI_API_KEY`
+- `META_ACCESS_TOKEN`
+- `META_AD_ACCOUNT_ID`
+- `NEXT_PUBLIC_RAZORPAY_KEY_ID`
+- `RAZORPAY_KEY_SECRET`
 
 ## Summoner
 
@@ -94,11 +91,7 @@ Routing and default context:
 - `DEFAULT_ASSISTANT_PLAYBOOK_ID`
 - `DEFAULT_VERTICAL`
 - `SALES_AGENT_URL`
-- `CONTENT_AGENT_URL`
-- `ADS_AGENT_URL`
-- `COLONY_AGENT_URL`
-- `FINANCE_AGENT_URL`
-- `GHOST_CLOSER_URL`
+- `TOOL_GATEWAY_URL`
 
 WhatsApp ingress:
 
@@ -143,89 +136,6 @@ Optional intelligence and proxy:
 - `OPENAI_MODEL`
 - `SUMMONER_URL`
 
-## Content Agent
-
-File: `agents/x7-re-content-agent/.env`
-
-Required:
-
-- `PORT` default `8083`
-- `NODE_ENV`
-- `AGENT_SECRET`
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `TOOL_GATEWAY_URL`
-
-AI:
-
-- `OPENAI_API_KEY`
-- `OPENAI_MODEL_CONTENT`
-
-## Ads Agent
-
-File: `agents/x7-re-ads-agent/.env`
-
-Required:
-
-- `PORT` default `8085`
-- `NODE_ENV`
-- `AGENT_SECRET`
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
-
-Meta Ads:
-
-- `META_ACCESS_TOKEN`
-- `META_AD_ACCOUNT_ID`
-- `META_PIXEL_ID`
-
-## Ghost Closer
-
-File: `agents/x7-re-ghost-closer/.env`
-
-Required:
-
-- `PORT` default `8086`
-- `NODE_ENV`
-- `AGENT_SECRET`
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `TOOL_GATEWAY_URL`
-
-AI:
-
-- `OPENAI_API_KEY`
-- `OPENAI_MODEL_OUTREACH`
-
-## Colony Agent
-
-File: `agents/x7-re-colony-agent/.env`
-
-Required:
-
-- `PORT` default `8087`
-- `AGENT_SECRET`
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `TOOL_GATEWAY_URL`
-
-## Finance Agent
-
-File: `agents/x7-re-finance-agent/.env`
-
-Required:
-
-- `PORT` default `8088`
-- `AGENT_SECRET`
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `TOOL_GATEWAY_URL`
-- `COLONY_AGENT_URL`
-
-Payments:
-
-- `RAZORPAY_WEBHOOK_SECRET`
-
 ## Tool Gateway
 
 File: `agents/x7-re-tool-gateway/.env`
@@ -241,23 +151,17 @@ WhatsApp:
 - `WHATSAPP_PHONE_NUMBER_ID`
 - `WHATSAPP_ACCESS_TOKEN`
 
-Meta publish:
+Deferred optional tool-gateway integrations:
 
 - `META_ACCESS_TOKEN`
 - `META_IG_USER_ID`
 - `META_FB_PAGE_ID`
-
-Media/render:
-
 - `HIGGSFIELD_API_KEY`
 - `REMOTION_MODE`
 - `REMOTION_LAMBDA_FN`
 - `REMOTION_LAMBDA_REGION`
 - `REMOTION_SERVE_URL`
 - `REMOTION_PROJECT_DIR`
-
-Payments:
-
 - `RAZORPAY_KEY_ID`
 - `RAZORPAY_KEY_SECRET`
 - `DEFAULT_UPI_VPA`
@@ -271,18 +175,16 @@ Payments:
 | Sales / Assistant Agent | `8080` |
 | Tool Gateway | `8081` |
 | Summoner | `8082` |
-| Content Agent | `8083` |
-| Ads Agent | `8085` |
-| Ghost Closer | `8086` |
-| Colony Agent | `8087` |
-| Finance Agent | `8088` |
+
+Ports `8083`, `8085`, `8086`, `8087`, and `8088` are deferred module ports and are not part of the WhatsAI MVP proof.
 
 ## Deployment Rule
 
 Before any production rollout:
 
 1. fill the env files or platform secrets from this contract
-2. ensure all agent URLs point to the correct deployed services
+2. ensure Summoner, sales-agent, and tool-gateway URLs point to the correct deployed services
 3. verify `AGENT_SECRET` matches everywhere
 4. verify Supabase service credentials are present only in backend services
 5. verify the default business/playbook context before enabling a trial business
+6. run `npm run prove:whatsai`

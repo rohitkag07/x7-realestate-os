@@ -32,7 +32,7 @@ X7 has been pivoted from a real-estate-only product into a WhatsApp-first AI rec
 | 1 | Type-check | ✅ | `apps/dashboard` and `apps/landing` passed `tsc --noEmit`. |
 | 2 | Supabase tables | ✅ | 14/14 required tables verified through Supabase REST API. |
 | 3 | Trial business seeded | ✅ | `business_id: 6a427b8d-ec8e-418d-9eea-c8eae278e451`; checklist seeded with 8 rows. |
-| 4 | Agent health | ✅ | Sales, tool gateway, summoner, content, ads, ghost closer, colony, and finance agents returned 200. |
+| 4 | Agent health | ✅ | Launch-critical services returned 200: sales-agent, tool-gateway, and summoner. |
 | 5 | Signed webhook simulation | ✅ | Signed Meta-style webhook accepted; contact, inbound/outbound messages, and first qualification answer saved. |
 | 6 | Multi-turn conversation | ✅ | 4-message coaching flow saved 5 answers and triggered handoff `keyword_trigger`. |
 | 7 | Dashboard live data | ✅ | Critical dashboard pages returned 200; conversations page rendered seeded Supabase data. |
@@ -42,14 +42,14 @@ X7 has been pivoted from a real-estate-only product into a WhatsApp-first AI rec
 
 ## Current Blockers
 
-1. Meta WhatsApp access token is expired or invalid. Simulated inbound works and DB writes succeed, but real outbound delivery needs a fresh token from `developer.facebook.com`.
+1. No current local blocker when `npm run prove:whatsai` passes. If it fails, follow the printed fix instruction.
 
 ## What IS Proven
 
 - Supabase production project is reachable from local services.
 - Required WhatsAI tables exist: businesses, profiles, channels, playbooks, contacts, threads, messages, answers, handoffs, plans, subscriptions, usage, setup checklist, and invoices.
 - Trial business seed flow works.
-- Local agent stack is healthy on ports `8080-8088`.
+- Local launch-critical agent stack is healthy on ports `8080`, `8081`, and `8082`.
 - Sales agent `/playbook/qualify` works for the coaching vertical.
 - Signed Meta-style webhook verification path works.
 - Summoner persists WhatsApp contacts and conversation messages.
@@ -61,19 +61,18 @@ X7 has been pivoted from a real-estate-only product into a WhatsApp-first AI rec
 
 ## What IS NOT Proven Yet
 
-- Actual outbound WhatsApp delivery through Meta Cloud API.
-- Real inbound WhatsApp message from Rohit's personal phone into the ngrok URL.
-- Meta Developer Portal webhook verification against a live ngrok URL.
+- Deferred modules: Razorpay/payment automation, content generation, colony/resident management, finance receipts, and advanced Meta Ads automation.
 
-These are blocked only by the live Meta token/manual portal step, not by local code or database wiring.
+These are not blockers for the current WhatsAI lead-to-appointment MVP.
 
 ## Pre-Launch Checklist for Rohit
 
 - [ ] Get a fresh Meta WhatsApp Access Token from Meta Developer Portal.
 - [ ] Update `WHATSAPP_ACCESS_TOKEN` in `agents/x7-re-summoner/.env`.
 - [ ] Update `WHATSAPP_ACCESS_TOKEN` in `agents/x7-re-tool-gateway/.env`.
-- [ ] Start local agents with `./scripts/start-phase6-local.sh`.
-- [ ] Start dashboard with `cd apps/dashboard && npm run dev`.
+- [ ] Start local agents with `pm2 start ecosystem.config.cjs --update-env`.
+- [ ] Start dashboard with `npm run dev`.
+- [ ] Run `npm run prove:whatsai`.
 - [ ] Start ngrok with `ngrok http 8082`.
 - [ ] Configure ngrok callback URL in Meta Developer Portal: `https://YOUR-NGROK-DOMAIN/webhook`.
 - [ ] Use `WHATSAPP_VERIFY_TOKEN` from `agents/x7-re-summoner/.env` in Meta webhook verification.
@@ -97,11 +96,7 @@ SUPABASE_SERVICE_ROLE_KEY=
 NEXT_PUBLIC_APP_URL=
 SUMMONER_URL=
 SALES_AGENT_URL=
-CONTENT_AGENT_URL=
-ADS_AGENT_URL=
-COLONY_AGENT_URL=
-FINANCE_AGENT_URL=
-GHOST_CLOSER_URL=
+TOOL_GATEWAY_URL=
 AGENT_SECRET=
 ```
 

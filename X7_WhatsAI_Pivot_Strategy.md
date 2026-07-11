@@ -214,7 +214,7 @@ Build only what is needed to trial with 10 local businesses.
 
 ### Not Now
 
-- full colony management as primary product
+- full colony management as primary product or launch blocker
 - full ad campaign automation
 - full content engine
 - multi-agent complexity exposed to customers
@@ -257,9 +257,9 @@ Build only what is needed to trial with 10 local businesses.
 - clinic and coaching next
 - local services after proof
 
-### Phase P5: Revenue Features
+### Phase P5: Deferred Revenue Features
 
-- Razorpay subscription or invoice flow
+- Razorpay subscription or invoice flow after WhatsAI lead-to-appointment proof
 - trial expiry and upgrade prompts
 - usage limits
 - white-label setup checklist

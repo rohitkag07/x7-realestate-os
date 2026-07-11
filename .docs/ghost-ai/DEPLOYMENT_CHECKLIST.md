@@ -7,9 +7,10 @@ Use this file for production or near-production rollout verification.
 - confirm `ENV_CONTRACT.md` has been filled with real values
 - confirm Supabase migrations are current
 - confirm one shared `AGENT_SECRET` for all backend services
-- confirm final public URLs for dashboard, Summoner, and specialist agents
-- confirm WhatsApp and Razorpay credentials are production-safe
+- confirm final public URLs for dashboard, Summoner, sales-agent, and tool-gateway
+- confirm WhatsApp credentials are production-safe
 - confirm at least one `business` / `assistant_playbook` / trial context exists once the pivot schema is added
+- run `npm run prove:whatsai` locally before changing production webhook settings
 
 ## 2. Supabase
 
@@ -26,18 +27,14 @@ Recommended order:
 
 1. `x7-re-tool-gateway`
 2. `x7-re-sales-agent` / assistant-agent compatibility service
-3. `x7-re-content-agent`
-4. `x7-re-ads-agent`
-5. `x7-re-ghost-closer`
-6. `x7-re-colony-agent`
-7. `x7-re-finance-agent`
-8. `x7-re-summoner`
-9. `apps/dashboard`
+3. `x7-re-summoner`
+4. dashboard
 
 Reason:
 
-- Summoner depends on stable downstream agent URLs.
+- Summoner depends on stable sales-agent and tool-gateway URLs.
 - Dashboard should deploy after backend URLs are stable.
+- Content, ads, ghost-closer, colony, finance, Razorpay, and content generation are deferred modules, not launch blockers.
 
 ## 4. Health Checks
 
@@ -48,22 +45,21 @@ Expected local equivalents:
 - `http://localhost:8080/health`
 - `http://localhost:8081/health`
 - `http://localhost:8082/health`
-- `http://localhost:8083/health`
-- `http://localhost:8085/health`
-- `http://localhost:8086/health`
-- `http://localhost:8087/health`
-- `http://localhost:8088/health`
 - `http://localhost:3000/api/agent-mesh/health`
 
 Also verify dependency endpoints where available:
 
 - Summoner `/health/dependencies`
-- Colony agent `/health/dependencies`
-- Finance agent `/health/dependencies`
+
+Or run:
+
+```bash
+npm run prove:whatsai
+```
 
 ## 5. Summoner Routing Proof
 
-- verify Summoner can reach all downstream agents
+- verify Summoner can reach sales-agent and tool-gateway
 - verify queue endpoints respond:
   - `POST /queue/enqueue`
   - `POST /queue/drain`
@@ -102,12 +98,11 @@ Use X7 SiteVisit AI as the first vertical pack.
 - follow-up queue persists
 - owner receives summary or handoff
 
-## 8. Finance Proof
+## 8. Deferred Payment Proof
 
-- verify payment state path using Razorpay test event where available
-- verify webhook signature handling
-- verify receipt or payment state updates persist in Supabase
-- do not claim subscription success without verified payment or manual invoice state
+Razorpay/payment automation is not required for the WhatsAI lead-to-appointment MVP.
+Do not block launch on Razorpay, colony, finance, content-agent, or OpenAI content credentials.
+Verify payment workflows only when the payment module becomes active.
 
 ## 9. Dashboard Proof
 

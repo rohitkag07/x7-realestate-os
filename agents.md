@@ -13,11 +13,17 @@
 - sales / assistant compatibility service `8080`
 - tool-gateway `8081`
 - summoner `8082`
+
+Only these three services are launch-critical for the WhatsAI MVP.
+Deferred module ports:
+
 - content `8083`
 - ads `8085`
 - ghost-closer `8086`
 - colony `8087`
 - finance `8088`
+
+Deferred modules are not blockers for lead-to-appointment launch proof.
 
 ## Summoner Rules
 

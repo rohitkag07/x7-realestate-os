@@ -1,9 +1,10 @@
 # Phase A Foundation Setup
 > [!IMPORTANT]
-> Pivot note (2026-07-08): Phase A remains useful as foundation history. New work should follow `X7_WhatsAI_Pivot_Strategy.md`: preserve the existing real-estate foundation and add the generic WhatsAI business/playbook layer beside it.
+> Pivot note (2026-07-11): Phase A is now foundation history. Active WhatsAI MVP proof is `npm run prove:whatsai` from `/Users/rohit/Projects/x7-realestate-os`.
 
 
-This file is the single source of truth for Phase A foundation work on X7 RealEstate OS.
+This file is historical context for Phase A foundation work on X7 RealEstate OS.
+For current launch operations use `WHATSAI_RUNBOOK.md`.
 
 ## Goal
 
@@ -20,8 +21,8 @@ Turn the current local demo stack into a real, env-backed app foundation by:
 - Supabase foundation is now live on project `yxiniazontslpivaoxfb`.
 - Core dashboard probes are no longer blanket `blocked`; the readiness panel now reports real green and blocked groups separately.
 - The main blocker is not page scaffolding anymore. The blocker is remaining vendor credentials and production-grade local run discipline.
-- The stable local dashboard runtime is currently the no-space workspace copy:
-  - `/Users/rohit/Documents/Claude/Projects/X7-Real-estate-local`
+- The stable local dashboard runtime is the canonical no-space repo:
+  - `/Users/rohit/Projects/x7-realestate-os`
 
 ## Current Verified Status (24 June 2026)
 
@@ -63,7 +64,7 @@ This is the current hard-proof status, not a future plan.
   - dashboard `GET /api/ping`: ready
   - dashboard `GET /api/ops/readiness`: ready
   - landing project route loads from live Supabase
-  - summoner, sales, tool-gateway, content, ads, ghost-closer, colony, finance: all reachable
+  - launch-critical WhatsAI services are reachable: summoner, sales-agent, tool-gateway
 - Verified WhatsApp proof:
   - Meta test number is active
   - verified recipient `+91 78691 61842` received:
@@ -79,11 +80,8 @@ This is the current hard-proof status, not a future plan.
   - Vercel production project exists:
     - `x7-realestate-os`
     - `https://x7-realestate-os.vercel.app`
-- Current readiness still blocked only where real external credentials are missing:
-  - Meta Ads
-  - Razorpay
-  - OpenAI
-  - Remotion/Higgsfield media credentials
+- Current WhatsAI MVP readiness is proven by `npm run prove:whatsai`.
+- Meta Ads, Razorpay, OpenAI, Remotion/Higgsfield, content, colony, and finance are deferred modules, not launch blockers.
 
 ## Phase A Order
 
@@ -93,26 +91,19 @@ Follow this exact order:
 2. default builder and project IDs
 3. shared agent secret and local URLs
 4. WhatsApp ingress
-5. Meta Ads
-6. Razorpay
-7. OpenAI and media
+5. run `npm run prove:whatsai`
 
-Do not start with Meta or Razorpay before Supabase is live. The whole app depends on the DB backbone.
+Do not block WhatsAI MVP launch on Meta Ads, Razorpay, OpenAI, content, colony, or finance.
 
 ## Files You Will Touch
 
 Primary files:
 
 - `apps/dashboard/.env.local`
-- `apps/landing/.env.local`
 - `agents/x7-re-summoner/.env`
 - `agents/x7-re-sales-agent/.env`
-- `agents/x7-re-content-agent/.env`
-- `agents/x7-re-ads-agent/.env`
-- `agents/x7-re-ghost-closer/.env`
-- `agents/x7-re-colony-agent/.env`
-- `agents/x7-re-finance-agent/.env`
 - `agents/x7-re-tool-gateway/.env`
+- `.env.example`
 
 Examples:
 
@@ -149,23 +140,17 @@ These should be real UUIDs from your seeded or manually created builder and proj
 - `AGENT_SECRET`
 - `SUMMONER_URL=http://localhost:8082`
 - `SALES_AGENT_URL=http://localhost:8080`
-- `CONTENT_AGENT_URL=http://localhost:8083`
-- `ADS_AGENT_URL=http://localhost:8085`
-- `GHOST_CLOSER_URL=http://localhost:8086`
-- `COLONY_AGENT_URL=http://localhost:8087`
-- `FINANCE_AGENT_URL=http://localhost:8088`
 - `TOOL_GATEWAY_URL=http://localhost:8081`
 
 ## Minimal Success Criteria For Phase A
 
 Phase A is successful when all of this is true:
 
-1. `/api/ops/readiness` shows Supabase client as ready
-2. `/api/ops/readiness` shows Supabase service role as ready
-3. `/api/ops/readiness` shows default builder context as ready
-4. `/api/agent-mesh/health` reports `supabase: true` for services that need it
-5. dashboard data probes for builders, projects, leads, and residents stop showing `blocked`
-6. landing project pages stop failing due to missing Supabase env
+1. `npm run prove:whatsai` passes
+2. dashboard runs from `/Users/rohit/Projects/x7-realestate-os`
+3. PM2 shows `x7-sales-agent`, `x7-tool-gateway`, and `x7-summoner` online
+4. Summoner webhook verify returns `200`
+5. Supabase `conversation_threads` is reachable
 
 ## Phase A Result
 
@@ -187,29 +172,26 @@ What is done:
 
 What is not part of Phase A:
 
-- real Meta credentials
-- real Razorpay keys and webhook secret
-- real OpenAI key
-- real Remotion/Higgsfield media execution config
+- Meta Ads automation
+- Razorpay/payment automation
+- OpenAI content generation
+- Remotion/Higgsfield media execution
+- colony/finance/content-agent launch proof
 
 ## Current External Blockers
 
-These are no longer build or architecture blockers. They are external-state blockers.
+These are no longer WhatsAI MVP launch blockers.
 
-- public production webhook path still needs one last live inbound message proof against the active Vercel deployment after the latest webhook route commit is deployed
-- Meta Ads credentials are still missing
-- Razorpay credentials are still missing
-- OpenAI and media credentials are still missing
+- Deferred module credentials can be added after the WhatsApp lead-to-appointment flow is stable.
 
 ## Immediate Next Actions
 
-1. Deploy the latest webhook route to `x7-realestate-os`.
-2. Set Meta webhook URL to `https://x7-realestate-os.vercel.app/api/webhooks/whatsapp`.
-3. Verify the challenge using `WHATSAPP_VERIFY_TOKEN`.
-4. Send one real inbound WhatsApp message and confirm:
-   - inbound row in `whatsapp_messages`
-   - run row in `agent_runs`
-   - reply received on WhatsApp
+1. Start PM2 with `pm2 start ecosystem.config.cjs --update-env`.
+2. Run `npm run prove:whatsai`.
+3. Send one real inbound WhatsApp message and confirm:
+   - canonical contact/thread/message rows
+   - lead qualification answer
+   - thread appears in `/conversations`
 
 ## Automation Added
 
@@ -219,20 +201,17 @@ Use this command from repo root any time you want a hard-proof rollout snapshot:
 npm run phase-a:check
 ```
 
-It checks:
+Legacy checker. Prefer:
 
-- git remote and local `.vercel` link
-- env presence across dashboard, landing, and agents
-- local `/health` surfaces
-- dashboard readiness endpoints
-- live WhatsApp Graph token validity
-- Summoner webhook verify-token challenge
+```bash
+npm run prove:whatsai
+```
 
 ## Manual Inputs Still Needed From You
 
 You do not need to push tables manually anymore. That work is already done.
 
-The only remaining manual inputs are third-party credentials.
+For the current WhatsAI MVP, the only launch-critical manual inputs are WhatsApp credentials.
 
 ### Step 1: WhatsApp credentials
 
@@ -241,34 +220,16 @@ The only remaining manual inputs are third-party credentials.
 - `WHATSAPP_VERIFY_TOKEN`
 - `META_APP_SECRET`
 
-### Step 2: Meta Ads credentials
-
-- `META_ACCESS_TOKEN`
-- `META_AD_ACCOUNT_ID`
-
-### Step 3: Razorpay credentials
-
-- `NEXT_PUBLIC_RAZORPAY_KEY_ID`
-- `RAZORPAY_KEY_SECRET`
-- `RAZORPAY_WEBHOOK_SECRET`
-
-### Step 4: AI and media credentials
-
-- `OPENAI_API_KEY`
-- `REMOTION_MODE`
-- optional `HIGGSFIELD_API_KEY`
-
-### Step 5: Restart and recheck
+### Step 2: Restart and recheck
 
 After adding any of the above, restart the affected services and recheck:
 
-- `http://127.0.0.1:3000/api/ops/readiness`
-- `http://127.0.0.1:3000/api/agent-mesh/health`
-- `http://127.0.0.1:3001/shree-krishna-developers/krishna-greens-super-corridor`
+- `npm run prove:whatsai`
+- `http://127.0.0.1:3000/conversations`
 
 ## Manual Steps Later, Not First
 
-Do these only after Supabase is proven live.
+Do these only after the WhatsAI lead-to-appointment path is stable.
 
 ### WhatsApp
 
@@ -277,20 +238,20 @@ Do these only after Supabase is proven live.
 - `WHATSAPP_VERIFY_TOKEN`
 - `META_APP_SECRET`
 
-### Meta Ads
+### Deferred Meta Ads
 
 - `META_ACCESS_TOKEN`
 - `META_AD_ACCOUNT_ID`
 - optional publish IDs in tool-gateway
 
-### Razorpay
+### Deferred Razorpay
 
 - `NEXT_PUBLIC_RAZORPAY_KEY_ID`
 - `RAZORPAY_KEY_SECRET`
 - `RAZORPAY_WEBHOOK_SECRET`
 - `RAZORPAY_KEY_ID` for tool-gateway
 
-### OpenAI and Media
+### Deferred OpenAI and Media
 
 - `OPENAI_API_KEY`
 - `REMOTION_MODE`
@@ -299,9 +260,9 @@ Do these only after Supabase is proven live.
 ## Notes
 
 - If env files contain values but readiness still says `blocked`, the app process was likely started before the env change or from a different workspace copy.
-- For local testing, prefer the no-space dashboard runtime path:
-  - `/Users/rohit/Documents/Claude/Projects/X7-Real-estate-local/apps/dashboard`
-- The first hard proof is not the file content. The first hard proof is the JSON returned by `/api/ops/readiness`.
+- For local testing, prefer the canonical no-space repo path:
+  - `/Users/rohit/Projects/x7-realestate-os`
+- The first hard proof is not the file content. The first hard proof is `npm run prove:whatsai`.
 - The Supabase plugin can give us project inventory and project URL, but it does not expose anon or service-role keys in this session. Those still need to be copied from the Supabase dashboard.
 - If your Supabase project uses the newer key model, map it like this in this repo:
   - `SUPABASE_PUBLISHABLE_KEY` -> `NEXT_PUBLIC_SUPABASE_ANON_KEY`

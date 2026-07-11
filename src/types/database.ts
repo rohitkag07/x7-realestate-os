@@ -639,6 +639,29 @@ export interface ConversationMessage {
   created_at: string;
 }
 
+export interface LeadQualificationAnswer {
+  id: string;
+  thread_id: string;
+  question_key: string;
+  answer_value: string;
+  confidence: number | null;
+  extracted_at: string;
+}
+
+export interface Appointment {
+  id: string;
+  business_id: string;
+  contact_id: string;
+  thread_id: string | null;
+  title: string;
+  appointment_type: 'site_visit' | 'clinic_visit' | 'demo' | 'callback' | 'other';
+  scheduled_at: string;
+  status: 'scheduled' | 'completed' | 'cancelled' | 'no_show';
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface HandoffEvent {
   id: string;
   business_id: string | null;
@@ -705,6 +728,8 @@ export interface Database {
       conversation_contacts: { Row: ConversationContact; Insert: Partial<ConversationContact>; Update: Partial<ConversationContact> };
       conversation_threads:  { Row: ConversationThread; Insert: Partial<ConversationThread>; Update: Partial<ConversationThread> };
       conversation_messages: { Row: ConversationMessage; Insert: Partial<ConversationMessage>; Update: Partial<ConversationMessage> };
+      lead_qualification_answers: { Row: LeadQualificationAnswer; Insert: Partial<LeadQualificationAnswer>; Update: Partial<LeadQualificationAnswer> };
+      appointments:         { Row: Appointment;       Insert: Partial<Appointment>;       Update: Partial<Appointment> };
       handoff_events:        { Row: HandoffEvent;       Insert: Partial<HandoffEvent>;       Update: Partial<HandoffEvent> };
       daily_owner_summaries: { Row: DailyOwnerSummary;  Insert: Partial<DailyOwnerSummary>;  Update: Partial<DailyOwnerSummary> };
     };

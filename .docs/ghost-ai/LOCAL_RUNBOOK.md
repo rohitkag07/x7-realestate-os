@@ -29,7 +29,7 @@ http://localhost:3000
 Start:
 
 ```bash
-pm2 start ecosystem.config.cjs
+pm2 start ecosystem.config.cjs --update-env
 ```
 
 Check:
@@ -49,11 +49,9 @@ pm2 stop x7-sales-agent x7-tool-gateway x7-summoner
 - sales / assistant compatibility service `8080`
 - tool-gateway `8081`
 - summoner `8082`
-- content `8083`
-- ads `8085`
-- ghost-closer `8086`
-- colony `8087`
-- finance `8088`
+
+Only these three services are required for the WhatsAI lead-to-appointment MVP.
+Content, ads, ghost-closer, colony, and finance agents are deferred modules and are not launch blockers.
 
 ## Useful Checks
 
@@ -61,6 +59,7 @@ pm2 stop x7-sales-agent x7-tool-gateway x7-summoner
 curl -s http://localhost:8082/health
 curl -s http://localhost:8082/health/dependencies
 curl -s http://localhost:3000/api/agent-mesh/health
+npm run prove:whatsai
 ```
 
 ## Full Mesh Quick Cycle
@@ -79,6 +78,7 @@ pm2 restart all
 4. verify `http://localhost:8082/health`
 5. if testing webhook ingress, hit Summoner `GET /webhooks/whatsapp` with challenge params
 6. for pivot work, verify default business/playbook fallback before sending WhatsApp messages
+7. run `npm run prove:whatsai` before calling the local runtime ready
 
 ## Notes
 
