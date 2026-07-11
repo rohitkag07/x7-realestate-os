@@ -8,11 +8,12 @@ interface PageHeaderProps {
 }
 
 export function PageHeader({ title, titleHi, description, actions }: PageHeaderProps) {
+  void titleHi;
+
   return (
     <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-        {titleHi && <p className="text-sm text-muted-foreground mt-0.5">{titleHi}</p>}
+        <h1 className="text-2xl font-bold tracking-tight text-[#111b21]">{title}</h1>
         {description && <p className="text-sm text-muted-foreground mt-1">{description}</p>}
       </div>
       {actions && <div className="flex items-center gap-2">{actions}</div>}

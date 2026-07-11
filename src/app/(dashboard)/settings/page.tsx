@@ -18,7 +18,7 @@ export default async function SettingsPage() {
 
   return (
     <>
-      <PageHeader title="Settings" titleHi="सेटिंग्स" description="Business profile, WhatsApp integrations, launch readiness, and billing." />
+      <PageHeader title="Settings" description="Business profile, WhatsApp integrations, launch readiness, and billing." />
 
       <Tabs defaultValue="ops">
         <TabsList>
@@ -40,7 +40,7 @@ export default async function SettingsPage() {
               <CardDescription>Public-facing business name, address, and contact details.</CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Field label="Company Name" defaultValue="Demo SMB Trial" />
+              <Field label="Company Name" defaultValue="Demo SMB" />
               <Field label="Founder Name" defaultValue="Rohit Kag" />
               <Field label="Phone"        defaultValue="+91 98765 43210" />
               <Field label="WhatsApp Business Number" defaultValue="+91 98765 43210" />
@@ -67,7 +67,7 @@ export default async function SettingsPage() {
               <Field label="Primary Color" defaultValue="#0F172A" />
               <Field label="Accent Color"  defaultValue="#F59E0B" />
               <Field label="Logo URL"      defaultValue="" />
-              <Field label="Hindi Font"    defaultValue="Noto Sans Devanagari" />
+              <Field label="Message Font"    defaultValue="Inter" />
             </CardContent>
           </Card>
         </TabsContent>
@@ -89,10 +89,10 @@ export default async function SettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <CreditCard className="h-4 w-4" /> WhatsAI Trial Plan
+                <CreditCard className="h-4 w-4" /> WhatsAI Plan
                 <Badge variant="success">Active</Badge>
               </CardTitle>
-              <CardDescription>7-day managed trial · Upgrade after proof of qualified leads</CardDescription>
+              <CardDescription>WhatsApp assistant, qualification playbook, appointment booking, and owner alerts.</CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="text-sm space-y-2 text-muted-foreground">

@@ -3,50 +3,47 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  LayoutDashboard, Users, Calendar, IndianRupee, Image as ImageIcon,
-  Megaphone, Building2, BarChart3, Settings, Sparkles, Zap,
+  MessageCircle,
+  Settings,
+  SlidersHorizontal,
+  Sparkles,
+  Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { APP_NAME, APP_TAGLINE } from '@/lib/constants';
 
 type Item = {
   href: string;
-  labelHi: string;
-  labelEn: string;
+  label: string;
+  description: string;
   icon: React.ComponentType<{ className?: string }>;
 };
 
 const items: Item[] = [
-  { href: '/',             labelHi: 'डैशबोर्ड',      labelEn: 'Dashboard',    icon: LayoutDashboard },
-  { href: '/leads',        labelHi: 'लीड्स',         labelEn: 'Leads',        icon: Users },
-  { href: '/site-visits',  labelHi: 'अपॉइंटमेंट',     labelEn: 'Appointments', icon: Calendar },
-  { href: '/bookings',     labelHi: 'हैंडऑफ',         labelEn: 'Handoffs',     icon: IndianRupee },
-  { href: '/content',      labelHi: 'कंटेंट',         labelEn: 'Playbooks',    icon: ImageIcon },
-  { href: '/campaigns',    labelHi: 'कैम्पेन',        labelEn: 'Campaigns',    icon: Megaphone },
-  { href: '/ghost-closer', labelHi: 'आउटबाउंड',       labelEn: 'Ghost Closer', icon: Zap },
-  { href: '/colony',       labelHi: 'ऑपरेशंस',       labelEn: 'Ops',          icon: Building2 },
-  { href: '/reports',      labelHi: 'रिपोर्ट्स',      labelEn: 'Reports',      icon: BarChart3 },
-  { href: '/settings',     labelHi: 'सेटिंग्स',       labelEn: 'Settings',     icon: Settings },
+  { href: '/conversations', label: 'Conversations', description: 'Shared inbox', icon: MessageCircle },
+  { href: '/assistant-setup', label: 'Assistant Setup', description: 'Connect WhatsApp', icon: SlidersHorizontal },
+  { href: '/leads', label: 'Leads Workbench', description: 'Active leads', icon: Users },
+  { href: '/settings', label: 'Settings', description: 'Business setup', icon: Settings },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden lg:flex h-screen w-64 shrink-0 flex-col border-r bg-card sticky top-0">
+    <aside className="hidden lg:flex h-screen w-72 shrink-0 flex-col border-r border-[#d8dee4] bg-white sticky top-0">
       {/* Brand */}
-      <div className="flex items-center gap-2 px-6 py-5 border-b">
-        <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
+      <div className="flex items-center gap-3 px-6 py-5 border-b border-[#d8dee4]">
+        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#00a884] text-white shadow-sm">
           <Sparkles className="h-5 w-5" />
         </div>
         <div className="leading-tight">
-          <div className="text-sm font-semibold">{APP_NAME}</div>
-          <div className="text-[10px] text-muted-foreground">{APP_TAGLINE}</div>
+          <div className="text-sm font-semibold text-[#111b21]">{APP_NAME}</div>
+          <div className="mt-0.5 text-[11px] text-[#667781]">{APP_TAGLINE}</div>
         </div>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1.5">
         {items.map((item) => {
           const isActive =
             item.href === '/'
@@ -58,17 +55,17 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+                'flex items-center gap-3 rounded-2xl px-3 py-3 text-sm transition-colors',
                 isActive
-                  ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                  ? 'bg-[#e7fce3] text-[#075e54] shadow-sm ring-1 ring-[#b7efc5]'
+                  : 'text-[#667781] hover:bg-[#f0f2f5] hover:text-[#111b21]',
               )}
             >
               <Icon className="h-4 w-4 shrink-0" />
               <div className="flex flex-col leading-tight">
-                <span className="font-medium">{item.labelEn}</span>
-                <span className={cn('text-[10px]', isActive ? 'text-primary-foreground/80' : 'text-muted-foreground/70')}>
-                  {item.labelHi}
+                <span className="font-semibold">{item.label}</span>
+                <span className={cn('mt-0.5 text-[11px]', isActive ? 'text-[#128c7e]' : 'text-[#8696a0]')}>
+                  {item.description}
                 </span>
               </div>
             </Link>
@@ -76,8 +73,9 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="p-4 border-t text-[11px] text-muted-foreground">
-        v0.2.0 · WhatsAI Production Proof
+      <div className="m-4 rounded-2xl border border-[#d8dee4] bg-[#f0f2f5] p-4 text-[12px] text-[#667781]">
+        <div className="font-semibold text-[#111b21]">Owner-friendly mode</div>
+        <p className="mt-1 leading-relaxed">Focused on inbox, leads, setup, and handoffs.</p>
       </div>
     </aside>
   );

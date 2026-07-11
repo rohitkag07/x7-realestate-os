@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#0F172A',
+  themeColor: '#00A884',
   width: 'device-width',
   initialScale: 1,
 };
@@ -28,7 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         ['--font-noto-devanagari' as string]: '"Noto Sans Devanagari", "Nirmala UI", "Kohinoor Devanagari", sans-serif',
       }}
     >
-      <body className="min-h-screen bg-background font-sans antialiased">
+      <body className="min-h-screen bg-[#f0f2f5] font-sans antialiased">
         {children}
         <Toaster position="top-right" richColors />
       </body>

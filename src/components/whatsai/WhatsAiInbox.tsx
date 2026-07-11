@@ -162,17 +162,17 @@ export function WhatsAiInbox({ data }: WhatsAiInboxProps) {
   return (
     <>
       <MobileInboxNav selected={selected} />
-      <div className="grid gap-4 xl:grid-cols-[370px_minmax(0,1fr)_340px]">
-      <Card id="inbox-list" className="scroll-mt-24 overflow-hidden border-slate-200/80 shadow-sm">
-        <CardHeader className="border-b bg-gradient-to-r from-slate-950 to-slate-800 p-4 text-white">
+      <div className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)_340px]">
+      <Card id="inbox-list" className="scroll-mt-24 overflow-hidden border-[#d8dee4] bg-white shadow-sm">
+        <CardHeader className="border-b border-[#d8dee4] bg-white p-4">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Inbox className="h-4 w-4 text-emerald-300" />
-                Live Inbox
+              <CardTitle className="flex items-center gap-2 text-base text-[#111b21]">
+                <Inbox className="h-4 w-4 text-[#00a884]" />
+                Conversations
               </CardTitle>
-              <p className="mt-1 text-xs text-slate-300">
-                {data.source === 'supabase' ? 'Canonical conversation_threads source' : 'Canonical demo mode'}
+              <p className="mt-1 text-xs text-[#667781]">
+                {data.source === 'supabase' ? 'Live WhatsApp threads' : 'Demo conversations'}
               </p>
             </div>
             <Button variant="secondary" size="icon" onClick={refresh} aria-label="Refresh inbox" disabled={pending}>
@@ -180,14 +180,14 @@ export function WhatsAiInbox({ data }: WhatsAiInboxProps) {
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="max-h-[70vh] min-h-[360px] space-y-2 overflow-y-auto bg-slate-50/80 p-2 xl:max-h-[calc(100vh-250px)] xl:min-h-[520px]">
+        <CardContent className="max-h-[70vh] min-h-[360px] space-y-2 overflow-y-auto bg-[#f0f2f5] p-2 xl:max-h-[calc(100vh-250px)] xl:min-h-[520px]">
           {data.threads.map((thread) => (
             <ThreadListItem key={thread.id} thread={thread} active={selected?.id === thread.id} />
           ))}
         </CardContent>
       </Card>
 
-      <Card id="chat-view" className="scroll-mt-24 min-h-[620px] overflow-hidden border-slate-200/80 shadow-sm xl:min-h-[720px]">
+      <Card id="chat-view" className="scroll-mt-24 min-h-[620px] overflow-hidden border-[#d8dee4] bg-white shadow-sm xl:min-h-[720px]">
         <ChatHeader selected={selected} isPaused={isPaused} pending={pending} onPause={() => updateThreadState('paused', 'AI paused. Human is in control.')} onResume={() => updateThreadState('assistant', 'AI resumed for this thread.')} />
         <CardContent className="flex min-h-[540px] flex-col p-0 xl:min-h-[640px]">
           {isPaused ? (
@@ -196,16 +196,16 @@ export function WhatsAiInbox({ data }: WhatsAiInboxProps) {
                 <PauseCircle className="h-4 w-4" />
                 AI is currently paused. Human is in control.
               </div>
-              <p className="mt-1 text-xs text-amber-800">All operator replies are visually marked and saved to the canonical conversation log.</p>
+              <p className="mt-1 text-xs text-amber-800">Operator replies are marked clearly and saved in the conversation history.</p>
             </div>
           ) : null}
 
-          <div className="flex-1 space-y-4 overflow-y-auto bg-[radial-gradient(circle_at_top_left,_rgba(16,185,129,0.10),_transparent_30%),linear-gradient(180deg,#f8fafc,#eef2f7)] p-4">
+          <div className="flex-1 space-y-4 overflow-y-auto bg-[#efeae2] p-4">
             {data.messages.length ? data.messages.map((message) => (
               <MessageBubble key={message.id} message={message} />
             )) : (
               <div className="flex h-full items-center justify-center">
-                <div className="max-w-sm rounded-2xl border border-dashed bg-white/80 p-6 text-center shadow-sm">
+                <div className="max-w-sm rounded-2xl border border-dashed bg-white/90 p-6 text-center shadow-sm">
                   <MessageCircle className="mx-auto h-9 w-9 text-slate-400" />
                   <div className="mt-3 font-semibold">No messages in this thread yet</div>
                   <p className="mt-1 text-sm text-muted-foreground">The thread exists, but no canonical conversation_messages rows are attached.</p>
@@ -214,7 +214,7 @@ export function WhatsAiInbox({ data }: WhatsAiInboxProps) {
             )}
           </div>
 
-          <div className="border-t bg-background p-4">
+          <div className="border-t border-[#d8dee4] bg-white p-4">
             <div className="mb-2 flex items-center justify-between gap-3 text-xs text-muted-foreground">
               <span>{ownerSummary}</span>
               <Badge variant={isPaused ? 'warning' : 'success'}>{isPaused ? 'Manual mode' : 'AI assist active'}</Badge>
@@ -223,7 +223,7 @@ export function WhatsAiInbox({ data }: WhatsAiInboxProps) {
               <Textarea
                 value={draft}
                 onChange={(event) => setDraft(event.target.value)}
-                placeholder={isPaused ? 'Manual reply likho. Customer ko direct WhatsApp message jayega.' : 'Reply likho. Need ho to pehle Pause AI / Takeover use karo.'}
+                placeholder={isPaused ? 'Type a reply to send on WhatsApp.' : 'Pause AI first if you want to take over this chat.'}
                 rows={3}
                 disabled={!selected || pending}
                 className="min-h-[96px] flex-1 resize-none"
@@ -241,15 +241,15 @@ export function WhatsAiInbox({ data }: WhatsAiInboxProps) {
         <ControlCard data={data} onDraftSummary={draftSummary} pending={pending} />
 
         {selected ? (
-          <Card className="border-slate-200/80 shadow-sm">
+          <Card className="border-[#d8dee4] bg-white shadow-sm">
             <CardHeader className="p-4">
               <CardTitle className="flex items-center gap-2 text-base">
-                <UserRoundCheck className="h-4 w-4 text-emerald-600" />
-                Lead Command Panel
+                <UserRoundCheck className="h-4 w-4 text-[#00a884]" />
+                Lead Details
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 p-4 pt-0 text-sm">
-              <div className="rounded-2xl border bg-slate-50 p-3">
+              <div className="rounded-2xl border border-[#d8dee4] bg-[#f0f2f5] p-3">
                 <div className="font-semibold">{selected.contactName}</div>
                 <div className="mt-1 text-xs text-muted-foreground">{selected.phone}</div>
                 <div className="mt-3 grid grid-cols-2 gap-2">
@@ -295,7 +295,7 @@ export function WhatsAiInbox({ data }: WhatsAiInboxProps) {
 
               <div className="space-y-2">
                 <label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Internal notes</label>
-                <Textarea value={note} onChange={(event) => setNote(event.target.value)} rows={4} placeholder="Owner-only note. Customer ko nahi dikhega." />
+                <Textarea value={note} onChange={(event) => setNote(event.target.value)} rows={4} placeholder="Private note for your team. Customers will not see this." />
               </div>
 
               <div className={cn('rounded-xl border p-3 text-xs', selected.status === 'pending_human' ? 'border-amber-200 bg-amber-50 text-amber-950' : 'bg-muted/40 text-muted-foreground')}>
@@ -307,7 +307,7 @@ export function WhatsAiInbox({ data }: WhatsAiInboxProps) {
                   ? `${selected.hotHandoff.priority} · ${selected.hotHandoff.reason} (${selected.hotHandoff.status})`
                   : selected.status === 'pending_human'
                     ? selected.handoffReason || 'Human review active.'
-                    : 'No active handoff. AI can continue.'}
+                    : 'No active handoff. AI can continue replying.'}
               </div>
 
               <div className="flex flex-wrap gap-2">
@@ -340,12 +340,12 @@ function ChatHeader({
   onResume: () => void;
 }) {
   return (
-    <CardHeader className="border-b bg-white p-4">
+    <CardHeader className="border-b border-[#d8dee4] bg-white p-4">
       {selected ? (
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <Avatar className="h-11 w-11 border">
-              <AvatarFallback className="bg-slate-900 text-white">{initials(selected.contactName)}</AvatarFallback>
+            <Avatar className="h-11 w-11 border border-[#d8dee4]">
+              <AvatarFallback className="bg-[#00a884] text-white">{initials(selected.contactName)}</AvatarFallback>
             </Avatar>
             <div>
               <CardTitle className="text-lg">{selected.contactName}</CardTitle>
@@ -379,8 +379,8 @@ function ChatHeader({
 
 function MobileInboxNav({ selected }: { selected: WhatsAiThread | null }) {
   return (
-    <div className="sticky top-14 z-20 -mx-1 mb-4 flex gap-2 overflow-x-auto rounded-2xl border bg-background/95 p-2 shadow-sm backdrop-blur xl:hidden">
-      <a href="#inbox-list" className="shrink-0 rounded-xl bg-slate-900 px-3 py-2 text-xs font-semibold text-white">
+    <div className="sticky top-16 z-20 -mx-1 mb-4 flex gap-2 overflow-x-auto rounded-2xl border border-[#d8dee4] bg-white/95 p-2 shadow-sm backdrop-blur xl:hidden">
+      <a href="#inbox-list" className="shrink-0 rounded-xl bg-[#00a884] px-3 py-2 text-xs font-semibold text-white">
         Inbox
       </a>
       <a href="#chat-view" className="shrink-0 rounded-xl border px-3 py-2 text-xs font-semibold text-foreground">
@@ -400,13 +400,13 @@ function ThreadListItem({ thread, active }: { thread: WhatsAiThread; active: boo
     <Link
       href={`/conversations?phone=${encodeURIComponent(thread.phone)}`}
       className={cn(
-        'block rounded-2xl border p-3 transition duration-200 hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-white hover:shadow-md',
-        active ? 'border-emerald-400 bg-white shadow-sm ring-2 ring-emerald-100' : 'bg-white/75',
+        'block rounded-2xl border p-3 transition duration-200 hover:-translate-y-0.5 hover:border-[#00a884] hover:bg-white hover:shadow-md',
+        active ? 'border-[#00a884] bg-white shadow-sm ring-2 ring-[#d9fdd3]' : 'border-transparent bg-white/80',
       )}
     >
       <div className="flex items-start gap-3">
-        <Avatar className="h-11 w-11 border">
-          <AvatarFallback>{initials(thread.contactName)}</AvatarFallback>
+        <Avatar className="h-11 w-11 border border-[#d8dee4]">
+          <AvatarFallback className="bg-[#d9fdd3] text-[#075e54]">{initials(thread.contactName)}</AvatarFallback>
         </Avatar>
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
@@ -435,22 +435,21 @@ function MessageBubble({ message }: { message: WhatsAiMessage }) {
     <div className={cn('flex', outbound ? 'justify-end' : 'justify-start')}>
       <div className={cn('max-w-[84%] sm:max-w-[76%]', outbound ? 'items-end' : 'items-start')}>
         <div className={cn('mb-1 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide', outbound ? 'justify-end' : 'justify-start')}>
-          {ai ? <Bot className="h-3.5 w-3.5 text-emerald-700" /> : null}
-          {human ? <UserRoundCheck className="h-3.5 w-3.5 text-blue-700" /> : null}
-          <span className={cn(ai ? 'text-emerald-700' : human ? 'text-blue-700' : 'text-slate-500')}>
+          {ai ? <Bot className="h-3.5 w-3.5 text-[#075e54]" /> : null}
+          {human ? <UserRoundCheck className="h-3.5 w-3.5 text-[#075e54]" /> : null}
+          <span className={cn(ai || human ? 'text-[#075e54]' : 'text-[#667781]')}>
             {message.authorType === 'customer' ? 'Customer' : message.authorType === 'human' ? 'Manual reply' : message.authorType === 'ai' ? 'AI reply' : 'System'}
           </span>
         </div>
         <div
           className={cn(
-            'rounded-3xl px-4 py-3 text-sm shadow-sm ring-1',
-            outbound && ai ? 'rounded-br-sm bg-emerald-600 text-white ring-emerald-700/20' : null,
-            outbound && human ? 'rounded-br-sm bg-blue-600 text-white ring-blue-700/20' : null,
-            !outbound ? 'rounded-bl-sm bg-white text-slate-900 ring-slate-200' : null,
+            'rounded-2xl px-4 py-3 text-sm shadow-sm ring-1',
+            outbound ? 'rounded-br-sm bg-[#d9fdd3] text-[#111b21] ring-[#c6edbd]' : null,
+            !outbound ? 'rounded-bl-sm bg-white text-[#111b21] ring-[#d8dee4]' : null,
           )}
         >
           <div className="whitespace-pre-wrap leading-relaxed">{message.body}</div>
-          <div className={cn('mt-2 flex items-center justify-end gap-1 text-[10px]', outbound ? 'text-white/75' : 'text-muted-foreground')}>
+          <div className="mt-2 flex items-center justify-end gap-1 text-[10px] text-[#667781]">
             <span>{formatTime(message.createdAt)}</span>
             {outbound ? <CheckCheck className="h-3 w-3" /> : null}
             <span>{message.status}</span>
@@ -463,13 +462,13 @@ function MessageBubble({ message }: { message: WhatsAiMessage }) {
 
 function ControlCard({ data, onDraftSummary, pending }: { data: WhatsAiInboxData; onDraftSummary: () => void; pending: boolean }) {
   return (
-    <Card className="overflow-hidden border-slate-200/80 shadow-sm">
-      <CardHeader className="bg-gradient-to-br from-emerald-600 to-slate-900 p-4 text-white">
+    <Card className="overflow-hidden border-[#d8dee4] bg-white shadow-sm">
+      <CardHeader className="bg-[#075e54] p-4 text-white">
         <CardTitle className="flex items-center gap-2 text-base">
-          <Sparkles className="h-4 w-4 text-emerald-200" />
-          Command Metrics
+          <Sparkles className="h-4 w-4 text-[#d9fdd3]" />
+          Today at a glance
         </CardTitle>
-        <p className="text-xs text-emerald-100">Owner view for today's WhatsApp desk.</p>
+        <p className="text-xs text-white/80">Simple owner view for the WhatsApp desk.</p>
       </CardHeader>
       <CardContent className="space-y-3 p-4">
         <Metric label="Threads" value={data.summary.metrics.totalThreads} />
@@ -489,13 +488,13 @@ function ControlCard({ data, onDraftSummary, pending }: { data: WhatsAiInboxData
 
 function InboxEmptyState({ onRefresh }: { onRefresh: () => void }) {
   return (
-    <div className="rounded-3xl border border-dashed bg-gradient-to-br from-white via-emerald-50 to-slate-50 p-6 text-center shadow-sm sm:p-10">
-      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
+    <div className="rounded-3xl border border-dashed border-[#b7bdc3] bg-gradient-to-br from-white via-[#e7fce3] to-[#f0f2f5] p-6 text-center shadow-sm sm:p-10">
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#d9fdd3] text-[#075e54]">
         <Inbox className="h-8 w-8" />
       </div>
       <h2 className="mt-5 text-xl font-semibold">No conversations yet</h2>
       <p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground">
-        WhatsAI is ready, but canonical `conversation_threads` has no rows. Send a WhatsApp test message or connect a business channel to start the inbox.
+        WhatsAI is ready. Send a WhatsApp test message or connect a business channel to start the inbox.
       </p>
       <div className="mx-auto mt-6 grid max-w-2xl gap-3 text-left sm:grid-cols-3">
         <EmptyStep index="1" title="Connect" body="Finish Assistant Setup with Phone Number ID and verify token." />
@@ -557,7 +556,7 @@ function InboxErrorState({ message, onRetry }: { message: string; onRetry: () =>
 
 function Metric({ label, value }: { label: string; value: number }) {
   return (
-    <div className="flex items-center justify-between rounded-xl border bg-muted/30 px-3 py-2">
+      <div className="flex items-center justify-between rounded-xl border border-[#d8dee4] bg-[#f0f2f5] px-3 py-2">
       <span className="text-sm text-muted-foreground">{label}</span>
       <span className="text-sm font-semibold">{value}</span>
     </div>

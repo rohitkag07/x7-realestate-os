@@ -20,7 +20,7 @@ interface StatusBadgeProps {
   showHindi?: boolean;
 }
 
-export function StatusBadge({ kind, showHindi = true }: StatusBadgeProps) {
+export function StatusBadge({ kind, showHindi = false }: StatusBadgeProps) {
   let label = '';
   let labelHi = '';
   let colorClass = '';

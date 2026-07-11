@@ -19,9 +19,8 @@ export default async function ConversationsPage({ searchParams }: ConversationsP
   return (
     <div className="space-y-6">
       <PageHeader
-        title="WhatsAI Inbox"
-        titleHi="व्हाट्सऐ इनबॉक्स"
-        description="WATI-style shared inbox with AI lead qualification, manual takeover, and owner-summary controls."
+        title="Conversations"
+        description="Shared WhatsApp inbox with AI qualification, manual takeover, and lead context in one place."
       />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">

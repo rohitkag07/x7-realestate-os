@@ -10,23 +10,22 @@ export function DashboardHomePage() {
   return (
     <>
       <PageHeader
-        title="WhatsAI Trial Console"
-        titleHi="WhatsApp AI डैशबोर्ड"
-        description="WhatsApp conversations, lead qualification, hot handoffs, and follow-ups in one live view."
+        title="Owner Dashboard"
+        description="A simple daily view of WhatsApp conversations, qualified leads, appointments, and owner handoffs."
       />
 
       <section className="grid grid-cols-2 gap-3 mb-6 md:grid-cols-3 lg:grid-cols-5">
-        <KPICard label="WhatsApp Leads" labelHi="WhatsApp लीड्स" value={12} delta={20} icon={MessageCircle} accent="primary" />
-        <KPICard label="Qualified" labelHi="क्वालिफाइड" value={7} delta={18} icon={Users} accent="success" />
-        <KPICard label="Appointments" labelHi="अपॉइंटमेंट्स" value={3} delta={50} icon={Calendar} accent="success" />
-        <KPICard label="Hot Handoffs" labelHi="हॉट हैंडऑफ" value={2} delta={0} icon={BellRing} accent="warning" />
-        <KPICard label="Replies Sent" labelHi="भेजे गए जवाब" value={42} delta={31} icon={Activity} accent="primary" />
+        <KPICard label="New messages" value={12} delta={20} icon={MessageCircle} accent="primary" />
+        <KPICard label="Qualified leads" value={7} delta={18} icon={Users} accent="success" />
+        <KPICard label="Appointments" value={3} delta={50} icon={Calendar} accent="success" />
+        <KPICard label="Needs owner" value={2} delta={0} icon={BellRing} accent="warning" />
+        <KPICard label="Replies sent" value={42} delta={31} icon={Activity} accent="primary" />
       </section>
 
       <section className="grid grid-cols-1 gap-4 mb-6 lg:grid-cols-2">
         <MetricPanel
-          title="Lead Momentum"
-          description="This week's WhatsApp intake is strongest from Meta ads and direct referrals."
+          title="Lead momentum"
+          description="Where today’s useful conversations are coming from."
           items={[
             { label: 'Meta Ads', value: '18 leads', detail: '+22% vs last week' },
             { label: 'WhatsApp Organic', value: '11 leads', detail: 'Fastest response time' },
@@ -34,8 +33,8 @@ export function DashboardHomePage() {
           ]}
         />
         <MetricPanel
-          title="Assistant Pulse"
-          description="Qualification, appointment booking, and owner alerts are moving without manual follow-up."
+          title="Assistant activity"
+          description="What the assistant has handled without manual follow-up."
           items={[
             { label: 'Avg First Reply', value: '3 sec', detail: 'Always-on WhatsApp response' },
             { label: 'Qualification Rate', value: '58%', detail: '7 qualified from 12 new chats' },
@@ -49,11 +48,11 @@ export function DashboardHomePage() {
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <ArrowUpRight className="h-4 w-4" />
-              Source Quality Snapshot
+              Source quality
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3 sm:grid-cols-3">
-            <SourceCard source="Meta Ads" quality="High" insight="Most scalable top-of-funnel channel for WhatsApp trials." />
+            <SourceCard source="Meta Ads" quality="High" insight="Most scalable top-of-funnel channel for WhatsApp leads." />
             <SourceCard source="Google" quality="Medium" insight="Intent is strong but WhatsApp volume is still modest." />
             <SourceCard source="Referral" quality="High" insight="Small volume, strongest handoff probability." />
           </CardContent>
@@ -62,7 +61,7 @@ export function DashboardHomePage() {
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <Activity className="h-4 w-4" />
-              Agent Activity (Live)
+              Assistant status
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">

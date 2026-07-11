@@ -7,9 +7,8 @@ export default function AssistantSetupPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="WhatsAI Setup"
-        titleHi="असिस्टेंट सेटअप"
-        description="Business profile, WhatsApp channel, playbook, and first knowledge base for the 7-day assistant trial."
+        title="Assistant Setup"
+        description="Connect WhatsApp, add your business details, and teach the assistant what to ask."
       />
       <WhatsAiSetupForm />
     </div>

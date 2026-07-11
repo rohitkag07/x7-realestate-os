@@ -22,17 +22,18 @@ const accentClasses = {
 export function KPICard({
   label, labelHi, value, delta, deltaSuffix = '%', icon: Icon, accent = 'primary',
 }: KPICardProps) {
+  void labelHi;
+
   const isUp   = delta != null && delta >= 0;
   const isFlat = delta === 0;
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden border-[#d8dee4] bg-white shadow-sm">
       <CardContent className="p-4">
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
-            {labelHi && <div className="text-[11px] text-muted-foreground/80">{labelHi}</div>}
-            <div className="text-2xl font-bold tabular-nums">{value}</div>
+            <div className="text-xs uppercase tracking-wide text-[#667781]">{label}</div>
+            <div className="text-2xl font-bold tabular-nums text-[#111b21]">{value}</div>
           </div>
           {Icon && (
             <div className={cn('rounded-md p-2', accentClasses[accent])}>

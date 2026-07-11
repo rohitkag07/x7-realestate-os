@@ -57,7 +57,7 @@ const defaults: WizardForm = {
   goal: 'Convert WhatsApp inquiries into qualified appointments/site visits and hand hot leads to the owner quickly.',
   knowledge: 'Project: Krishna Greens. Location: near Super Corridor, Indore. Buyers ask about budget, plot size, RERA, loan support, registry, location, and site visit slots.',
   qualification_questions_text: 'Budget range?\nPreferred location?\nTimeline for purchase?\nSite visit preferred date/time?\nLoan required?',
-  persona: 'Friendly Hinglish sales assistant. Ask one question at a time, keep replies short, never overpromise, and hand off to owner for pricing/payment confirmation.',
+  persona: 'Friendly sales assistant. Ask one question at a time, keep replies short, never overpromise, and hand off to the owner for pricing or payment confirmation.',
 };
 
 const steps = [
@@ -161,18 +161,18 @@ export function WhatsAiSetupForm() {
 
   return (
     <div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
-      <Card className="overflow-hidden border-slate-200/80 shadow-sm">
-        <CardHeader className="bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 text-white">
-          <Badge className="w-fit bg-emerald-400 text-emerald-950 hover:bg-emerald-400">10-business MVP</Badge>
+      <Card className="overflow-hidden border-[#d8dee4] bg-white shadow-sm">
+        <CardHeader className="bg-[#075e54] text-white">
+          <Badge className="w-fit bg-[#d9fdd3] text-[#075e54] hover:bg-[#d9fdd3]">Guided setup</Badge>
           <CardTitle className="mt-3 text-xl">WhatsAI Onboarding</CardTitle>
-          <CardDescription className="text-slate-300">
-            One clean setup flow for Indian SMBs: profile, WhatsApp, playbook, test.
+          <CardDescription className="text-white/80">
+            Four simple steps: business profile, WhatsApp connection, playbook, and first test.
           </CardDescription>
           <div className="pt-2">
             <Progress value={progress} className="h-2 bg-white/15" />
             <div className="mt-2 flex items-center justify-between text-xs text-slate-300">
               <span>Step {step + 1} of {steps.length}</span>
-              <span>{saved ? 'Autosaved' : 'Draft autosaves locally'}</span>
+              <span>{saved ? 'Saved locally' : 'Autosaves on this device'}</span>
             </div>
           </div>
         </CardHeader>
@@ -188,11 +188,11 @@ export function WhatsAiSetupForm() {
                 onClick={() => setStep(index)}
                 className={cn(
                   'w-full rounded-2xl border p-3 text-left transition duration-200',
-                  active ? 'border-emerald-400 bg-emerald-50 shadow-sm' : 'border-transparent hover:bg-muted/60',
+                  active ? 'border-[#00a884] bg-[#e7fce3] shadow-sm' : 'border-transparent hover:bg-[#f0f2f5]',
                 )}
               >
                 <div className="flex gap-3">
-                  <div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', complete ? 'bg-emerald-600 text-white' : active ? 'bg-emerald-100 text-emerald-700' : 'bg-muted text-muted-foreground')}>
+                  <div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', complete ? 'bg-[#00a884] text-white' : active ? 'bg-[#d9fdd3] text-[#075e54]' : 'bg-muted text-muted-foreground')}>
                     {complete ? <CheckCircle2 className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
                   </div>
                   <div>
@@ -206,12 +206,12 @@ export function WhatsAiSetupForm() {
         </CardContent>
       </Card>
 
-      <Card className="overflow-hidden border-slate-200/80 shadow-sm">
+      <Card className="overflow-hidden border-[#d8dee4] bg-white shadow-sm">
         <CardHeader className="border-b bg-white">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <CardTitle className="flex items-center gap-2 text-2xl">
-                <Sparkles className="h-5 w-5 text-emerald-600" />
+                <Sparkles className="h-5 w-5 text-[#00a884]" />
                 {steps[step].title}
               </CardTitle>
               <CardDescription className="mt-1">{steps[step].subtitle}</CardDescription>
@@ -261,7 +261,7 @@ function BusinessProfileStep({ form, update }: StepProps) {
       <Field label="Business name" helper="Customer-facing brand name.">
         <Input value={form.name} onChange={(event) => update('name', event.target.value)} placeholder="e.g. Shree Krishna Developers" />
       </Field>
-      <Field label="Industry" helper="Controls default qualification questions.">
+      <Field label="Industry" helper="Helps the assistant ask the right questions.">
         <Select value={form.category} onValueChange={(value) => update('category', value as WizardForm['category'])}>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
@@ -277,10 +277,10 @@ function BusinessProfileStep({ form, update }: StepProps) {
       <Field label="City" helper="Used for local tone and appointment context.">
         <Input value={form.city} onChange={(event) => update('city', event.target.value)} placeholder="Indore" />
       </Field>
-      <Field label="Owner name" helper="Shown in handoff context.">
+      <Field label="Owner name" helper="Used when a chat needs human attention.">
         <Input value={form.owner_name} onChange={(event) => update('owner_name', event.target.value)} placeholder="Owner name" />
       </Field>
-      <Field label="Owner WhatsApp" helper="Primary business/customer test number.">
+      <Field label="Owner WhatsApp" helper="Where test messages and owner alerts should go.">
         <Input value={form.owner_whatsapp} onChange={(event) => update('owner_whatsapp', event.target.value)} placeholder="+91..." />
       </Field>
       <Field label="Core offer" helper="What the AI should sell or book.">
@@ -296,10 +296,10 @@ function WhatsAppStep({ form, update }: StepProps) {
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
       <div className="grid gap-5 md:grid-cols-2">
-        <Field label="Phone Number ID" helper="Meta WhatsApp Cloud API phone_number_id.">
+      <Field label="Phone Number ID" helper="Copy this from Meta WhatsApp setup.">
           <Input value={form.phone_number_id} onChange={(event) => update('phone_number_id', event.target.value)} placeholder="1134264326444844" />
         </Field>
-        <Field label="WABA ID" helper="WhatsApp Business Account ID.">
+      <Field label="WABA ID" helper="Your WhatsApp Business Account ID from Meta.">
           <Input value={form.business_account_id} onChange={(event) => update('business_account_id', event.target.value)} placeholder="1549321680140663" />
         </Field>
         <Field label="Webhook verify token" helper="Must match Meta webhook verification token.">
@@ -309,8 +309,8 @@ function WhatsAppStep({ form, update }: StepProps) {
           <Input value={webhookUrl} readOnly />
         </Field>
       </div>
-      <div className="rounded-3xl border bg-slate-50 p-5">
-        <MessageCircle className="h-8 w-8 text-emerald-600" />
+      <div className="rounded-3xl border border-[#d8dee4] bg-[#f0f2f5] p-5">
+        <MessageCircle className="h-8 w-8 text-[#00a884]" />
         <h3 className="mt-4 font-semibold">Connection checklist</h3>
         <div className="mt-3 space-y-3 text-sm text-muted-foreground">
           <ChecklistItem done={Boolean(form.phone_number_id)} label="Phone Number ID entered" />
@@ -326,17 +326,17 @@ function WhatsAppStep({ form, update }: StepProps) {
 function PlaybookStep({ form, update }: StepProps) {
   return (
     <div className="grid gap-5">
-      <Field label="Assistant goal" helper="A clear mission keeps the AI focused.">
+      <Field label="Assistant goal" helper="Explain what a successful conversation should do.">
         <Textarea value={form.goal} onChange={(event) => update('goal', event.target.value)} rows={3} />
       </Field>
-      <Field label="FAQs / Knowledge base" helper="Paste business facts, pricing notes, location details, policies, offers.">
+      <Field label="FAQs and knowledge base" helper="Paste business facts, pricing notes, location details, policies, and offers.">
         <Textarea value={form.knowledge} onChange={(event) => update('knowledge', event.target.value)} rows={7} />
       </Field>
       <div className="grid gap-5 md:grid-cols-2">
         <Field label="Qualification questions" helper="One question per line.">
           <Textarea value={form.qualification_questions_text} onChange={(event) => update('qualification_questions_text', event.target.value)} rows={6} />
         </Field>
-        <Field label="AI persona instructions" helper="Tone, handoff rules, and do-not-say rules.">
+      <Field label="Assistant instructions" helper="Tone, handoff rules, and do-not-say rules.">
           <Textarea value={form.persona} onChange={(event) => update('persona', event.target.value)} rows={6} />
         </Field>
       </div>
@@ -350,8 +350,8 @@ function ReadinessStep({ form, setupResult, pending, onSubmit }: { form: WizardF
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <div className="rounded-3xl border bg-gradient-to-br from-emerald-50 to-white p-6">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-600 text-white">
+      <div className="rounded-3xl border border-[#d8dee4] bg-gradient-to-br from-[#e7fce3] to-white p-6">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#00a884] text-white">
           {setupResult ? <CheckCircle2 className="h-7 w-7" /> : <ShieldCheck className="h-7 w-7" />}
         </div>
         <h3 className="mt-5 text-2xl font-semibold">{setupResult ? 'Assistant is active' : 'Ready to activate'}</h3>
@@ -374,8 +374,8 @@ function ReadinessStep({ form, setupResult, pending, onSubmit }: { form: WizardF
         ) : null}
       </div>
 
-      <div className="rounded-3xl border bg-slate-950 p-5 text-white">
-        <QrCode className="h-9 w-9 text-emerald-300" />
+      <div className="rounded-3xl border bg-[#075e54] p-5 text-white">
+        <QrCode className="h-9 w-9 text-[#d9fdd3]" />
         <h3 className="mt-4 font-semibold">First test message</h3>
         <p className="mt-2 text-sm text-slate-300">
           After setup, send a WhatsApp test inquiry and verify it appears in `/conversations`.
