@@ -41,7 +41,15 @@ The repo already contains a meaningful base that should be reused:
 
 | App | Path | Purpose |
 | --- | --- | --- |
-| Dashboard | `apps/dashboard` | Operator dashboard for trials, leads, conversations, appointments, integrations, and real-estate vertical surfaces. |
+| Dashboard | root `src/` | Active Next.js operator dashboard for trials, leads, conversations, appointments, integrations, and real-estate vertical surfaces. |
+
+Canonical local repo path:
+
+```text
+/Users/rohit/Projects/x7-realestate-os
+```
+
+Do not use `/Users/rohit/Documents/Claude/Projects/X7 Real estate` for new WhatsAI work. That folder is deprecated and kept only as a temporary safety backup.
 
 ## Backend Agents
 
@@ -86,22 +94,22 @@ npm install
 Run dashboard:
 
 ```bash
-cd apps/dashboard
 npm run dev
 ```
+
+Default URL: `http://localhost:3000`.
 
 Run the agent mesh:
 
 ```bash
-./scripts/start-phase6-local.sh
-./scripts/check-phase6-local.sh
-./scripts/check-rollout-readiness.sh
+pm2 start ecosystem.config.cjs
+pm2 list
 ```
 
 Stop the local mesh:
 
 ```bash
-./scripts/stop-phase6-local.sh
+pm2 stop x7-sales-agent x7-tool-gateway x7-summoner
 ```
 
 ## Current Build Rule

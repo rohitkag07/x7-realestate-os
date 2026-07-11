@@ -65,6 +65,13 @@ export type VisitorType       = 'guest' | 'delivery' | 'service' | 'frequent' | 
 export type VisitorApproval   = 'pending' | 'approved' | 'denied' | 'expired';
 export type VisitorApprovalMethod = 'whatsapp' | 'dashboard' | 'phone_call' | 'pre_approved';
 
+export type BusinessCategory = 'real_estate' | 'clinic' | 'coaching' | 'gym' | 'local_service' | 'other';
+export type BusinessStatus = 'trial' | 'active' | 'paused' | 'cancelled';
+export type BusinessPlan = 'trial' | 'starter' | 'growth' | 'pro' | 'enterprise';
+export type AssistantVertical = BusinessCategory;
+export type ConversationStatus = 'open' | 'pending_human' | 'automated' | 'resolved' | 'archived';
+export type AiMode = 'assistant' | 'manual' | 'paused';
+
 // ---------------------------------------------------------------------
 // Row types
 // ---------------------------------------------------------------------
@@ -510,6 +517,158 @@ export interface FollowUpQueue {
   updated_at: string;
 }
 
+export interface Business {
+  id: string;
+  builder_id: string | null;
+  name: string;
+  legal_name: string | null;
+  category: BusinessCategory;
+  city: string | null;
+  owner_name: string | null;
+  owner_phone: string | null;
+  owner_whatsapp: string | null;
+  status: BusinessStatus;
+  plan: BusinessPlan;
+  trial_started_at: string;
+  trial_ends_at: string;
+  daily_message_limit: number;
+  handoff_threshold: number;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BusinessChannel {
+  id: string;
+  business_id: string;
+  channel_type: 'whatsapp' | 'instagram' | 'facebook' | 'website' | 'phone';
+  phone_number: string | null;
+  phone_number_id: string | null;
+  business_account_id: string | null;
+  display_name: string | null;
+  verify_token: string | null;
+  is_primary: boolean;
+  status: 'testing' | 'connected' | 'disabled' | 'error';
+  last_verified_at: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AssistantPlaybook {
+  id: string;
+  business_id: string;
+  vertical: AssistantVertical;
+  name: string;
+  goal: string;
+  tone: string;
+  qualification_questions: unknown[];
+  hot_lead_rules: Record<string, unknown>;
+  guardrails: unknown[];
+  handoff_rules: Record<string, unknown>;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AssistantKnowledgeItem {
+  id: string;
+  business_id: string;
+  playbook_id: string | null;
+  title: string;
+  kind: 'faq' | 'service' | 'pricing' | 'policy' | 'location' | 'offer' | 'script' | 'other';
+  content: string;
+  metadata: Record<string, unknown>;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ConversationContact {
+  id: string;
+  business_id: string | null;
+  builder_id: string | null;
+  lead_id: string | null;
+  phone: string;
+  name: string | null;
+  source: string;
+  lifecycle_stage: 'lead' | 'qualified' | 'appointment' | 'customer' | 'support' | 'lost';
+  temperature: LeadTemperature;
+  tags: string[];
+  last_message_at: string | null;
+  last_handoff_at: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ConversationThread {
+  id: string;
+  business_id: string | null;
+  business_channel_id: string | null;
+  contact_id: string | null;
+  builder_id: string | null;
+  lead_id: string | null;
+  channel: 'whatsapp' | 'instagram' | 'facebook' | 'website' | 'phone';
+  status: ConversationStatus;
+  assigned_to: string | null;
+  ai_mode: AiMode;
+  unread_count: number;
+  last_message_at: string | null;
+  summary: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ConversationMessage {
+  id: string;
+  thread_id: string | null;
+  contact_id: string | null;
+  business_id: string | null;
+  builder_id: string | null;
+  lead_id: string | null;
+  whatsapp_message_id: string | null;
+  direction: 'inbound' | 'outbound';
+  channel: 'whatsapp' | 'instagram' | 'facebook' | 'website' | 'phone';
+  message_type: string;
+  body: string | null;
+  status: WhatsappMessage['status'];
+  agent: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface HandoffEvent {
+  id: string;
+  business_id: string | null;
+  builder_id: string | null;
+  thread_id: string | null;
+  lead_id: string | null;
+  reason: string;
+  priority: 'low' | 'normal' | 'high' | 'urgent';
+  summary: string;
+  assigned_to: string | null;
+  status: 'open' | 'acknowledged' | 'resolved' | 'ignored';
+  metadata: Record<string, unknown>;
+  created_at: string;
+  resolved_at: string | null;
+}
+
+export interface DailyOwnerSummary {
+  id: string;
+  business_id: string | null;
+  builder_id: string | null;
+  summary_date: string;
+  owner_phone: string | null;
+  metrics: Record<string, unknown>;
+  body: string;
+  status: 'draft' | 'queued' | 'sent' | 'failed';
+  sent_at: string | null;
+  error: string | null;
+  created_at: string;
+}
+
 // ---------------------------------------------------------------------
 // Database (shape expected by @supabase/supabase-js generics)
 // ---------------------------------------------------------------------
@@ -539,6 +698,15 @@ export interface Database {
       whatsapp_messages:     { Row: WhatsappMessage;    Insert: Partial<WhatsappMessage>;    Update: Partial<WhatsappMessage> };
       agent_runs:            { Row: AgentRun;           Insert: Partial<AgentRun>;           Update: Partial<AgentRun> };
       follow_up_queue:       { Row: FollowUpQueue;      Insert: Partial<FollowUpQueue>;      Update: Partial<FollowUpQueue> };
+      businesses:            { Row: Business;           Insert: Partial<Business>;           Update: Partial<Business> };
+      business_channels:     { Row: BusinessChannel;    Insert: Partial<BusinessChannel>;    Update: Partial<BusinessChannel> };
+      assistant_playbooks:   { Row: AssistantPlaybook;  Insert: Partial<AssistantPlaybook>;  Update: Partial<AssistantPlaybook> };
+      assistant_knowledge_items: { Row: AssistantKnowledgeItem; Insert: Partial<AssistantKnowledgeItem>; Update: Partial<AssistantKnowledgeItem> };
+      conversation_contacts: { Row: ConversationContact; Insert: Partial<ConversationContact>; Update: Partial<ConversationContact> };
+      conversation_threads:  { Row: ConversationThread; Insert: Partial<ConversationThread>; Update: Partial<ConversationThread> };
+      conversation_messages: { Row: ConversationMessage; Insert: Partial<ConversationMessage>; Update: Partial<ConversationMessage> };
+      handoff_events:        { Row: HandoffEvent;       Insert: Partial<HandoffEvent>;       Update: Partial<HandoffEvent> };
+      daily_owner_summaries: { Row: DailyOwnerSummary;  Insert: Partial<DailyOwnerSummary>;  Update: Partial<DailyOwnerSummary> };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

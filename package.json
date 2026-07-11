@@ -7,10 +7,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "postbuild": "node scripts/fix-next-manifests.js",
+    "postbuild": "node scripts/fix-next-manifests.js && node scripts/sanitize-next-types.js",
     "start": "next start",
     "lint": "eslint src",
-    "type-check": "tsc --noEmit",
+    "type-check": "node scripts/sanitize-next-types.js && tsc --noEmit",
     "phase-a:check": "./scripts/check-rollout-readiness.sh"
   },
   "dependencies": {

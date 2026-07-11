@@ -293,18 +293,20 @@ async function updateMessageStatus(status) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Look up which business owns a given WhatsApp phone_number_id.
+ * Look up which business/channel owns a given WhatsApp phone_number_id.
  * Falls back to DEFAULT_BUSINESS_ID if no channel mapping is found.
  */
-async function findBusinessByChannel(channelId) {
+async function resolveBusinessChannel(channelId) {
   const sb = supabase();
-  if (!sb || !channelId) return DEFAULT_BUSINESS_ID || null;
+  if (!sb || !channelId) {
+    return { businessId: DEFAULT_BUSINESS_ID || null, businessChannelId: null };
+  }
 
   const { data } = await sb
     .from('business_channels')
-    .select('business_id, channel_phone')
-    .eq('channel_id', channelId)
-    .eq('is_active', true)
+    .select('id, business_id, channel_phone, phone_number_id, channel_id')
+    .or(`channel_id.eq.${channelId},phone_number_id.eq.${channelId}`)
+    .limit(1)
     .maybeSingle();
 
   const businessId = data?.business_id || DEFAULT_BUSINESS_ID || null;
@@ -313,7 +315,7 @@ async function findBusinessByChannel(channelId) {
     businessId,
     source: data?.business_id ? 'business_channels' : 'default',
   });
-  return businessId;
+  return { businessId, businessChannelId: data?.id ?? null };
 }
 
 /**
@@ -349,19 +351,24 @@ async function upsertConversationContact(businessId, phone, name) {
  * Find or create an active conversation_thread for this contact.
  * We use the most recent active or bot_paused thread; create one if none exists.
  */
-async function findOrCreateThread(businessId, contactId, playbookId = null) {
+async function findOrCreateThread(businessId, contactId, playbookId = null, businessChannelId = null) {
   const sb = supabase();
   if (!sb || !businessId || !contactId) return null;
 
-  const { data: existing } = await sb
+  let existingQuery = sb
     .from('conversation_threads')
-    .select('id, status, lead_stage, temperature, playbook_id')
+    .select('id, status, lead_stage, temperature, playbook_id, business_channel_id')
     .eq('business_id', businessId)
     .eq('contact_id', contactId)
-    .in('status', ['active', 'bot_paused'])
+    .in('status', ['open', 'pending_human', 'automated', 'active', 'bot_paused', 'human_takeover'])
     .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .limit(1);
+
+  existingQuery = businessChannelId
+    ? existingQuery.eq('business_channel_id', businessChannelId)
+    : existingQuery.is('business_channel_id', null);
+
+  const { data: existing } = await existingQuery.maybeSingle();
 
   if (existing) return existing;
 
@@ -369,13 +376,18 @@ async function findOrCreateThread(businessId, contactId, playbookId = null) {
     .from('conversation_threads')
     .insert({
       business_id: businessId,
+      business_channel_id: businessChannelId,
       contact_id: contactId,
       playbook_id: playbookId || null,
-      status: 'active',
+      status: 'open',
       lead_stage: 'new',
       temperature: 'cold',
+      channel: 'whatsapp',
+      ai_mode: 'assistant',
+      unread_count: 0,
+      last_message_at: new Date().toISOString(),
     })
-    .select('id, status, lead_stage, temperature, playbook_id')
+    .select('id, status, lead_stage, temperature, playbook_id, business_channel_id')
     .single();
 
   if (error) {
@@ -444,18 +456,38 @@ async function incrementBusinessUsage(businessId, field, amount = 1) {
 /**
  * Persist the inbound message in conversation_messages (generic layer).
  */
-async function recordGenericInboundMessage({ businessId, threadId, content, messageType, providerMsgId, mediaUrl = null, metadata = {} }) {
+async function recordGenericInboundMessage({
+  businessId,
+  threadId,
+  contactId = null,
+  builderId = null,
+  leadId = null,
+  content,
+  messageType,
+  providerMsgId,
+  mediaUrl = null,
+  metadata = {},
+}) {
   const sb = supabase();
   if (!sb || !threadId) return;
+  const createdAt = new Date().toISOString();
 
   const { error } = await sb.from('conversation_messages').insert({
     thread_id: threadId,
+    contact_id: contactId,
+    business_id: businessId,
+    builder_id: builderId,
+    lead_id: leadId,
     direction: 'inbound',
     role: 'user',
     content: content || null,
+    body: content || null,
     media_url: mediaUrl,
     message_type: messageType || 'text',
     provider_msg_id: providerMsgId || null,
+    channel: 'whatsapp',
+    status: 'received',
+    created_at: createdAt,
     metadata,
   });
 
@@ -470,6 +502,25 @@ async function recordGenericInboundMessage({ businessId, threadId, content, mess
     direction: 'inbound',
     messageType: messageType || 'text',
   });
+
+  await sb
+    .from('conversation_threads')
+    .update({
+      last_message_at: createdAt,
+      unread_count: 1,
+    })
+    .eq('id', threadId);
+
+  if (contactId) {
+    await sb
+      .from('conversation_contacts')
+      .update({
+        last_message_at: createdAt,
+        last_active_at: createdAt,
+      })
+      .eq('id', contactId);
+  }
+
   await incrementBusinessUsage(businessId, 'messages_in');
 }
 
@@ -888,7 +939,8 @@ async function handleInboundWhatsAppMessage(message, envelope) {
   const channelId = envelope?.metadata?.phone_number_id || null;
 
   // ── Phase 2: Generic business context resolution ──────────────────────────
-  const businessId = await findBusinessByChannel(channelId);
+  const channelContext = await resolveBusinessChannel(channelId);
+  const businessId = channelContext.businessId;
 
   let contact = null;
   let thread = null;
@@ -901,7 +953,7 @@ async function handleInboundWhatsAppMessage(message, envelope) {
 
     if (contact) {
       playbook = await findActivePlaybook(businessId);
-      thread = await findOrCreateThread(businessId, contact.id, playbook?.id ?? null);
+      thread = await findOrCreateThread(businessId, contact.id, playbook?.id ?? null, channelContext.businessChannelId);
     }
   }
   // ── End Phase 2 generic resolution ───────────────────────────────────────
@@ -957,6 +1009,9 @@ async function handleInboundWhatsAppMessage(message, envelope) {
     await recordGenericInboundMessage({
       businessId,
       threadId: thread.id,
+      contactId: contact?.id ?? null,
+      builderId,
+      leadId: lead?.id ?? null,
       content: body,
       messageType: mapInboundMessageType(message.type),
       providerMsgId: message.id,

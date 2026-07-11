@@ -4,10 +4,17 @@
 
 Run `npm install` inside the app or agent you want to start if `node_modules` is missing.
 
+Canonical repo path:
+
+```text
+/Users/rohit/Projects/x7-realestate-os
+```
+
+The old spaced folder `/Users/rohit/Documents/Claude/Projects/X7 Real estate` is deprecated and should not receive new WhatsAI work.
+
 ## Dashboard
 
 ```bash
-cd apps/dashboard
 npm run dev
 ```
 
@@ -22,19 +29,19 @@ http://localhost:3000
 Start:
 
 ```bash
-./scripts/start-phase6-local.sh
+pm2 start ecosystem.config.cjs
 ```
 
 Check:
 
 ```bash
-./scripts/check-phase6-local.sh
+pm2 list
 ```
 
 Stop:
 
 ```bash
-./scripts/stop-phase6-local.sh
+pm2 stop x7-sales-agent x7-tool-gateway x7-summoner
 ```
 
 ## Default Local Ports
@@ -59,9 +66,9 @@ curl -s http://localhost:3000/api/agent-mesh/health
 ## Full Mesh Quick Cycle
 
 ```bash
-./scripts/start-phase6-local.sh
-./scripts/check-phase6-local.sh
-./scripts/stop-phase6-local.sh
+pm2 start ecosystem.config.cjs
+pm2 list
+pm2 restart all
 ```
 
 ## High-Value Local Smoke Tests

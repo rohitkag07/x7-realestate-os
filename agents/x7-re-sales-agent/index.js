@@ -856,7 +856,10 @@ async function recordOutboundGeneric({ supabase: sb, threadId, content, metadata
       direction: 'outbound',
       role: 'assistant',
       content,
+      body: content,
+      channel: 'whatsapp',
       message_type: 'text',
+      status: 'sent',
       metadata,
     });
   } catch {
