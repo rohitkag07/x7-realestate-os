@@ -1,0 +1,12 @@
+/node_modules
+/.next
+/.next-dev
+/.codex-runtime
+/apps
+/agents
+/supabase
+/remotion
+/.vercel
+tsconfig.tsbuildinfo
+*.log
+.DS_Store

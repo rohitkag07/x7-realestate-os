@@ -14,6 +14,11 @@ const nextConfig = {
       { protocol: 'https', hostname: 'images.unsplash.com' },
     ],
   },
+  async redirects() {
+    return [
+      { source: '/conversations', destination: '/chats', permanent: false },
+    ];
+  },
   async headers() {
     return [
       {

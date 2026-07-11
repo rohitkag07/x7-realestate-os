@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Bell, Menu, MessageCircle, Search, Settings, SlidersHorizontal, Users } from 'lucide-react';
+import { Bell, CalendarDays, Home, Menu, MessageCircle, Search, Settings, SlidersHorizontal, Users } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,9 +14,11 @@ interface TopBarProps {
 }
 
 const quickLinks = [
-  { href: '/conversations', label: 'Inbox', icon: MessageCircle },
-  { href: '/assistant-setup', label: 'Setup', icon: SlidersHorizontal },
+  { href: '/dashboard', label: 'Dashboard', icon: Home },
+  { href: '/chats', label: 'Chats', icon: MessageCircle },
+  { href: '/calendar', label: 'Calendar', icon: CalendarDays },
   { href: '/leads', label: 'Leads', icon: Users },
+  { href: '/assistant-setup', label: 'Setup', icon: SlidersHorizontal },
   { href: '/settings', label: 'Settings', icon: Settings },
 ];
 

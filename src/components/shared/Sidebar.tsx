@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
+  CalendarDays,
+  Home,
   MessageCircle,
   Settings,
   SlidersHorizontal,
@@ -20,9 +22,11 @@ type Item = {
 };
 
 const items: Item[] = [
-  { href: '/conversations', label: 'Conversations', description: 'Shared inbox', icon: MessageCircle },
-  { href: '/assistant-setup', label: 'Assistant Setup', description: 'Connect WhatsApp', icon: SlidersHorizontal },
-  { href: '/leads', label: 'Leads Workbench', description: 'Active leads', icon: Users },
+  { href: '/dashboard', label: 'Dashboard', description: 'Morning overview', icon: Home },
+  { href: '/chats', label: 'Chats', description: 'WhatsApp inbox', icon: MessageCircle },
+  { href: '/calendar', label: 'Calendar', description: 'Appointments', icon: CalendarDays },
+  { href: '/leads', label: 'Leads', description: 'Active leads', icon: Users },
+  { href: '/assistant-setup', label: 'Setup', description: 'Connect WhatsApp', icon: SlidersHorizontal },
   { href: '/settings', label: 'Settings', description: 'Business setup', icon: Settings },
 ];
 

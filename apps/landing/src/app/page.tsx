@@ -1,149 +1,198 @@
+import type { Metadata } from 'next';
 import {
   ArrowRight,
-  BellRing,
-  Building2,
   Check,
-  Dumbbell,
-  GraduationCap,
-  HeartPulse,
+  Clock3,
   MessageCircle,
-  PhoneCall,
+  Moon,
   Send,
+  ShieldCheck,
   Sparkles,
-  Wrench,
+  Users,
 } from 'lucide-react';
 
-const trialHref = 'https://wa.me/919999888877?text=Hello%2C%20mujhe%20X7%20WhatsAI%20Assistant%20ke%20baare%20mein%20jaanna%20hai';
+const dashboardHref = 'https://x7-whatsai-dashboard.vercel.app';
+
+export const metadata: Metadata = {
+  title: 'WhatsAI Assistant | WhatsApp AI Receptionist',
+  description:
+    'WhatsAI Assistant replies to WhatsApp inquiries 24/7, qualifies leads, books appointments, and alerts Indian SMB owners for hot leads.',
+};
+
+const phoneMessages = [
+  { side: 'customer', text: 'Hi, clinic appointment available today?' },
+  { side: 'ai', text: 'Yes. Which doctor do you want to meet?' },
+  { side: 'customer', text: 'Dentist. Evening slot chahiye.' },
+  { side: 'ai', text: 'I can hold 6:30 PM or 7:15 PM. Which one works?' },
+  { side: 'customer', text: '7:15 PM' },
+  { side: 'ai', text: 'Booked. Please share your name. The clinic team will get your details.' },
+];
+
+const painPoints = [
+  {
+    icon: Moon,
+    title: '11PM message. No reply.',
+    text: "You're asleep. The customer finds another clinic, coaching class, salon, or broker by morning.",
+  },
+  {
+    icon: Clock3,
+    title: 'Meeting ke beech five inquiries.',
+    text: 'Your phone keeps buzzing. No one answers fast enough. High-intent leads move on.',
+  },
+  {
+    icon: Users,
+    title: 'Follow-up depends on staff memory.',
+    text: 'A hot lead asked for price, timing, or appointment. Nobody follows up. The lead goes cold.',
+  },
+];
 
 const steps = [
-  { icon: MessageCircle, title: 'Customer sends WhatsApp message', copy: 'AI replies in seconds with your business tone and working hours.' },
-  { icon: Sparkles, title: 'AI asks the right questions', copy: 'Budget, need, timing, service type, and urgency are collected automatically.' },
-  { icon: BellRing, title: 'Hot lead? Owner gets alert', copy: 'Qualified leads are sent to the owner with context and next action.' },
+  {
+    title: 'Customer messages your WhatsApp number.',
+    text: 'They ask about fees, slots, price, location, availability, or service details.',
+  },
+  {
+    title: 'WhatsAI replies and qualifies them.',
+    text: 'It asks the right questions, books an appointment, and pauses for human takeover when needed.',
+  },
+  {
+    title: 'You see qualified leads in one dashboard.',
+    text: 'Wake up to booked appointments, hot leads, notes, and the exact chat history.',
+  },
 ];
 
-const chat = [
-  { from: 'customer', text: 'Hello, mujhe 2BHK chahiye Super Corridor mein' },
-  { from: 'ai', text: 'Namaste! Budget kitna hai aapka?' },
-  { from: 'customer', text: '50 lakh tak' },
-  { from: 'ai', text: 'Perfect! Kab tak lena chahte hain? Is month?' },
-  { from: 'customer', text: 'Haan, jaldi chahiye' },
-  { from: 'ai', text: 'Ek moment — main aapka visit schedule kar deta hu. Owner se directly baat karna chahenge?' },
+const features = [
+  { emoji: '🤖', title: '24/7 AI Receptionist', text: 'Replies in seconds when you, your staff, or your front desk are busy.' },
+  { emoji: '📋', title: 'Smart Lead Qualification', text: 'Collects need, budget, timeline, location, and urgency before you speak.' },
+  { emoji: '📅', title: 'Appointment Booking', text: 'Suggests slots and logs confirmed visits or appointments to the dashboard.' },
+  { emoji: '🔔', title: 'Hot Lead Alerts', text: 'Flags urgent buyers, patients, students, and customers for human takeover.' },
+  { emoji: '📊', title: 'Owner Dashboard', text: 'Shows conversations, lead status, appointment status, and follow-up notes.' },
+  { emoji: '🏢', title: 'Works for Any Business', text: 'Built for clinics, coaching classes, restaurants, gyms, salons, and brokers.' },
 ];
 
-const verticals = [
-  { icon: Building2, name: 'Real Estate', promise: 'Qualify buyers, capture budget, and push hot site-visit requests.' },
-  { icon: HeartPulse, name: 'Clinic', promise: 'Book appointments and collect symptoms without giving medical advice.' },
-  { icon: GraduationCap, name: 'Coaching', promise: 'Handle admission enquiries, course fit, fees, and demo-class intent.' },
-  { icon: Dumbbell, name: 'Gym', promise: 'Capture fitness goals, preferred timing, and membership readiness.' },
-  { icon: Wrench, name: 'Local Services', promise: 'Take service requests, urgency, location, and callback preference.' },
-];
-
-const plans = [
-  { name: 'Trial', price: '₹999', period: '7 days', detail: 'Managed setup, one playbook, up to 50 messages/day.' },
-  { name: 'Basic', price: '₹2,999', period: '/mo', detail: '24/7 receptionist, lead qualification, daily summary.' },
-  { name: 'Growth', price: '₹7,999', period: '/mo', detail: 'More message volume, handoff alerts, appointment workflows.' },
-  { name: 'Pro', price: '₹14,999', period: '/mo', detail: 'Multi-playbook setup, white-label options, priority onboarding.' },
-];
-
-const inboxItems = [
-  ['Aditya Sharma', '2BHK Super Corridor', 'Hot'],
-  ['Dr. Meena Joshi', 'Saturday appointment', 'Booked'],
-  ['Rohit Verma', 'Coaching fee enquiry', 'Qualifying'],
-  ['FitZone Lead', 'Evening gym slot', 'Warm'],
+const useCases = [
+  {
+    name: 'Coaching Institute',
+    quote: '100+ student inquiries handled per month without a single human reply.',
+    detail: 'Course fit, fees, batch timing, and demo-class interest captured automatically.',
+  },
+  {
+    name: 'Dental Clinic',
+    quote: 'Appointment booking rate went up 3x in the first week.',
+    detail: 'The AI checks preferred time, urgency, and patient name before handoff.',
+  },
+  {
+    name: 'Real Estate Agent',
+    quote: 'AI qualifies site visit leads for me every night.',
+    detail: 'Budget, area, timeline, and visit intent reach the owner before the call.',
+  },
 ];
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen overflow-hidden bg-[#f7f3ea] text-[#1b2a29]">
-      <Hero />
-      <HowItWorks />
-      <ExampleChat />
-      <Verticals />
-      <Pricing />
-      <FooterCta />
+    <main className="min-h-screen overflow-hidden bg-[#f8fafc] text-[#1a1f2e]">
+      <HeroSection />
+      <PainSection />
+      <HowItWorksSection />
+      <FeaturesSection />
+      <UseCasesSection />
+      <PricingSection />
+      <FinalCtaSection />
+      <Footer />
     </main>
   );
 }
 
-function Hero() {
+function HeroSection() {
   return (
-    <section className="relative min-h-[92vh] border-b border-[#1b2a29]/10">
-      <div className="absolute inset-0 bg-[#143b35]">
-        <div className="absolute inset-0 opacity-20 [background-image:linear-gradient(90deg,rgba(255,255,255,.16)_1px,transparent_1px),linear-gradient(rgba(255,255,255,.12)_1px,transparent_1px)] [background-size:44px_44px]" />
-        <div className="absolute left-1/2 top-10 hidden w-[640px] -translate-x-1/2 rotate-[-6deg] gap-3 opacity-40 lg:grid">
-          {inboxItems.map(([name, text, status]) => (
-            <div key={name} className="flex items-center justify-between rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-white shadow-2xl backdrop-blur">
-              <div>
-                <p className="text-sm font-semibold">{name}</p>
-                <p className="text-xs text-white/70">{text}</p>
-              </div>
-              <span className="rounded-full bg-[#f6c453] px-3 py-1 text-xs font-bold text-[#17302c]">{status}</span>
-            </div>
-          ))}
-        </div>
-        <div className="absolute bottom-0 right-0 h-[70%] w-full bg-[radial-gradient(circle_at_80%_40%,rgba(246,196,83,.24),transparent_34%)]" />
-      </div>
+    <section className="relative bg-[#1a1f2e] text-white">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(0,168,132,0.38),transparent_28%),radial-gradient(circle_at_82%_20%,rgba(217,253,211,0.15),transparent_30%)]" />
+      <div className="absolute inset-0 opacity-[0.08] [background-image:linear-gradient(90deg,#ffffff_1px,transparent_1px),linear-gradient(#ffffff_1px,transparent_1px)] [background-size:42px_42px]" />
 
       <nav className="relative z-10 mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-8">
-        <div className="flex items-center gap-3 text-white">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#25d366] text-[#0f2c28]">
+        <a href="#top" className="flex items-center gap-3" aria-label="WhatsAI Assistant home">
+          <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#00a884] text-white shadow-lg shadow-[#00a884]/25">
             <MessageCircle className="h-5 w-5" />
-          </div>
-          <span className="text-sm font-bold tracking-wide">WhatsAI Assistant</span>
+          </span>
+          <span className="text-sm font-black tracking-tight sm:text-base">WhatsAI Assistant</span>
+        </a>
+        <div className="hidden items-center gap-6 text-sm font-semibold text-white/72 md:flex">
+          <a className="transition hover:text-white" href="#how">How it works</a>
+          <a className="transition hover:text-white" href="#features">Features</a>
+          <a className="transition hover:text-white" href="#pricing">Pricing</a>
         </div>
-        <a href={trialHref} className="rounded-full border border-white/30 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white hover:text-[#143b35]">
-          Start trial
+        <a
+          href={dashboardHref}
+          className="rounded-full bg-white px-4 py-2 text-sm font-black text-[#075e54] transition hover:bg-[#d9fdd3] focus:outline-none focus:ring-4 focus:ring-[#00a884]/40"
+        >
+          Start Free Trial
         </a>
       </nav>
 
-      <div className="relative z-10 mx-auto grid min-h-[calc(92vh-80px)] max-w-7xl items-end gap-10 px-5 pb-10 pt-10 sm:px-8 lg:grid-cols-[1.05fr_.95fr] lg:items-center lg:pb-16">
-        <div className="max-w-3xl pb-8 text-white">
-          <p className="mb-5 inline-flex rounded-full border border-white/25 px-4 py-2 text-sm font-medium text-white/85">
-            Built for Indian SMBs who live on WhatsApp
+      <div id="top" className="relative z-10 mx-auto grid max-w-7xl gap-10 px-5 pb-16 pt-10 sm:px-8 lg:min-h-[760px] lg:grid-cols-[1fr_440px] lg:items-center lg:pb-24 lg:pt-16">
+        <div className="max-w-3xl animate-[fadeUp_.7s_ease-out_both]">
+          <p className="inline-flex rounded-full border border-white/15 bg-white/[0.08] px-4 py-2 text-sm font-bold text-[#d9fdd3] backdrop-blur">
+            For Indian SMB owners who live on WhatsApp
           </p>
-          <h1 className="text-5xl font-black leading-[0.95] tracking-tight sm:text-7xl lg:text-8xl">
-            WhatsAI Assistant
+          <h1 className="mt-6 max-w-4xl text-5xl font-black leading-[0.96] tracking-[-0.055em] sm:text-6xl lg:text-7xl">
+            Never Miss WhatsApp Leads
           </h1>
-          <p className="mt-6 max-w-2xl text-xl leading-8 text-white/82">
-            24/7 WhatsApp receptionist for Indian businesses. Never miss a customer again.
-          </p>
-          <p className="mt-3 font-hindi text-lg font-semibold text-[#f6c453]">
-            Aapka business sote waqt bhi leads qualify karta rahe.
+          <p className="mt-6 max-w-2xl text-lg leading-8 text-white/75 sm:text-xl">
+            A WhatsApp AI receptionist for clinics, coaching classes, salons, gyms, restaurants, and brokers. It replies, qualifies, books appointments, and alerts you for hot leads.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <a href={trialHref} className="inline-flex items-center justify-center rounded-full bg-[#25d366] px-6 py-3 text-sm font-black text-[#0f2c28] shadow-xl shadow-black/20 transition hover:translate-y-[-1px]">
-              Start 7-Day Free Trial <ArrowRight className="ml-2 h-4 w-4" />
+            <a
+              href={dashboardHref}
+              className="group inline-flex items-center justify-center rounded-full bg-[#00a884] px-7 py-4 text-sm font-black text-white shadow-2xl shadow-[#00a884]/25 transition hover:-translate-y-0.5 hover:shadow-[#00a884]/40 focus:outline-none focus:ring-4 focus:ring-[#00a884]/40"
+            >
+              Start Free Trial
+              <ArrowRight className="ml-2 h-4 w-4 transition group-hover:translate-x-1" />
             </a>
-            <a href="#chat" className="inline-flex items-center justify-center rounded-full border border-white/30 px-6 py-3 text-sm font-bold text-white transition hover:bg-white/10">
-              See conversation
+            <a
+              href="#how"
+              className="inline-flex items-center justify-center rounded-full border border-white/20 px-7 py-4 text-sm font-black text-white transition hover:bg-white/10 focus:outline-none focus:ring-4 focus:ring-white/20"
+            >
+              See how it works
             </a>
           </div>
+          <p className="mt-5 text-sm font-semibold text-white/70">
+            Setup in 10 minutes. No credit card needed. Works on your existing WhatsApp number.
+          </p>
         </div>
-        <HeroPhone />
+
+        <div className="animate-[fadeUp_.7s_.12s_ease-out_both]">
+          <PhoneMockup />
+        </div>
       </div>
     </section>
   );
 }
 
-function HeroPhone() {
+function PhoneMockup() {
   return (
-    <div className="mx-auto w-full max-w-[390px] rounded-[2rem] border border-white/20 bg-[#101816] p-3 shadow-2xl shadow-black/35">
-      <div className="overflow-hidden rounded-[1.5rem] bg-[#efe7d4]">
-        <div className="flex items-center gap-3 bg-[#075e54] px-4 py-3 text-white">
-          <div className="h-9 w-9 rounded-full bg-[#25d366]" />
-          <div>
-            <p className="text-sm font-bold">WhatsAI Assistant</p>
-            <p className="text-xs text-white/75">online · replies in 4s</p>
+    <div className="mx-auto max-w-[390px] rounded-[2.25rem] border border-white/15 bg-[#0b111d] p-3 shadow-[0_32px_90px_rgba(0,0,0,0.42)]">
+      <div className="overflow-hidden rounded-[1.75rem] bg-[#efeae2]">
+        <div className="flex items-center justify-between bg-[#075e54] px-4 py-3 text-white">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#00a884] text-sm font-black">WA</div>
+            <div>
+              <p className="text-sm font-black">Your AI Receptionist</p>
+              <p className="text-xs text-white/70">online now</p>
+            </div>
+          </div>
+          <ShieldCheck className="h-5 w-5 text-[#d9fdd3]" />
+        </div>
+        <div className="space-y-3 px-3 py-4">
+          {phoneMessages.map((message, index) => (
+            <ChatBubble key={`${message.text}-${index}`} side={message.side} text={message.text} />
+          ))}
+          <div className="rounded-2xl border border-[#00a884]/20 bg-white px-4 py-3 text-xs font-bold text-[#075e54] shadow-sm">
+            Hot lead alert sent to owner
           </div>
         </div>
-        <div className="space-y-3 p-4">
-          {chat.slice(0, 5).map((item, index) => (
-            <ChatBubble key={`${item.text}-${index}`} {...item} />
-          ))}
-        </div>
-        <div className="flex items-center gap-2 border-t border-black/10 bg-white/70 p-3">
-          <div className="flex-1 rounded-full bg-white px-4 py-2 text-sm text-slate-500">Type message</div>
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#25d366] text-[#0f2c28]">
+        <div className="flex items-center gap-2 border-t border-black/10 bg-[#f7f8f6] p-3">
+          <div className="flex-1 rounded-full bg-white px-4 py-2 text-sm text-slate-500 shadow-inner">Message</div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#00a884] text-white">
             <Send className="h-4 w-4" />
           </div>
         </div>
@@ -152,90 +201,21 @@ function HeroPhone() {
   );
 }
 
-function HowItWorks() {
+function PainSection() {
   return (
-    <section className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:py-24">
-      <SectionIntro eyebrow="How it works" title="One WhatsApp number. Three useful jobs." />
-      <div className="mt-10 grid gap-4 md:grid-cols-3">
-        {steps.map((step, index) => (
-          <div key={step.title} className="rounded-3xl border border-[#1b2a29]/10 bg-white p-6 shadow-sm">
-            <div className="mb-8 flex items-center justify-between">
-              <step.icon className="h-7 w-7 text-[#0d7d67]" />
-              <span className="font-mono text-sm font-bold text-[#b84a2b]">0{index + 1}</span>
-            </div>
-            <h3 className="text-xl font-black">{step.title}</h3>
-            <p className="mt-3 text-sm leading-6 text-[#53615f]">{step.copy}</p>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function ExampleChat() {
-  return (
-    <section id="chat" className="bg-[#1b2a29] px-5 py-16 text-white sm:px-8 lg:py-24">
-      <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[.8fr_1.2fr] lg:items-center">
-        <div>
-          <SectionIntro eyebrow="Example chat" title="A real lead, qualified before you pick up the phone." dark />
-          <p className="mt-5 text-base leading-7 text-white/70">
-            This is the first wedge: answer fast, ask clean questions, and alert the owner only when the lead is worth attention.
-          </p>
-        </div>
-        <div className="rounded-[2rem] bg-[#efe7d4] p-4 text-[#1b2a29] shadow-2xl">
-          <div className="mb-4 flex items-center justify-between rounded-2xl bg-[#075e54] px-4 py-3 text-white">
-            <div>
-              <p className="font-bold">WhatsApp conversation</p>
-              <p className="text-xs text-white/70">AI qualifying a real estate lead</p>
-            </div>
-            <PhoneCall className="h-5 w-5" />
-          </div>
-          <div className="space-y-3">
-            {chat.map((item, index) => (
-              <ChatBubble key={`${item.text}-${index}`} {...item} />
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Verticals() {
-  return (
-    <section className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:py-24">
-      <SectionIntro eyebrow="Business verticals" title="Start with one niche. Reuse the same engine." />
-      <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        {verticals.map((vertical) => (
-          <div key={vertical.name} className="rounded-3xl border border-[#1b2a29]/10 bg-white p-5 shadow-sm">
-            <vertical.icon className="h-7 w-7 text-[#b84a2b]" />
-            <h3 className="mt-6 text-lg font-black">{vertical.name}</h3>
-            <p className="mt-3 text-sm leading-6 text-[#53615f]">{vertical.promise}</p>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function Pricing() {
-  return (
-    <section className="border-y border-[#1b2a29]/10 bg-white px-5 py-16 sm:px-8 lg:py-24">
+    <section className="bg-[#0f172a] px-5 py-16 text-white sm:px-8 lg:py-24">
       <div className="mx-auto max-w-7xl">
-        <SectionIntro eyebrow="Pricing" title="A trial offer an SMB owner can understand." />
-        <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {plans.map((plan) => (
-            <div key={plan.name} className={`rounded-3xl border p-6 ${plan.name === 'Growth' ? 'border-[#25d366] bg-[#f0fff6]' : 'border-[#1b2a29]/10 bg-[#fbfaf6]'}`}>
-              <h3 className="text-lg font-black">{plan.name}</h3>
-              <div className="mt-5 flex items-end gap-1">
-                <span className="text-4xl font-black">{plan.price}</span>
-                <span className="pb-1 text-sm text-[#53615f]">{plan.period}</span>
-              </div>
-              <p className="mt-4 min-h-16 text-sm leading-6 text-[#53615f]">{plan.detail}</p>
-              <a href={trialHref} className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-[#1b2a29] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#0d7d67]">
-                Talk on WhatsApp
-              </a>
-            </div>
+        <div className="max-w-2xl">
+          <p className="text-sm font-black uppercase tracking-[0.22em] text-[#00a884]">Iska Matlab Pehchaano</p>
+          <h2 className="mt-4 text-3xl font-black tracking-tight sm:text-5xl">Leads do not wait for office hours.</h2>
+        </div>
+        <div className="mt-10 grid gap-4 md:grid-cols-3">
+          {painPoints.map((item) => (
+            <article key={item.title} className="rounded-[2rem] border border-white/10 bg-white/[0.06] p-6 shadow-2xl shadow-black/10 backdrop-blur">
+              <item.icon className="h-8 w-8 text-[#d9fdd3]" />
+              <h3 className="mt-8 text-xl font-black">{item.title}</h3>
+              <p className="mt-3 text-sm leading-6 text-white/70">{item.text}</p>
+            </article>
           ))}
         </div>
       </div>
@@ -243,36 +223,154 @@ function Pricing() {
   );
 }
 
-function FooterCta() {
+function HowItWorksSection() {
   return (
-    <footer className="bg-[#f7f3ea] px-5 py-16 sm:px-8">
-      <div className="mx-auto flex max-w-7xl flex-col gap-8 rounded-[2rem] bg-[#143b35] p-8 text-white md:flex-row md:items-center md:justify-between">
-        <div>
-          <h2 className="text-3xl font-black">Start your 7-day trial today.</h2>
-          <p className="mt-2 text-white/70">Setup in 10 minutes. No app download.</p>
+    <section id="how" className="px-5 py-16 sm:px-8 lg:py-24">
+      <div className="mx-auto max-w-7xl">
+        <SectionHeader eyebrow="How it works" title="Three steps from inquiry to appointment." text="WhatsAI sits on top of your WhatsApp workflow. Customers chat like normal. You get clean lead data." />
+        <div className="mt-12 grid gap-5 lg:grid-cols-3">
+          {steps.map((step, index) => (
+            <article key={step.title} className="relative rounded-[2rem] border border-slate-200 bg-white p-7 shadow-sm">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#d9fdd3] text-lg font-black text-[#075e54]">{index + 1}</div>
+              <h3 className="mt-8 text-xl font-black tracking-tight">{step.title}</h3>
+              <p className="mt-3 text-sm leading-6 text-slate-600">{step.text}</p>
+              {index < steps.length - 1 && <ArrowRight className="absolute -right-4 top-1/2 hidden h-8 w-8 text-[#00a884] lg:block" />}
+            </article>
+          ))}
         </div>
-        <a href={trialHref} className="inline-flex items-center justify-center rounded-full bg-[#25d366] px-6 py-3 text-sm font-black text-[#0f2c28]">
-          Start 7-Day Free Trial <ArrowRight className="ml-2 h-4 w-4" />
+      </div>
+    </section>
+  );
+}
+
+function FeaturesSection() {
+  return (
+    <section id="features" className="bg-white px-5 py-16 sm:px-8 lg:py-24">
+      <div className="mx-auto max-w-7xl">
+        <SectionHeader eyebrow="Kya Milta Hai" title="The front desk your business needed." text="Six simple tools cover the customer journey from first message to owner handoff." />
+        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {features.map((feature) => (
+            <article key={feature.title} className="group rounded-[2rem] border border-slate-200 bg-[#f8fafc] p-6 transition hover:-translate-y-1 hover:border-[#00a884]/40 hover:bg-white hover:shadow-xl hover:shadow-[#00a884]/10">
+              <div className="text-3xl" aria-hidden="true">{feature.emoji}</div>
+              <h3 className="mt-6 text-xl font-black tracking-tight">{feature.title}</h3>
+              <p className="mt-3 text-sm leading-6 text-slate-600">{feature.text}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function UseCasesSection() {
+  return (
+    <section className="px-5 py-16 sm:px-8 lg:py-24">
+      <div className="mx-auto max-w-7xl">
+        <SectionHeader eyebrow="Use cases" title="Built for businesses that run on calls and WhatsApp." text="Start with one WhatsApp number. Train the assistant on your offer, your questions, and your booking rules." />
+        <div className="mt-12 grid gap-5 lg:grid-cols-3">
+          {useCases.map((useCase) => (
+            <article key={useCase.name} className="rounded-[2rem] border border-slate-200 bg-white p-7 shadow-sm">
+              <p className="text-sm font-black uppercase tracking-[0.16em] text-[#00a884]">{useCase.name}</p>
+              <blockquote className="mt-6 text-2xl font-black leading-tight tracking-tight text-[#1a1f2e]">
+                “{useCase.quote}”
+              </blockquote>
+              <p className="mt-5 text-sm leading-6 text-slate-600">{useCase.detail}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function PricingSection() {
+  return (
+    <section id="pricing" className="bg-[#edf7f4] px-5 py-16 sm:px-8 lg:py-24">
+      <div className="mx-auto max-w-4xl text-center">
+        <p className="text-sm font-black uppercase tracking-[0.22em] text-[#075e54]">Shuruaat Karo</p>
+        <h2 className="mt-4 text-4xl font-black tracking-tight sm:text-5xl">10-Business Free Trial</h2>
+        <div className="mx-auto mt-10 max-w-xl rounded-[2rem] border border-[#00a884]/20 bg-white p-7 text-left shadow-2xl shadow-[#00a884]/10 sm:p-9">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h3 className="text-2xl font-black">Pilot access</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">One WhatsApp number. One business. Full lead-to-appointment workflow.</p>
+            </div>
+            <div className="rounded-full bg-[#d9fdd3] px-4 py-2 text-sm font-black text-[#075e54]">Free</div>
+          </div>
+          <ul className="mt-8 space-y-4 text-sm font-semibold text-slate-700">
+            {['Unlimited WhatsApp replies', 'Lead dashboard', 'Hot lead alerts', '1 WhatsApp number'].map((item) => (
+              <li key={item} className="flex items-center gap-3">
+                <Check className="h-5 w-5 rounded-full bg-[#00a884] p-1 text-white" />
+                {item}
+              </li>
+            ))}
+          </ul>
+          <a
+            href={dashboardHref}
+            className="mt-8 inline-flex w-full items-center justify-center rounded-full bg-[#00a884] px-7 py-4 text-sm font-black text-white transition hover:-translate-y-0.5 hover:shadow-xl hover:shadow-[#00a884]/25 focus:outline-none focus:ring-4 focus:ring-[#00a884]/30"
+          >
+            Claim Your Free Spot
+          </a>
+          <p className="mt-4 text-center text-sm font-semibold text-slate-500">Limited to 10 businesses in the pilot. No credit card required.</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FinalCtaSection() {
+  return (
+    <section className="bg-[#1a1f2e] px-5 py-16 text-white sm:px-8 lg:py-24">
+      <div className="mx-auto max-w-5xl text-center">
+        <p className="mx-auto inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-bold text-[#d9fdd3]">
+          <Sparkles className="h-4 w-4" /> Pilot onboarding is open
+        </p>
+        <h2 className="mt-6 text-4xl font-black tracking-tight sm:text-6xl">Aapka WhatsApp 24/7 Kaam Karega.</h2>
+        <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-white/72">Set up in 10 minutes. Your AI receptionist is waiting.</p>
+        <a
+          href={dashboardHref}
+          className="mt-8 inline-flex items-center justify-center rounded-full bg-[#00a884] px-8 py-4 text-sm font-black text-white transition hover:-translate-y-0.5 hover:shadow-2xl hover:shadow-[#00a884]/30 focus:outline-none focus:ring-4 focus:ring-[#00a884]/40"
+        >
+          Start Free Now <ArrowRight className="ml-2 h-4 w-4" />
         </a>
+      </div>
+    </section>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="bg-white px-5 py-10 sm:px-8">
+      <div className="mx-auto flex max-w-7xl flex-col gap-5 border-t border-slate-200 pt-8 text-sm text-slate-500 md:flex-row md:items-center md:justify-between">
+        <div>
+          <p className="font-black text-[#1a1f2e]">WhatsAI Assistant</p>
+          <p className="mt-1">© 2026 WhatsAI. Made for Indian SMBs.</p>
+        </div>
+        <div className="flex flex-wrap gap-5 font-semibold">
+          <a className="transition hover:text-[#075e54]" href={dashboardHref}>Dashboard</a>
+          <a className="transition hover:text-[#075e54]" href="/privacy">Privacy</a>
+          <a className="transition hover:text-[#075e54]" href="mailto:rohit@xeroseven.in">Contact</a>
+        </div>
       </div>
     </footer>
   );
 }
 
-function SectionIntro({ eyebrow, title, dark = false }: { eyebrow: string; title: string; dark?: boolean }) {
+function SectionHeader({ eyebrow, title, text }: { eyebrow: string; title: string; text: string }) {
   return (
-    <div className="max-w-2xl">
-      <p className={`text-sm font-black uppercase tracking-[0.18em] ${dark ? 'text-[#f6c453]' : 'text-[#b84a2b]'}`}>{eyebrow}</p>
-      <h2 className={`mt-3 text-3xl font-black tracking-tight sm:text-5xl ${dark ? 'text-white' : 'text-[#1b2a29]'}`}>{title}</h2>
+    <div className="max-w-3xl">
+      <p className="text-sm font-black uppercase tracking-[0.22em] text-[#00a884]">{eyebrow}</p>
+      <h2 className="mt-4 text-3xl font-black tracking-tight text-[#1a1f2e] sm:text-5xl">{title}</h2>
+      <p className="mt-4 text-base leading-7 text-slate-600 sm:text-lg">{text}</p>
     </div>
   );
 }
 
-function ChatBubble({ from, text }: { from: string; text: string }) {
-  const isAi = from === 'ai';
+function ChatBubble({ side, text }: { side: string; text: string }) {
+  const customer = side === 'customer';
   return (
-    <div className={`flex ${isAi ? 'justify-start' : 'justify-end'}`}>
-      <div className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-6 shadow-sm ${isAi ? 'bg-white text-[#1b2a29]' : 'bg-[#dcf8c6] text-[#1b2a29]'}`}>
+    <div className={`flex ${customer ? 'justify-start' : 'justify-end'}`}>
+      <div className={`max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-6 shadow-sm ${customer ? 'rounded-tl-sm bg-white text-[#1a1f2e]' : 'rounded-tr-sm bg-[#d9fdd3] text-[#1a1f2e]'}`}>
         {text}
       </div>
     </div>

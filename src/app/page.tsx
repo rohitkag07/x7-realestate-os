@@ -1,7 +1,7 @@
-import { DashboardHomePage } from '@/components/dashboard/DashboardHomePage';
+import { redirect } from 'next/navigation';
 
 export const metadata = { title: 'Dashboard' };
 
 export default function HomePage() {
-  return <DashboardHomePage />;
+  redirect('/dashboard');
 }

@@ -13,12 +13,18 @@ for (const file of files) {
   if (!Array.isArray(json.include)) continue;
 
   const nextDevInclude = '.next-dev/types/**/*.ts';
+  const legacyNextDevInclude = '.next-dev/dev/types/**/*.ts';
   const nextInclude = '.next/types/**/*.ts';
   const before = json.include.join('|');
 
-  json.include = json.include.filter((entry) => entry !== nextDevInclude);
   if (!json.include.includes(nextInclude)) {
     json.include.push(nextInclude);
+  }
+  if (!json.include.includes(nextDevInclude)) {
+    json.include.push(nextDevInclude);
+  }
+  if (!json.include.includes(legacyNextDevInclude)) {
+    json.include.push(legacyNextDevInclude);
   }
 
   if (json.include.join('|') !== before) {
