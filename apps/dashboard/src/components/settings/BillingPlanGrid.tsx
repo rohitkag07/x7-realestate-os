@@ -78,6 +78,6 @@ export function BillingPlanGrid({
 
 function upgradeHref(ownerPhone: string, planName: string) {
   const phone = ownerPhone.replace(/\D/g, '') || '919876543210';
-  const message = encodeURIComponent(`Hi X7 team, I want to upgrade my WhatsAI Assistant trial to the ${planName} plan. Please share next steps.`);
+  const message = encodeURIComponent(`Hi WhatsAI team, I want to upgrade my WhatsAI Assistant trial to the ${planName} plan. Please share next steps.`);
   return `https://wa.me/${phone}?text=${message}`;
 }

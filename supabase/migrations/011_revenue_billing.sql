@@ -1,5 +1,5 @@
 -- =====================================================================
--- X7 WhatsAI Assistant — Revenue & Billing Schema (Phase 5)
+-- WhatsAI Assistant — Revenue & Billing Schema (Phase 5)
 -- =====================================================================
 -- Adds subscription plans, invoices, usage tracking, and white-label
 -- setup checklist on top of the existing trial_accounts table.

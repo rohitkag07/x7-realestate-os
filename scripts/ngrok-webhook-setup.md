@@ -88,7 +88,7 @@ tail -f ~/.codex-runtime/phase6/logs/sales-agent.log
 
 ```text
 [summoner] webhook received from 91XXXXXXXXXX
-[summoner] business resolved: X7 Test Coaching Center
+[summoner] business resolved: WhatsAI Test Coaching Center
 [summoner] routing to /playbook/qualify
 [sales-agent] qualify called for coaching vertical
 [sales-agent] question_key: course_interest returned

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { createClient } from '@supabase/supabase-js';
 
-export const metadata = { title: 'Trials — X7 WhatsAI' };
+export const metadata = { title: 'Trials — WhatsAI Assistant' };
 export const dynamic = 'force-dynamic';
 
 type TrialRow = {

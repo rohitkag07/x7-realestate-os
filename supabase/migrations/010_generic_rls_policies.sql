@@ -1,5 +1,5 @@
 -- =====================================================================
--- X7 WhatsAI Assistant — Generic RLS Policies (Phase 1 Pivot)
+-- WhatsAI Assistant — Generic RLS Policies (Phase 1 Pivot)
 -- =====================================================================
 -- RLS policies for horizontal multi-business support tables.
 -- Requires migration 009.

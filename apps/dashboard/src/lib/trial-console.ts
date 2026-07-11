@@ -122,7 +122,7 @@ export async function getTrialConsoleData(): Promise<TrialConsoleData> {
     trial: {
       source: 'supabase',
       businessId,
-      businessName: business.data?.name ?? 'X7 WhatsAI Trial',
+      businessName: business.data?.name ?? 'WhatsAI Assistant Trial',
       ownerPhone: business.data?.phone ?? '',
       planKey: plan?.key ?? 'trial',
       planName: plan?.name ?? 'Trial',

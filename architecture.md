@@ -1,4 +1,4 @@
-# X7 WhatsAI Assistant - Architecture
+# WhatsAI Assistant - Architecture
 
 ## Core Pattern
 

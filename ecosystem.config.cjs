@@ -11,21 +11,21 @@ module.exports = {
   apps: [
     {
       ...common,
-      name: 'x7-sales-agent',
+      name: 'whatsai-sales-agent',
       cwd: `${root}/agents/x7-re-sales-agent`,
       script: 'index.js',
       interpreter_args: `--env-file=${root}/agents/x7-re-sales-agent/.env`,
     },
     {
       ...common,
-      name: 'x7-tool-gateway',
+      name: 'whatsai-tool-gateway',
       cwd: `${root}/agents/x7-re-tool-gateway`,
       script: 'index.js',
       interpreter_args: `--env-file=${root}/agents/x7-re-tool-gateway/.env`,
     },
     {
       ...common,
-      name: 'x7-summoner',
+      name: 'whatsai-summoner',
       cwd: `${root}/agents/x7-re-summoner`,
       script: 'index.js',
       interpreter_args: `--env-file=${root}/agents/x7-re-summoner/.env`,

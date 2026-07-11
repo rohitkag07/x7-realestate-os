@@ -2,7 +2,7 @@ import { PageHeader } from '@/components/shared/PageHeader';
 import { Bell } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 
-export const metadata = { title: 'Daily Summary — X7 WhatsAI' };
+export const metadata = { title: 'Daily Summary — WhatsAI Assistant' };
 export const dynamic = 'force-dynamic';
 
 type SummaryRow = {

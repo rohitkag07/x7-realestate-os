@@ -1,4 +1,4 @@
-# X7 WhatsAI Assistant - Operator Dashboard Reference
+# WhatsAI Assistant - Operator Dashboard Reference
 
 The active dashboard now lives in the canonical repo root `src/`, not this `apps/dashboard/src` tree.
 Use this file only as historical structure reference.
@@ -6,7 +6,7 @@ Use this file only as historical structure reference.
 Canonical path:
 
 ```text
-/Users/rohit/Projects/x7-realestate-os
+/Users/rohit/Projects/whatsai-assistant
 ```
 
 Current runbook:
@@ -18,7 +18,7 @@ WHATSAI_RUNBOOK.md
 ## Quickstart
 
 ```bash
-cd /Users/rohit/Projects/x7-realestate-os
+cd /Users/rohit/Projects/whatsai-assistant
 cp .env.example apps/dashboard/.env.local
 npm install
 pm2 start ecosystem.config.cjs --update-env
@@ -29,7 +29,7 @@ npm run dev                        # http://localhost:3000
 ## Current Structure
 
 ```text
-/Users/rohit/Projects/x7-realestate-os/src/
+/Users/rohit/Projects/whatsai-assistant/src/
 ├── app/
 │   ├── (auth)/login          - operator login
 │   ├── (dashboard)/

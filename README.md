@@ -1,8 +1,8 @@
-# X7 WhatsAI Assistant - WhatsApp-First Lead Conversion Platform
+# WhatsAI Assistant - WhatsApp-First Lead Conversion Platform
 
-Formerly positioned as X7 RealEstate OS, this repo is now pivoting into a horizontal WhatsApp AI assistant platform for Indian businesses.
+This repo is the canonical WhatsAI Assistant codebase for a horizontal WhatsApp AI assistant platform for Indian businesses.
 
-The existing real-estate system is not being discarded. It becomes the first vertical pack: `X7 SiteVisit AI` for builders and brokers.
+The existing real-estate system is not being discarded. It becomes the first vertical pack: `WhatsAI SiteVisit` for builders and brokers.
 
 ## Current Positioning
 
@@ -16,11 +16,11 @@ Primary buyer promise:
 
 | Pack | Buyer | Main conversion goal |
 | --- | --- | --- |
-| X7 SiteVisit AI | real-estate builders and brokers | qualified site visit |
-| X7 Appointment AI | clinics and local healthcare providers | appointment booking |
-| X7 Admission AI | coaching and education businesses | demo class or counselor callback |
-| X7 Fitness Intake AI | gyms and dietitians | trial session or plan inquiry |
-| X7 Callback AI | local service businesses | qualified callback |
+| WhatsAI SiteVisit | real-estate builders and brokers | qualified site visit |
+| WhatsAI Appointment | clinics and local healthcare providers | appointment booking |
+| WhatsAI Admission | coaching and education businesses | demo class or counselor callback |
+| WhatsAI Fitness Intake | gyms and dietitians | trial session or plan inquiry |
+| WhatsAI Callback | local service businesses | qualified callback |
 
 ## What Already Exists
 
@@ -46,10 +46,10 @@ The repo already contains a meaningful base that should be reused:
 Canonical local repo path:
 
 ```text
-/Users/rohit/Projects/x7-realestate-os
+/Users/rohit/Projects/whatsai-assistant
 ```
 
-Do not use `/Users/rohit/Documents/Claude/Projects/X7 Real estate` for new WhatsAI work. That folder is deprecated and kept only as a temporary safety backup.
+Do not use the deprecated spaced Claude project copy for new WhatsAI work. It is kept only as a temporary safety backup.
 
 ## Backend Agents
 
@@ -71,7 +71,7 @@ Deferred agents are not launch blockers for WhatsAI MVP:
 
 Start here:
 
-- `X7_WhatsAI_Pivot_Strategy.md`
+- `WHATSAI_PIVOT_STRATEGY.md`
 - `.docs/ghost-ai/DOCS_INDEX.md`
 - `.docs/ghost-ai/CURRENT_SYSTEM_MAP.md`
 - `.docs/ghost-ai/NEXT_BUILD_PLAN.md`
@@ -81,17 +81,17 @@ Start here:
 
 Long reference docs remain useful, but should be read as pre-pivot context:
 
-- `X7_RealEstate_Blueprint.md`
-- `X7_Evolution_Blueprint.md`
+- `.docs/legacy/realestate-vertical-blueprint.md`
+- `.docs/legacy/evolution-blueprint.md`
 - `SSMA.md`
-- `X7_Revenue_Engines.md`
+- `.docs/legacy/revenue-engines.md`
 
 ## Local Setup
 
 Always work from the canonical path:
 
 ```bash
-cd /Users/rohit/Projects/x7-realestate-os
+cd /Users/rohit/Projects/whatsai-assistant
 ```
 
 Install dependencies inside the app or agent you are working on:
@@ -118,7 +118,7 @@ pm2 list
 Stop the local mesh:
 
 ```bash
-pm2 stop x7-sales-agent x7-tool-gateway x7-summoner
+pm2 stop whatsai-sales-agent whatsai-tool-gateway whatsai-summoner
 ```
 
 Run the complete WhatsAI readiness proof:

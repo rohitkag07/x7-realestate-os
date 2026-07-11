@@ -34,7 +34,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
         <SheetContent side="left" className="w-[310px] border-white/10 bg-[#07101d]/95 p-0 text-white backdrop-blur-xl">
           <SheetHeader className="sr-only">
-            <SheetTitle>X7 WhatsAI navigation</SheetTitle>
+            <SheetTitle>WhatsAI Assistant navigation</SheetTitle>
             <SheetDescription>Main dashboard navigation</SheetDescription>
           </SheetHeader>
           <Sidebar className="flex h-full w-full border-r-0 bg-transparent lg:flex" />

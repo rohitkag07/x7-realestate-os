@@ -1,8 +1,8 @@
 {
-  "name": "@x7/realestate-dashboard",
+  "name": "@x7/whatsai-dashboard",
   "version": "0.1.0",
   "private": true,
-  "description": "X7 WhatsAI Assistant — WhatsApp-first AI console for Indian SMBs",
+  "description": "WhatsAI Assistant — WhatsApp-first AI console for Indian SMBs",
   "author": "Rohit Kag <rohit@xeroseven.in>",
   "scripts": {
     "dev": "next dev",

@@ -1,5 +1,5 @@
 /**
- * X7 WhatsAI Assistant — Vertical Playbook Definitions
+ * WhatsAI Assistant — Vertical Playbook Definitions
  * =====================================================================
  * Each playbook defines:
  *   - system_prompt: core instruction for the AI assistant
@@ -20,11 +20,11 @@
 export const PLAYBOOKS = {
 
   // ─────────────────────────────────────────────────────────────────────
-  // 1. REAL ESTATE — X7 SiteVisit AI
+  // 1. REAL ESTATE — WhatsAI SiteVisit
   // ─────────────────────────────────────────────────────────────────────
   real_estate: {
     vertical: 'real_estate',
-    name: 'X7 SiteVisit AI',
+    name: 'WhatsAI SiteVisit',
     conversion_goal: 'site_visit_scheduled',
     system_prompt: `You are a 24/7 WhatsApp receptionist for a real estate builder.
 Your job: instantly reply to buyer inquiries, qualify budget and intent, and book a site visit.
@@ -88,11 +88,11 @@ If the buyer is ready to visit, immediately offer a slot.`,
   },
 
   // ─────────────────────────────────────────────────────────────────────
-  // 2. CLINIC — X7 Appointment AI
+  // 2. CLINIC — WhatsAI Appointment
   // ─────────────────────────────────────────────────────────────────────
   clinic: {
     vertical: 'clinic',
-    name: 'X7 Appointment AI',
+    name: 'WhatsAI Appointment',
     conversion_goal: 'appointment_booked',
     system_prompt: `You are a 24/7 WhatsApp receptionist for a medical clinic.
 Your job: answer general queries, qualify patient needs, and book appointments.
@@ -148,11 +148,11 @@ Language: Hinglish. Keep replies short and empathetic.`,
   },
 
   // ─────────────────────────────────────────────────────────────────────
-  // 3. COACHING — X7 Admission AI
+  // 3. COACHING — WhatsAI Admission
   // ─────────────────────────────────────────────────────────────────────
   coaching: {
     vertical: 'coaching',
-    name: 'X7 Admission AI',
+    name: 'WhatsAI Admission',
     conversion_goal: 'demo_class_booked',
     system_prompt: `You are a 24/7 WhatsApp receptionist for a coaching institute.
 Your job: answer course questions, qualify student needs, and book a free demo class or counselor callback.
@@ -206,11 +206,11 @@ Do not make promises about results or rankings.`,
   },
 
   // ─────────────────────────────────────────────────────────────────────
-  // 4. GYM / DIETITIAN — X7 Fitness Intake AI
+  // 4. GYM / DIETITIAN — WhatsAI Fitness Intake
   // ─────────────────────────────────────────────────────────────────────
   gym: {
     vertical: 'gym',
-    name: 'X7 Fitness Intake AI',
+    name: 'WhatsAI Fitness Intake',
     conversion_goal: 'trial_session_booked',
     system_prompt: `You are a 24/7 WhatsApp receptionist for a gym or dietitian practice.
 Your job: understand the member's goal, qualify their needs, and book a free trial session or consultation.
@@ -266,11 +266,11 @@ Language: Hinglish. Be energetic and motivating. Keep replies short.`,
   },
 
   // ─────────────────────────────────────────────────────────────────────
-  // 5. LOCAL SERVICE — X7 Callback AI
+  // 5. LOCAL SERVICE — WhatsAI Callback
   // ─────────────────────────────────────────────────────────────────────
   local_service: {
     vertical: 'local_service',
-    name: 'X7 Callback AI',
+    name: 'WhatsAI Callback',
     conversion_goal: 'callback_scheduled',
     system_prompt: `You are a 24/7 WhatsApp receptionist for a local service business.
 Your job: capture the customer's requirement and book a callback or site visit from the team.

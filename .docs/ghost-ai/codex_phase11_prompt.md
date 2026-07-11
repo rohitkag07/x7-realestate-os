@@ -1,4 +1,4 @@
-# X7 WhatsAI Assistant — Phase 11: End-to-End Live Trial Proof (Codex God Prompt)
+# WhatsAI Assistant — Phase 11: End-to-End Live Trial Proof (Codex God Prompt)
 
 ## Context
 
@@ -135,7 +135,7 @@ Run the script and show output.
 ```json
 {
   "business": {
-    "name": "X7 Test Coaching Center",
+    "name": "WhatsAI Test Coaching Center",
     "vertical": "coaching",
     "city": "Indore",
     "status": "active"
@@ -418,7 +418,7 @@ tail -f ~/.codex-runtime/phase6/logs/summoner.log
 ## Expected Log Output
 ```
 [summoner] webhook received from 91XXXXXXXXXX
-[summoner] business resolved: X7 Test Coaching Center
+[summoner] business resolved: WhatsAI Test Coaching Center
 [summoner] routing to /playbook/qualify
 [sales-agent] qualify called for coaching vertical
 [sales-agent] question_key: course_interest returned
@@ -475,7 +475,7 @@ Append "Step 8: Ngrok Setup Doc created" to .docs/ghost-ai/PROOF_LOG.md.
 **Codex Prompt:**
 ```
 In apps/landing, find the primary CTA button and update its WhatsApp link to point to the seeded business phone number from Step 3.
-Pre-filled message: "Hello, mujhe X7 WhatsAI Assistant ke baare mein jaanna hai".
+Pre-filled message: "Hello, mujhe WhatsAI Assistant ke baare mein jaanna hai".
 Run type-check. Start landing on port 3002. Verify it returns 200.
 Append result to .docs/ghost-ai/PROOF_LOG.md under "Step 9: Landing CTA".
 ```
@@ -490,14 +490,14 @@ Append result to .docs/ghost-ai/PROOF_LOG.md under "Step 9: Landing CTA".
 Create `.docs/ghost-ai/PHASE_11_PRODUCTION_PROOF.md` with:
 
 ```markdown
-# X7 WhatsAI Assistant — Phase 11 Production Proof Report
+# WhatsAI Assistant — Phase 11 Production Proof Report
 
 Generated: [timestamp]
 
 ## System Overview
-Product: X7 WhatsAI Assistant
+Product: WhatsAI Assistant
 Version: Phase 11 (Post-Pivot MVP)
-Repo: x7-realestate-os
+Repo: whatsai-assistant
 
 ## Completed Phases (1-10)
 [Summary of what was built]

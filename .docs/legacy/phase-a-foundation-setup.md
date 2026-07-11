@@ -1,9 +1,9 @@
 # Phase A Foundation Setup
 > [!IMPORTANT]
-> Pivot note (2026-07-11): Phase A is now foundation history. Active WhatsAI MVP proof is `npm run prove:whatsai` from `/Users/rohit/Projects/x7-realestate-os`.
+> Pivot note (2026-07-11): Phase A is now foundation history. Active WhatsAI MVP proof is `npm run prove:whatsai` from `/Users/rohit/Projects/whatsai-assistant`.
 
 
-This file is historical context for Phase A foundation work on X7 RealEstate OS.
+This file is historical context for Phase A foundation work on WhatsAI Assistant.
 For current launch operations use `WHATSAI_RUNBOOK.md`.
 
 ## Goal
@@ -22,7 +22,7 @@ Turn the current local demo stack into a real, env-backed app foundation by:
 - Core dashboard probes are no longer blanket `blocked`; the readiness panel now reports real green and blocked groups separately.
 - The main blocker is not page scaffolding anymore. The blocker is remaining vendor credentials and production-grade local run discipline.
 - The stable local dashboard runtime is the canonical no-space repo:
-  - `/Users/rohit/Projects/x7-realestate-os`
+  - `/Users/rohit/Projects/whatsai-assistant`
 
 ## Current Verified Status (24 June 2026)
 
@@ -76,10 +76,10 @@ This is the current hard-proof status, not a future plan.
 - Verified rollout work:
   - git repository initialized
   - GitHub repo pushed:
-    - `https://github.com/rohitkag07/x7-realestate-os`
+    - `https://github.com/rohitkag07/whatsai-assistant`
   - Vercel production project exists:
-    - `x7-realestate-os`
-    - `https://x7-realestate-os.vercel.app`
+    - `whatsai-assistant`
+    - `https://whatsai-assistant.vercel.app`
 - Current WhatsAI MVP readiness is proven by `npm run prove:whatsai`.
 - Meta Ads, Razorpay, OpenAI, Remotion/Higgsfield, content, colony, and finance are deferred modules, not launch blockers.
 
@@ -147,8 +147,8 @@ These should be real UUIDs from your seeded or manually created builder and proj
 Phase A is successful when all of this is true:
 
 1. `npm run prove:whatsai` passes
-2. dashboard runs from `/Users/rohit/Projects/x7-realestate-os`
-3. PM2 shows `x7-sales-agent`, `x7-tool-gateway`, and `x7-summoner` online
+2. dashboard runs from `/Users/rohit/Projects/whatsai-assistant`
+3. PM2 shows `whatsai-sales-agent`, `whatsai-tool-gateway`, and `whatsai-summoner` online
 4. Summoner webhook verify returns `200`
 5. Supabase `conversation_threads` is reachable
 
@@ -261,7 +261,7 @@ Do these only after the WhatsAI lead-to-appointment path is stable.
 
 - If env files contain values but readiness still says `blocked`, the app process was likely started before the env change or from a different workspace copy.
 - For local testing, prefer the canonical no-space repo path:
-  - `/Users/rohit/Projects/x7-realestate-os`
+  - `/Users/rohit/Projects/whatsai-assistant`
 - The first hard proof is not the file content. The first hard proof is `npm run prove:whatsai`.
 - The Supabase plugin can give us project inventory and project URL, but it does not expose anon or service-role keys in this session. Those still need to be copied from the Supabase dashboard.
 - If your Supabase project uses the newer key model, map it like this in this repo:

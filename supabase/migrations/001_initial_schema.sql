@@ -1,13 +1,13 @@
 -- =====================================================================
--- X7 RealEstate OS — Initial Schema Migration
+-- WhatsAI Assistant — Initial Schema Migration
 -- =====================================================================
 -- Codename: Project NEEV (नींव — The Foundation)
 -- Author:   Rohit Kag — Founder, Xero Seven
 -- Date:     May 2026
--- Spec:     docs/X7_RealEstate_Blueprint.md — Section 3
+-- Spec:     docs/.docs/legacy/realestate-vertical-blueprint.md — Section 3
 --
 -- This migration creates the complete 12-table foundation for the
--- X7 RealEstate OS platform: Marketing, Sales, and Colony Management
+-- WhatsAI Assistant platform: Marketing, Sales, and Colony Management
 -- for Tier 2 Indian Builders.
 --
 -- Run order:

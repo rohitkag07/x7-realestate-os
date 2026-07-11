@@ -1,4 +1,4 @@
-# X7 WhatsAI Assistant - Next Build Plan
+# WhatsAI Assistant - Next Build Plan
 
 ## Priority Order
 
@@ -42,7 +42,7 @@
 
 ### 5. Real Estate As First Vertical Pack
 
-- rename customer-facing language to X7 SiteVisit AI
+- rename customer-facing language to WhatsAI SiteVisit
 - use existing lead, visit, booking, and follow-up logic
 - prove one flow: inbound WhatsApp inquiry -> qualification -> site visit/handoff -> dashboard lead -> follow-up queue
 

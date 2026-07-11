@@ -301,7 +301,7 @@ function pdfBuffer(draw) {
 }
 function band(doc, builder, project, accent = '#F59E0B', primary = '#0F172A') {
   doc.rect(0, 0, doc.page.width, 80).fill(primary);
-  doc.fillColor(accent).fontSize(18).text(builder?.company_name ?? 'X7 RealEstate', 48, 26);
+  doc.fillColor(accent).fontSize(18).text(builder?.company_name ?? 'WhatsAI Assistant', 48, 26);
   doc.fillColor('#ffffff').fontSize(10).text(project?.name ?? '', 48, 50);
   doc.fillColor('#0F172A'); doc.moveDown(4);
 }

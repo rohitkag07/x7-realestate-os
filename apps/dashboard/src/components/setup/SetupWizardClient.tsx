@@ -20,7 +20,7 @@ type SetupState = {
 const initial: SetupState = {
   businessName: '', category: 'clinic', city: 'Indore', ownerName: '', ownerPhone: '',
   whatsappNumber: '', hoursStart: '10:00', hoursEnd: '19:00',
-  welcomeMessage: 'Namaste! X7 WhatsAI Assistant se baat kar rahe hain. Main aapki help karta hoon.',
+  welcomeMessage: 'Namaste! WhatsAI Assistant se baat kar rahe hain. Main aapki help karta hoon.',
   serviceInput: '', services: ['Consultation'], pricingRange: '', faqs: [{ question: '', answer: '' }],
 };
 const steps = ['Business Basics', 'WhatsApp Setup', 'Services / FAQs', 'Confirm & Launch'];

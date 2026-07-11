@@ -1,4 +1,4 @@
-# X7 WhatsAI Assistant - Code Standards
+# WhatsAI Assistant - Code Standards
 
 ## Product-Specific Standards
 

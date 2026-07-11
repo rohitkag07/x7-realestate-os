@@ -28,9 +28,9 @@ async function main() {
   checkEnv('WHATSAPP_ACCESS_TOKEN', 'Generate a Meta WhatsApp Cloud API token and add WHATSAPP_ACCESS_TOKEN to agents/x7-re-tool-gateway/.env and Vercel env.');
   checkEnv('WHATSAPP_VERIFY_TOKEN', 'Set WHATSAPP_VERIFY_TOKEN in agents/x7-re-summoner/.env and Meta webhook settings.');
 
-  await checkPm2Agent('x7-sales-agent', 8080);
-  await checkPm2Agent('x7-tool-gateway', 8081);
-  await checkPm2Agent('x7-summoner', 8082);
+  await checkPm2Agent('whatsai-sales-agent', 8080);
+  await checkPm2Agent('whatsai-tool-gateway', 8081);
+  await checkPm2Agent('whatsai-summoner', 8082);
   await checkWebhookVerify();
   await checkSupabase();
 
@@ -102,7 +102,7 @@ async function checkWebhookVerify() {
       ok: false,
       label: 'Webhook GET verify',
       detail: 'skipped because WHATSAPP_VERIFY_TOKEN is missing',
-      fix: 'Set WHATSAPP_VERIFY_TOKEN and restart x7-summoner.',
+      fix: 'Set WHATSAPP_VERIFY_TOKEN and restart whatsai-summoner.',
     });
     return;
   }

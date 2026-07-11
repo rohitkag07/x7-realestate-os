@@ -1,6 +1,6 @@
-# 🏗️ X7 RealEstate OS — The Builder's AI Command Center
+# 🏗️ WhatsAI Assistant — The Builder's AI Command Center
 > [!IMPORTANT]
-> Pivot note (2026-07-08): this file is now pre-pivot reference material. The active product direction is `X7_WhatsAI_Pivot_Strategy.md`. Real estate remains the first vertical pack (`X7 SiteVisit AI`), but new work should build the generic WhatsAI business/playbook/conversation layer without rebuilding from scratch.
+> Pivot note (2026-07-08): this file is now pre-pivot reference material. The active product direction is `WHATSAI_PIVOT_STRATEGY.md`. Real estate remains the first vertical pack (`WhatsAI SiteVisit`), but new work should build the generic WhatsAI business/playbook/conversation layer without rebuilding from scratch.
 
 ### Complete Marketing, Sales & Colony Management Platform for Tier 2 Indian Builders
 > **Author:** Rohit Kag — Founder, Xero Seven  
@@ -265,7 +265,7 @@
 - `apps/dashboard`: `npm run build` passes
 - `apps/dashboard`: `npm run type-check` passes
 - Stable local dashboard runtime is currently verified from the no-space workspace copy:
-  - `/Users/rohit/Documents/Claude/Projects/X7-Real-estate-local/apps/dashboard`
+  - `/Users/rohit/Documents/Claude/Projects/whatsai-assistant-local/apps/dashboard`
 - Dashboard `GET /api/ping` returns `200`
 - Dashboard `GET /api/ops/readiness` returns live JSON with:
   - Supabase client: ready
@@ -351,11 +351,11 @@ Builder's Typical Annual Marketing Spend:
 
 ---
 
-## THE SOLUTION: X7 RealEstate OS
+## THE SOLUTION: WhatsAI Assistant
 
 > **"Builder ko do cheezein do: ek content machine jo brand banaye, aur ek sales machine jo lead se booking tak le jaaye. Baaki sab builder ka kaam hai — construction."**
 
-X7 RealEstate OS is a **full-stack AI-powered operating system** that gives a Tier 2 builder:
+WhatsAI Assistant is a **full-stack AI-powered operating system** that gives a Tier 2 builder:
 
 1. **🎬 CONTENT ENGINE** — AI generates 60+ social media posts, 15+ videos, drone edit reels, and festival creatives per month — automatically.
 2. **📣 MARKETING ENGINE** — Meta/Google Ads management, lead capture, WhatsApp auto-response, retargeting — all AI-managed.
@@ -516,7 +516,7 @@ higgsfield generate create brain_activity --video ./output.mp4 --wait
 
 ### 1.4 The Content Calendar Agent (Automated Scheduling)
 
-**X7 Agent:** `x7-realestate-content-agent` (Cloud Run)
+**WhatsAI Agent:** `x7-realestate-content-agent` (Cloud Run)
 
 This agent:
 1. **Generates** the monthly content calendar based on project data + festivals + market trends
@@ -562,7 +562,7 @@ Weekly:
 
 ### 2.1 The Meta Ads Autopilot
 
-**X7 Agent:** `x7-realestate-ads-agent` (Cloud Run)
+**WhatsAI Agent:** `x7-realestate-ads-agent` (Cloud Run)
 
 | Feature | How It Works |
 |---|---|
@@ -611,7 +611,7 @@ CAMPAIGN 4: Retargeting (Recovery)
 
 > *"India me buyer call nahi uthata. WhatsApp message padhta hai. Isiliye pura sales funnel WhatsApp pe hai."*
 
-**X7 Agent:** `x7-realestate-sales-agent` (Cloud Run)
+**WhatsAI Agent:** `x7-realestate-sales-agent` (Cloud Run)
 
 When a lead messages the project's WhatsApp number (via ad click, website, or referral), the AI Sales Agent takes over:
 
@@ -1051,7 +1051,7 @@ Builder manages colony well
 ### 5.1 Multi-Agent Backend (Cloud Run)
 
 ```
-X7 RealEstate Agent Swarm:
+WhatsAI Assistant Agent Swarm:
 ├── x7-re-summoner/           → Routes all incoming messages (WhatsApp, Dashboard, Telegram)
 ├── x7-re-sales-agent/        → Lead qualification, follow-ups, site visit booking
 ├── x7-re-content-agent/      → Content generation, calendar management, social scheduling
@@ -1089,7 +1089,7 @@ X7 RealEstate Agent Swarm:
               └────────────────┼────────────────┘
                                │
                     ┌──────────▼──────────┐
-                    │    X7 SUMMONER      │
+                    │    WHATSAI SUMMONER      │
                     │  (Intent Router)     │
                     └──────────┬──────────┘
                                │
@@ -1142,7 +1142,7 @@ X7 RealEstate Agent Swarm:
 
 ## SECTION 7: COMPETITIVE ADVANTAGE
 
-| Feature | X7 RealEstate OS | Typical Digital Agency | Sell.Do CRM | MyGate/NoBrokerHood |
+| Feature | WhatsAI Assistant | Typical Digital Agency | Sell.Do CRM | MyGate/NoBrokerHood |
 |---|---|---|---|---|
 | AI Content Generation | ✅ 60+ pieces/month | ❌ 8-10 manual posts | ❌ No content | ❌ No content |
 | Video Production | ✅ Remotion + Higgsfield | ❌ 1-2 manual videos | ❌ No video | ❌ No video |
@@ -1155,7 +1155,7 @@ X7 RealEstate Agent Swarm:
 | Pricing | ₹15K-75K/month | ₹30K-1L/month | ₹10K-50K/month | ₹3K-12K/month |
 | One Platform | ✅ Content+Sales+Colony | ❌ Only marketing | ❌ Only CRM | ❌ Only colony mgmt |
 
-**The Moat:** No one else offers content generation + sales automation + colony management in ONE platform, powered by AI agents that work 24/7. A builder replaces 3-4 vendors with one X7 subscription.
+**The Moat:** No one else offers content generation + sales automation + colony management in ONE platform, powered by AI agents that work 24/7. A builder replaces 3-4 vendors with one WhatsAI subscription.
 
 ---
 
@@ -1329,7 +1329,7 @@ REMOTION_SERVE_URL=
 │       └── 003_seed_data.sql
 │
 ├── docs/
-│   ├── X7_RealEstate_Blueprint.md    — THIS FILE
+│   ├── .docs/legacy/realestate-vertical-blueprint.md    — THIS FILE
 │   ├── sales_deck.md
 │   └── onboarding_guide.md
 │

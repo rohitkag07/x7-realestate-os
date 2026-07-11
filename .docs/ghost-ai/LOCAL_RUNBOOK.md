@@ -1,4 +1,4 @@
-# X7 WhatsAI Assistant - Local Runbook
+# WhatsAI Assistant - Local Runbook
 
 ## Install
 
@@ -7,10 +7,10 @@ Run `npm install` inside the app or agent you want to start if `node_modules` is
 Canonical repo path:
 
 ```text
-/Users/rohit/Projects/x7-realestate-os
+/Users/rohit/Projects/whatsai-assistant
 ```
 
-The old spaced folder `/Users/rohit/Documents/Claude/Projects/X7 Real estate` is deprecated and should not receive new WhatsAI work.
+The old spaced folder `/Users/rohit/Documents/Claude/Projects/WhatsAI Assistant` is deprecated and should not receive new WhatsAI work.
 
 ## Dashboard
 
@@ -41,7 +41,7 @@ pm2 list
 Stop:
 
 ```bash
-pm2 stop x7-sales-agent x7-tool-gateway x7-summoner
+pm2 stop whatsai-sales-agent whatsai-tool-gateway whatsai-summoner
 ```
 
 ## Default Local Ports

@@ -1,4 +1,4 @@
-# X7 WhatsAI Assistant - AI Workflow Rules
+# WhatsAI Assistant - AI Workflow Rules
 
 ## Current Direction
 
@@ -6,7 +6,7 @@ The active product direction is WhatsAI Assistant, not a builder-only OS.
 
 ## Rules
 
-- read `X7_WhatsAI_Pivot_Strategy.md` before new product work
+- read `WHATSAI_PIVOT_STRATEGY.md` before new product work
 - keep existing real-estate flows working while adding generic WhatsAI concepts
 - prefer small, verified migrations over rewrites
 - prefer Summoner-first routing

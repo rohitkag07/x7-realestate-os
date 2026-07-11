@@ -1,4 +1,4 @@
-# X7 WhatsAI Assistant - Agent Guide
+# WhatsAI Assistant - Agent Guide
 
 ## Agent Contract Rules
 

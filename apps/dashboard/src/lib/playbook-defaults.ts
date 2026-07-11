@@ -35,7 +35,7 @@ const q = (order: number, key: string, question: string, type: PlaybookQuestion[
 export const PLAYBOOK_TEMPLATES: Record<VerticalKey, PlaybookTemplate> = {
   real_estate: {
     vertical: 'real_estate',
-    name: 'X7 SiteVisit AI',
+    name: 'WhatsAI SiteVisit',
     title: 'SiteVisit AI',
     description: 'Qualifies buyers and books site visits for builders.',
     icon: Building2,
@@ -54,7 +54,7 @@ export const PLAYBOOK_TEMPLATES: Record<VerticalKey, PlaybookTemplate> = {
   },
   clinic: {
     vertical: 'clinic',
-    name: 'X7 Appointment AI',
+    name: 'WhatsAI Appointment',
     title: 'Appointment AI',
     description: 'Books clinic appointments without diagnosis or prescriptions.',
     icon: HeartPulse,
@@ -73,7 +73,7 @@ export const PLAYBOOK_TEMPLATES: Record<VerticalKey, PlaybookTemplate> = {
   },
   coaching: {
     vertical: 'coaching',
-    name: 'X7 Admission AI',
+    name: 'WhatsAI Admission',
     title: 'Admission AI',
     description: 'Qualifies students and books demo classes or counselor calls.',
     icon: GraduationCap,
@@ -92,7 +92,7 @@ export const PLAYBOOK_TEMPLATES: Record<VerticalKey, PlaybookTemplate> = {
   },
   gym: {
     vertical: 'gym',
-    name: 'X7 Fitness Intake AI',
+    name: 'WhatsAI Fitness Intake',
     title: 'Fitness Intake AI',
     description: 'Captures fitness goals and books trial sessions.',
     icon: Dumbbell,
@@ -111,7 +111,7 @@ export const PLAYBOOK_TEMPLATES: Record<VerticalKey, PlaybookTemplate> = {
   },
   local_service: {
     vertical: 'local_service',
-    name: 'X7 Callback AI',
+    name: 'WhatsAI Callback',
     title: 'Callback AI',
     description: 'Captures service requests and books callbacks.',
     icon: Wrench,

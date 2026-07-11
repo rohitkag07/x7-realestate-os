@@ -1,5 +1,5 @@
 -- =====================================================================
--- X7 RealEstate OS — Content Engine Tables (Phase 3)
+-- WhatsAI Assistant — Content Engine Tables (Phase 3)
 -- =====================================================================
 CREATE TABLE IF NOT EXISTS public.content_jobs (
   id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),

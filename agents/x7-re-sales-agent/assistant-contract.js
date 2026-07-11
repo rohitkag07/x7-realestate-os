@@ -1,5 +1,5 @@
 /**
- * X7 WhatsAI Assistant — Assistant Response Contract
+ * WhatsAI Assistant — Assistant Response Contract
  * =====================================================================
  * Defines the standard response envelope that every WhatsAI agent must
  * return when processing an inbound conversation message.

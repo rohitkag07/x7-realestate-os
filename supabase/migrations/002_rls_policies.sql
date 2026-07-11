@@ -1,5 +1,5 @@
 -- =====================================================================
--- X7 RealEstate OS — Row-Level Security Policies
+-- WhatsAI Assistant — Row-Level Security Policies
 -- =====================================================================
 -- Multi-tenant isolation by builder_id. Every tenant table has a
 -- builder_id either directly or transitively via project_id.

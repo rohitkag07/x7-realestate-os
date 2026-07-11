@@ -1,5 +1,5 @@
 -- =====================================================================
--- X7 WhatsAI Assistant - Option B canonical conversation compatibility
+-- WhatsAI Assistant - Option B canonical conversation compatibility
 -- =====================================================================
 -- The live DB had an earlier WhatsAI MVP schema:
 --   business_channels(provider, channel_id)

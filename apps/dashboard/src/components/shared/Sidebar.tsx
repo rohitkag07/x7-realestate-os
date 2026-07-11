@@ -115,7 +115,7 @@ function SidebarShell({ children, className }: { children?: React.ReactNode; cla
       {children ?? <div className="flex-1" />}
       <div className="border-t border-white/10 p-4 text-[11px] text-muted-foreground">
         <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3">
-          <div className="font-medium text-foreground">X7 Trial Console</div>
+          <div className="font-medium text-foreground">WhatsAI Trial Console</div>
           <div className="mt-1">v0.3.0 · Coaching, clinic, real estate ready</div>
         </div>
       </div>

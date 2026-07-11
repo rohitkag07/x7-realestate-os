@@ -1,4 +1,4 @@
-# X7 WhatsAI Assistant UI Walkthrough
+# WhatsAI Assistant UI Walkthrough
 
 ## Design System
 
@@ -29,7 +29,7 @@ The shell preserves all existing routes and links.
 
 The sidebar has been redesigned into a premium navigation rail:
 
-- X7 WhatsAI identity block.
+- WhatsAI Assistant identity block.
 - "AI receptionist live" status panel.
 - Bilingual navigation labels.
 - Strong active states with WhatsApp green highlight.

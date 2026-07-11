@@ -1,5 +1,5 @@
 -- =====================================================================
--- X7 RealEstate OS — Agent Infrastructure Tables (Phase 2)
+-- WhatsAI Assistant — Agent Infrastructure Tables (Phase 2)
 -- =====================================================================
 -- whatsapp_messages, agent_runs, follow_up_queue, brochure_assets
 -- RLS-scoped to builder_id. Requires migrations 001 + 002.

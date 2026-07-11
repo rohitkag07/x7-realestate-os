@@ -1,5 +1,5 @@
 -- =====================================================================
--- X7 RealEstate OS — Colony Management (Phase 5)
+-- WhatsAI Assistant — Colony Management (Phase 5)
 -- =====================================================================
 CREATE TABLE IF NOT EXISTS public.colony_settings (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

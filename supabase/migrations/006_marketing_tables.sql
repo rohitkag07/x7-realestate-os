@@ -1,5 +1,5 @@
 -- =====================================================================
--- X7 RealEstate OS — Marketing Engine Tables (Phase 4)
+-- WhatsAI Assistant — Marketing Engine Tables (Phase 4)
 -- =====================================================================
 CREATE TABLE IF NOT EXISTS public.ad_audiences (
   id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),

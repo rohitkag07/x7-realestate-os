@@ -1,5 +1,5 @@
 -- =====================================================================
--- X7 WhatsAI Assistant — Generic Core Layer (Phase 1 Pivot)
+-- WhatsAI Assistant — Generic Core Layer (Phase 1 Pivot)
 -- =====================================================================
 -- Introduces horizontal multi-business support, assistant playbooks,
 -- generic conversations, appointments, and handoffs.
@@ -265,7 +265,7 @@ FROM public.builders
 ON CONFLICT (business_id) DO NOTHING;
 
 INSERT INTO public.assistant_playbooks (business_id, name, vertical, created_at, updated_at)
-SELECT id, 'X7 SiteVisit AI', 'real_estate', now(), now()
+SELECT id, 'WhatsAI SiteVisit', 'real_estate', now(), now()
 FROM public.builders
 ON CONFLICT DO NOTHING;
 

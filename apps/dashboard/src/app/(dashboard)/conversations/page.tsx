@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
-export const metadata = { title: 'Conversations — X7 WhatsAI' };
+export const metadata = { title: 'Conversations — WhatsAI Assistant' };
 export const dynamic = 'force-dynamic';
 
 type LeadStatus = 'hot' | 'warm' | 'cold' | 'new';

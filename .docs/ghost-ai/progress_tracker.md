@@ -1,4 +1,4 @@
-# X7 WhatsAI Assistant - Progress Tracker
+# WhatsAI Assistant - Progress Tracker
 
 ## Current Repo Snapshot
 
@@ -12,12 +12,12 @@
 - central WhatsApp ingress on Summoner
 - real Meta test-number outbound proof from prior real-estate work
 - signed inbound WhatsApp simulation proof into Summoner with Supabase logging from prior real-estate work
-- Vercel production project for `x7-realestate-os`
+- Vercel production project for `whatsai-assistant`
 - documentation pack for real-estate repo
 - env contract and deployment checklist docs
 - live ops readiness layer in dashboard settings
 - `/api/ops/readiness` runtime surface for env, service, and data probes
-- 2026-07-08 pivot docs from X7 RealEstate OS to X7 WhatsAI Assistant
+- 2026-07-08 pivot docs from WhatsAI Assistant to WhatsAI Assistant
 
 ### Partial
 
@@ -32,7 +32,7 @@
 
 On 2026-07-08, product direction changed from builder-only operating system to horizontal WhatsApp-first AI assistant for Indian SMBs.
 
-Real estate is not removed. It becomes first vertical pack: X7 SiteVisit AI.
+Real estate is not removed. It becomes first vertical pack: WhatsAI SiteVisit.
 
 ### Current Next Action
 

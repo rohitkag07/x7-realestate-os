@@ -3,10 +3,10 @@
 Canonical repo:
 
 ```bash
-cd /Users/rohit/Projects/x7-realestate-os
+cd /Users/rohit/Projects/whatsai-assistant
 ```
 
-Do not use `/Users/rohit/Documents/Claude/Projects/X7 Real estate` for new work.
+Do not use the deprecated spaced Claude project copy for new work.
 
 ## 1. Env Setup
 
@@ -61,9 +61,9 @@ pm2 list
 
 Expected PM2 apps:
 
-- `x7-sales-agent` on `8080`
-- `x7-tool-gateway` on `8081`
-- `x7-summoner` on `8082`
+- `whatsai-sales-agent` on `8080`
+- `whatsai-tool-gateway` on `8081`
+- `whatsai-summoner` on `8082`
 
 Health checks:
 
@@ -76,7 +76,7 @@ curl -i http://localhost:8082/health
 Logs:
 
 ```bash
-pm2 logs x7-summoner x7-sales-agent x7-tool-gateway --lines 100
+pm2 logs whatsai-summoner whatsai-sales-agent whatsai-tool-gateway --lines 100
 ```
 
 ## 4. Prove Local Runtime

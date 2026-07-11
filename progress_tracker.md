@@ -1,4 +1,4 @@
-# X7 WhatsAI Assistant - Working Progress
+# WhatsAI Assistant - Working Progress
 
 This root file is intentionally short. The detailed working tracker lives at:
 
@@ -12,9 +12,9 @@ Treat that file as the build archive and current working tracker.
 
 Direction changed on 2026-07-08:
 
-- from builder-only X7 RealEstate OS
+- from builder-only WhatsAI Assistant
 - to horizontal WhatsApp AI assistant for Indian SMBs
-- with real estate preserved as first vertical pack: X7 SiteVisit AI
+- with real estate preserved as first vertical pack: WhatsAI SiteVisit
 
 ## Current Status
 

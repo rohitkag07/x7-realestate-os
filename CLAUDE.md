@@ -1,21 +1,21 @@
-# CLAUDE.md - X7 WhatsAI Assistant
+# CLAUDE.md - WhatsAI Assistant
 
 ## Current Mission
 
-This repo is pivoting from X7 RealEstate OS into X7 WhatsAI Assistant: a WhatsApp-first receptionist, lead qualifier, follow-up, appointment, and owner handoff platform for Indian SMBs.
+This repo is pivoting from WhatsAI Assistant into WhatsAI Assistant: a WhatsApp-first receptionist, lead qualifier, follow-up, appointment, and owner handoff platform for Indian SMBs.
 
-Do not rebuild from scratch. Preserve the existing real-estate implementation as the first vertical pack: X7 SiteVisit AI.
+Do not rebuild from scratch. Preserve the existing real-estate implementation as the first vertical pack: WhatsAI SiteVisit.
 
 ## Read Order
 
-1. `X7_WhatsAI_Pivot_Strategy.md`
+1. `WHATSAI_PIVOT_STRATEGY.md`
 2. `README.md`
 3. `project_overview.md`
 4. `.docs/ghost-ai/CURRENT_SYSTEM_MAP.md`
 5. `.docs/ghost-ai/NEXT_BUILD_PLAN.md`
 6. `.docs/ghost-ai/ENV_CONTRACT.md`
 7. `.docs/ghost-ai/PRODUCTION_READINESS.md`
-8. `X7_RealEstate_Blueprint.md` only for first vertical context
+8. `.docs/legacy/realestate-vertical-blueprint.md` only for first vertical context
 
 ## Architecture Rules
 

@@ -1,4 +1,4 @@
-# X7 WhatsAI Assistant Docs Index
+# WhatsAI Assistant Docs Index
 
 This repo has two documentation layers:
 
@@ -9,7 +9,7 @@ This repo has two documentation layers:
 
 | File | Purpose |
 | --- | --- |
-| `X7_WhatsAI_Pivot_Strategy.md` | Master pivot decision, business model, reusable architecture, MVP scope, and migration plan. |
+| `WHATSAI_PIVOT_STRATEGY.md` | Master pivot decision, business model, reusable architecture, MVP scope, and migration plan. |
 | `README.md` | Current project entrypoint and positioning. |
 | `project_overview.md` | Short product overview for the new WhatsAI direction. |
 | `CURRENT_SYSTEM_MAP.md` | Current apps, agents, database direction, and what is actually implemented now. |
@@ -25,15 +25,15 @@ These remain useful, but read them as pre-pivot context unless a section was exp
 
 | File | Purpose |
 | --- | --- |
-| `X7_RealEstate_Blueprint.md` | Original builder OS blueprint and first vertical pack reference. |
-| `X7_Evolution_Blueprint.md` | Shared X7 agent/platform history and cross-project architecture thinking. |
+| `.docs/legacy/realestate-vertical-blueprint.md` | Original builder OS blueprint and first vertical pack reference. |
+| `.docs/legacy/evolution-blueprint.md` | Shared X7 agent/platform history and cross-project architecture thinking. |
 | `SSMA.md` | Society/colony management detail for later resident vertical pack. |
-| `X7_Revenue_Engines.md` | Pre-pivot revenue engine thinking and automation assets. |
-| `X7_Superprojects_Portfolio.md` | Portfolio reference, not primary product direction. |
+| `.docs/legacy/revenue-engines.md` | Pre-pivot revenue engine thinking and automation assets. |
+| `.docs/legacy/superprojects-portfolio.md` | Portfolio reference, not primary product direction. |
 
 ## Recommended Reading Order
 
-1. `X7_WhatsAI_Pivot_Strategy.md`
+1. `WHATSAI_PIVOT_STRATEGY.md`
 2. `README.md`
 3. `project_overview.md`
 4. `.docs/ghost-ai/CURRENT_SYSTEM_MAP.md`
@@ -42,7 +42,7 @@ These remain useful, but read them as pre-pivot context unless a section was exp
 7. `.docs/ghost-ai/PRODUCTION_READINESS.md`
 8. `.docs/ghost-ai/DEPLOYMENT_CHECKLIST.md`
 9. `.docs/ghost-ai/progress_tracker.md`
-10. `X7_RealEstate_Blueprint.md` only for real-estate vertical behavior
+10. `.docs/legacy/realestate-vertical-blueprint.md` only for real-estate vertical behavior
 
 ## Rule For Future Agents
 

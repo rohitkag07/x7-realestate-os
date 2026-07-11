@@ -1,5 +1,5 @@
 -- =====================================================================
--- X7 RealEstate OS — Agent Orchestration Layer (Phase 6+)
+-- WhatsAI Assistant — Agent Orchestration Layer (Phase 6+)
 -- =====================================================================
 -- Central queue + cron audit for Summoner-driven dispatch.
 -- Requires migrations 001, 002, 004.

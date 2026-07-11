@@ -1,6 +1,6 @@
 # Xero Seven — Revenue Engine Roadmap
 > [!IMPORTANT]
-> Pivot note (2026-07-08): this file is now pre-pivot reference material. The active product direction is `X7_WhatsAI_Pivot_Strategy.md`. Real estate remains the first vertical pack (`X7 SiteVisit AI`), but new work should build the generic WhatsAI business/playbook/conversation layer without rebuilding from scratch.
+> Pivot note (2026-07-08): this file is now pre-pivot reference material. The active product direction is `WHATSAI_PIVOT_STRATEGY.md`. Real estate remains the first vertical pack (`WhatsAI SiteVisit`), but new work should build the generic WhatsAI business/playbook/conversation layer without rebuilding from scratch.
 
 ### Executive Business Proposal | Confidential
 **Author:** Rohit Kag — Founder & CEO, Xero Seven AI Agency

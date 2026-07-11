@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Phase 2 WhatsApp sales agent for X7 RealEstate OS",
+  "description": "Phase 2 WhatsApp sales agent for WhatsAI Assistant",
   "scripts": {
     "dev": "node --env-file=.env index.js",
     "start": "node --env-file=.env index.js"

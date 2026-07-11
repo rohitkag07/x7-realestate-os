@@ -1,4 +1,4 @@
-# X7 WhatsAI Assistant - Current System Map
+# WhatsAI Assistant - Current System Map
 
 ## Repo Shape
 

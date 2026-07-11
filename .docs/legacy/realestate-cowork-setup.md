@@ -1,13 +1,13 @@
-# Claude Cowork Setup - X7 WhatsAI Assistant Pivot
+# Claude Cowork Setup - WhatsAI Assistant Pivot
 
 ## PART 1: PROJECT DESCRIPTION (Copy-Paste into Instructions field)
 
 ```text
-You are the lead architect and quality assurance engineer for X7 WhatsAI Assistant, formerly X7 RealEstate OS.
+You are the lead architect and quality assurance engineer for WhatsAI Assistant, formerly WhatsAI Assistant.
 
 The project is pivoting from a builder-only operating system into a WhatsApp-first AI receptionist, lead qualifier, follow-up, appointment, and owner handoff platform for Indian SMBs.
 
-Critical rule: do not rebuild from scratch. The current X7 RealEstate implementation remains the first vertical pack: X7 SiteVisit AI.
+Critical rule: do not rebuild from scratch. The current WhatsAI Assistant implementation remains the first vertical pack: WhatsAI SiteVisit.
 
 ## What This Project Is
 
@@ -47,7 +47,7 @@ Your primary mission is to READ THE CURRENT DOCS FIRST, then build the generic W
 
 ## Read Order
 
-1. `X7_WhatsAI_Pivot_Strategy.md`
+1. `WHATSAI_PIVOT_STRATEGY.md`
 2. `README.md`
 3. `project_overview.md`
 4. `.docs/ghost-ai/DOCS_INDEX.md`
@@ -55,7 +55,7 @@ Your primary mission is to READ THE CURRENT DOCS FIRST, then build the generic W
 6. `.docs/ghost-ai/NEXT_BUILD_PLAN.md`
 7. `.docs/ghost-ai/ENV_CONTRACT.md`
 8. `.docs/ghost-ai/PRODUCTION_READINESS.md`
-9. `X7_RealEstate_Blueprint.md` only for real-estate vertical context
+9. `.docs/legacy/realestate-vertical-blueprint.md` only for real-estate vertical context
 
 ## Build Rule
 
@@ -68,27 +68,27 @@ Do not assume all old blueprint phases are the active roadmap. Compare old bluep
 
 | File | Why | Path |
 | --- | --- | --- |
-| `X7_WhatsAI_Pivot_Strategy.md` | active pivot decision and migration strategy | `/Users/rohit/Projects/x7-realestate-os/X7_WhatsAI_Pivot_Strategy.md` |
-| `README.md` | current project entrypoint | `/Users/rohit/Projects/x7-realestate-os/README.md` |
-| `project_overview.md` | concise product overview | `/Users/rohit/Projects/x7-realestate-os/project_overview.md` |
-| `CLAUDE.md` | current operating context | `/Users/rohit/Projects/x7-realestate-os/CLAUDE.md` |
-| `.docs/ghost-ai/DOCS_INDEX.md` | documentation index | `/Users/rohit/Projects/x7-realestate-os/.docs/ghost-ai/DOCS_INDEX.md` |
-| `.docs/ghost-ai/CURRENT_SYSTEM_MAP.md` | current system map | `/Users/rohit/Projects/x7-realestate-os/.docs/ghost-ai/CURRENT_SYSTEM_MAP.md` |
-| `.docs/ghost-ai/NEXT_BUILD_PLAN.md` | pivot build order | `/Users/rohit/Projects/x7-realestate-os/.docs/ghost-ai/NEXT_BUILD_PLAN.md` |
-| `.docs/ghost-ai/ENV_CONTRACT.md` | runtime env contract | `/Users/rohit/Projects/x7-realestate-os/.docs/ghost-ai/ENV_CONTRACT.md` |
-| `.docs/ghost-ai/DEPLOYMENT_CHECKLIST.md` | deploy and verification checklist | `/Users/rohit/Projects/x7-realestate-os/.docs/ghost-ai/DEPLOYMENT_CHECKLIST.md` |
-| `.docs/ghost-ai/progress_tracker.md` | working tracker | `/Users/rohit/Projects/x7-realestate-os/.docs/ghost-ai/progress_tracker.md` |
+| `WHATSAI_PIVOT_STRATEGY.md` | active pivot decision and migration strategy | `/Users/rohit/Projects/whatsai-assistant/WHATSAI_PIVOT_STRATEGY.md` |
+| `README.md` | current project entrypoint | `/Users/rohit/Projects/whatsai-assistant/README.md` |
+| `project_overview.md` | concise product overview | `/Users/rohit/Projects/whatsai-assistant/project_overview.md` |
+| `CLAUDE.md` | current operating context | `/Users/rohit/Projects/whatsai-assistant/CLAUDE.md` |
+| `.docs/ghost-ai/DOCS_INDEX.md` | documentation index | `/Users/rohit/Projects/whatsai-assistant/.docs/ghost-ai/DOCS_INDEX.md` |
+| `.docs/ghost-ai/CURRENT_SYSTEM_MAP.md` | current system map | `/Users/rohit/Projects/whatsai-assistant/.docs/ghost-ai/CURRENT_SYSTEM_MAP.md` |
+| `.docs/ghost-ai/NEXT_BUILD_PLAN.md` | pivot build order | `/Users/rohit/Projects/whatsai-assistant/.docs/ghost-ai/NEXT_BUILD_PLAN.md` |
+| `.docs/ghost-ai/ENV_CONTRACT.md` | runtime env contract | `/Users/rohit/Projects/whatsai-assistant/.docs/ghost-ai/ENV_CONTRACT.md` |
+| `.docs/ghost-ai/DEPLOYMENT_CHECKLIST.md` | deploy and verification checklist | `/Users/rohit/Projects/whatsai-assistant/.docs/ghost-ai/DEPLOYMENT_CHECKLIST.md` |
+| `.docs/ghost-ai/progress_tracker.md` | working tracker | `/Users/rohit/Projects/whatsai-assistant/.docs/ghost-ai/progress_tracker.md` |
 
 ## PART 3: PROJECT LOCATION
 
 ```text
-/Users/rohit/Projects/x7-realestate-os
+/Users/rohit/Projects/whatsai-assistant
 ```
 
 ## PART 4: FIRST MESSAGE
 
 ```text
-Read the working docs first, especially `X7_WhatsAI_Pivot_Strategy.md`, `.docs/ghost-ai/CURRENT_SYSTEM_MAP.md`, `.docs/ghost-ai/NEXT_BUILD_PLAN.md`, and `.docs/ghost-ai/ENV_CONTRACT.md`.
+Read the working docs first, especially `WHATSAI_PIVOT_STRATEGY.md`, `.docs/ghost-ai/CURRENT_SYSTEM_MAP.md`, `.docs/ghost-ai/NEXT_BUILD_PLAN.md`, and `.docs/ghost-ai/ENV_CONTRACT.md`.
 
 Then compare the pivot strategy with the current codebase and continue from the highest-leverage pending item. Prefer adding the generic WhatsAI business/playbook/conversation layer without breaking current real-estate flows.
 ```

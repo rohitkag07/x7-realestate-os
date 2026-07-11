@@ -1,4 +1,4 @@
-# X7 WhatsAI Assistant - Remotion Video Factory
+# WhatsAI Assistant - Remotion Video Factory
 
 This Remotion package was built for real-estate content generation. In the WhatsAI pivot, content automation is deferred until the assistant trial and lead conversion loop are proven.
 

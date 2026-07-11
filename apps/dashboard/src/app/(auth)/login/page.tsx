@@ -112,7 +112,7 @@ function LoginCard({
           </Button>
 
           <p className="text-center text-xs text-muted-foreground pt-2">
-            New here? Contact your X7 onboarding partner to get setup access.
+            New here? Contact your WhatsAI onboarding partner to get setup access.
           </p>
         </form>
       </CardContent>

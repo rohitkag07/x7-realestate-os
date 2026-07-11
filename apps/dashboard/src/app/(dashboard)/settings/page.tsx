@@ -17,7 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { getOpsReadiness } from '@/lib/ops-readiness';
 import { getTrialConsoleData } from '@/lib/trial-console';
 
-export const metadata = { title: 'Settings — X7 WhatsAI' };
+export const metadata = { title: 'Settings — WhatsAI Assistant' };
 export const dynamic = 'force-dynamic';
 
 const PLANS = [

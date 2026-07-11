@@ -89,7 +89,7 @@ function Hero() {
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#25d366] text-[#0f2c28]">
             <MessageCircle className="h-5 w-5" />
           </div>
-          <span className="text-sm font-bold tracking-wide">X7 WhatsAI</span>
+          <span className="text-sm font-bold tracking-wide">WhatsAI Assistant</span>
         </div>
         <a href={trialHref} className="rounded-full border border-white/30 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white hover:text-[#143b35]">
           Start trial
@@ -102,7 +102,7 @@ function Hero() {
             Built for Indian SMBs who live on WhatsApp
           </p>
           <h1 className="text-5xl font-black leading-[0.95] tracking-tight sm:text-7xl lg:text-8xl">
-            X7 WhatsAI Assistant
+            WhatsAI Assistant
           </h1>
           <p className="mt-6 max-w-2xl text-xl leading-8 text-white/82">
             24/7 WhatsApp receptionist for Indian businesses. Never miss a customer again.
@@ -132,7 +132,7 @@ function HeroPhone() {
         <div className="flex items-center gap-3 bg-[#075e54] px-4 py-3 text-white">
           <div className="h-9 w-9 rounded-full bg-[#25d366]" />
           <div>
-            <p className="text-sm font-bold">X7 Assistant</p>
+            <p className="text-sm font-bold">WhatsAI Assistant</p>
             <p className="text-xs text-white/75">online · replies in 4s</p>
           </div>
         </div>

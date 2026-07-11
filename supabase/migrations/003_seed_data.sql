@@ -1,5 +1,5 @@
 -- =====================================================================
--- X7 RealEstate OS — Seed Data for Development
+-- WhatsAI Assistant — Seed Data for Development
 -- =====================================================================
 -- Creates one demo builder ("Shree Krishna Developers") in Indore with
 -- one active project ("Krishna Greens, Super Corridor"), 20 plots,

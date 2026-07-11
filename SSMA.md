@@ -1,6 +1,6 @@
 # 🏢 SSMA — Smart Society Management App
 > [!IMPORTANT]
-> Pivot note (2026-07-08): this file is now pre-pivot reference material. The active product direction is `X7_WhatsAI_Pivot_Strategy.md`. Real estate remains the first vertical pack (`X7 SiteVisit AI`), but new work should build the generic WhatsAI business/playbook/conversation layer without rebuilding from scratch.
+> Pivot note (2026-07-08): this file is now pre-pivot reference material. The active product direction is `WHATSAI_PIVOT_STRATEGY.md`. Real estate remains the first vertical pack (`WhatsAI SiteVisit`), but new work should build the generic WhatsAI business/playbook/conversation layer without rebuilding from scratch.
 
 ### V1 Product Blueprint | India Market | Build-Ready Document
 > **Author:** Rohit Kag — Founder, Xero Seven
@@ -569,7 +569,7 @@ Competitors like **NoBrokerHood, MyGate, Apartment ADDA** exist. Here's why SSMA
 | Setup complexity | ✅ 15 minutes | ❌ Complex onboarding | ❌ Needs tech person |
 | Works on basic phones | ✅ WhatsApp only | ❌ Heavy app | ❌ Heavy app |
 | Indian Tier 2/3 cities | ✅ Built for it | ❌ Metro focused | ❌ Metro focused |
-| AI-powered backend | ✅ X7 Agentverse | ❌ Rule-based | ❌ Rule-based |
+| AI-powered backend | ✅ WhatsAI Agentverse | ❌ Rule-based | ❌ Rule-based |
 | Local builder pricing | ✅ Affordable | ❌ Enterprise pricing | ❌ Locked pricing |
 | Custom branding | ✅ Builder's brand | ❌ MyGate brand | ❌ NoBroker brand |
 

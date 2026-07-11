@@ -1,7 +1,7 @@
 import { PageHeader } from '@/components/shared/PageHeader';
 import { SetupWizardClient } from '@/components/setup/SetupWizardClient';
 
-export const metadata = { title: 'Business Setup — X7 WhatsAI' };
+export const metadata = { title: 'Business Setup — WhatsAI Assistant' };
 
 export default function SetupPage() {
   return (

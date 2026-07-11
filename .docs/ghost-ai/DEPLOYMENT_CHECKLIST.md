@@ -1,4 +1,4 @@
-# X7 WhatsAI Assistant Deployment Checklist
+# WhatsAI Assistant Deployment Checklist
 
 Use this file for production or near-production rollout verification.
 
@@ -89,7 +89,7 @@ Checklist:
 
 ## 7. Real-Estate Vertical Proof
 
-Use X7 SiteVisit AI as the first vertical pack.
+Use WhatsAI SiteVisit as the first vertical pack.
 
 - inbound buyer inquiry enters WhatsApp
 - assistant asks budget/location/property/timeline questions

@@ -1,8 +1,8 @@
-# X7 WhatsAI Assistant Pivot Strategy
+# WhatsAI Assistant Pivot Strategy
 
 ## Decision
 
-X7 RealEstate OS is pivoting from a builder-only operating system into a horizontal WhatsApp-first AI assistant platform for Indian businesses.
+WhatsAI Assistant is pivoting from a builder-only operating system into a horizontal WhatsApp-first AI assistant platform for Indian businesses.
 
 The project should not be rebuilt from scratch. The existing real-estate sales engine, WhatsApp webhook paths, lead pipeline, follow-up queue, Summoner orchestration, Supabase schema, and dashboard surfaces become the foundation for a broader product.
 
@@ -10,7 +10,7 @@ The project should not be rebuilt from scratch. The existing real-estate sales e
 
 ### Old Positioning
 
-X7 RealEstate OS: complete builder marketing, sales, booking, content, and colony management platform.
+WhatsAI Assistant: complete builder marketing, sales, booking, content, and colony management platform.
 
 ### New Positioning
 
@@ -32,7 +32,7 @@ Therefore the wedge is not SaaS first. The wedge is a managed 7-day WhatsApp ass
 
 ## What We Reuse
 
-| Existing X7 RealEstate asset | Pivot use |
+| Existing WhatsAI Assistant asset | Pivot use |
 | --- | --- |
 | Meta WhatsApp webhook and send path | Universal WhatsApp ingress and replies |
 | `leads` and lead intake routes | Generic lead capture for any business |
@@ -87,7 +87,7 @@ Real-estate-specific data should move into metadata or vertical tables while the
 
 ## First Vertical Packs
 
-### 1. Real Estate: X7 SiteVisit AI
+### 1. Real Estate: WhatsAI SiteVisit
 
 Primary promise: convert WhatsApp inquiries into qualified site visits.
 
@@ -109,7 +109,7 @@ Owner handoff summary:
 - urgency
 - recommended next action
 
-### 2. Clinic: X7 Appointment AI
+### 2. Clinic: WhatsAI Appointment
 
 Primary promise: convert patient inquiries into appointments.
 
@@ -123,7 +123,7 @@ Qualification questions:
 
 Safety rule: no diagnosis, no prescription, no emergency handling beyond escalation instructions.
 
-### 3. Coaching: X7 Admission AI
+### 3. Coaching: WhatsAI Admission
 
 Primary promise: convert course inquiries into demo classes or counselor callbacks.
 
@@ -136,7 +136,7 @@ Qualification questions:
 - exam timeline
 - fee/budget sensitivity
 
-### 4. Gym / Dietitian: X7 Fitness Intake AI
+### 4. Gym / Dietitian: WhatsAI Fitness Intake
 
 Primary promise: convert fitness or diet inquiries into trial sessions and structured onboarding.
 
@@ -149,7 +149,7 @@ Qualification questions:
 - preferred plan
 - trial time
 
-### 5. Local Services: X7 Callback AI
+### 5. Local Services: WhatsAI Callback
 
 Primary promise: capture requirements and book callbacks for service businesses.
 
@@ -321,4 +321,4 @@ Business metrics:
 
 Do not restart this project.
 
-Use the existing X7 RealEstate implementation as the first vertical proof. Build the generic core beside it, migrate flows gradually, and keep old real-estate routes working until the generic WhatsAI routes replace them with verified parity.
+Use the existing WhatsAI Assistant implementation as the first vertical proof. Build the generic core beside it, migrate flows gradually, and keep old real-estate routes working until the generic WhatsAI routes replace them with verified parity.

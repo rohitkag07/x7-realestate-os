@@ -1,12 +1,12 @@
-# X7 WhatsAI Assistant — Phase 11 Production Proof Report
+# WhatsAI Assistant — Phase 11 Production Proof Report
 
 Generated: 2026-07-09T09:43:16Z
 
 ## System Overview
 
-Product: X7 WhatsAI Assistant
+Product: WhatsAI Assistant
 Version: Phase 11 (Post-Pivot MVP)
-Repo: `x7-realestate-os`
+Repo: `whatsai-assistant`
 
 X7 has been pivoted from a real-estate-only product into a WhatsApp-first AI receptionist platform for Indian SMBs. The existing real estate engine is still preserved as the first vertical pack, while the new generic WhatsAI layer handles conversations, qualification, handoffs, billing/trial state, setup, and playbooks.
 
@@ -23,7 +23,7 @@ X7 has been pivoted from a real-estate-only product into a WhatsApp-first AI rec
 | 7 | Business Setup Wizard | Four-step setup wizard created for business basics, WhatsApp setup, services/FAQs, and launch. |
 | 8 | WhatsApp Gateway Audit | Ingress, routing, persistence, circuit breaker, and outbound path hardened. |
 | 9 | Trial Console/Billing | Trial status, setup checklist, billing grid, and upgrade CTA wired. |
-| 10 | Public Landing Page | Mobile-first X7 WhatsAI landing page created with chat example, verticals, pricing, and WhatsApp CTA. |
+| 10 | Public Landing Page | Mobile-first WhatsAI Assistant landing page created with chat example, verticals, pricing, and WhatsApp CTA. |
 
 ## Phase 11 Step Results
 
@@ -233,7 +233,7 @@ vercel deploy --cwd apps/landing --prod
 | File | Purpose |
 |---|---|
 | `scripts/verify-supabase-tables.js` | Verifies 14 required Supabase tables. |
-| `scripts/seed-trial-business.js` | Seeds X7 Test Coaching Center trial business. |
+| `scripts/seed-trial-business.js` | Seeds WhatsAI Test Coaching Center trial business. |
 | `scripts/simulate-inbound-webhook.sh` | Sends signed Meta-style inbound webhook payload. |
 | `scripts/simulate-conversation-flow.sh` | Sends 4-message coaching conversation and proves handoff. |
 | `scripts/ngrok-webhook-setup.md` | Rohit manual guide for live ngrok + Meta webhook setup. |

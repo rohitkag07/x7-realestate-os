@@ -1,6 +1,6 @@
 # X7 Superprojects — Engineering Portfolio
 > [!NOTE]
-> Product pivot note (2026-07-08): this portfolio remains proof of engineering ability. It is not the active product roadmap. Active X7 RealEstate work now follows `X7_WhatsAI_Pivot_Strategy.md`.
+> Product pivot note (2026-07-08): this portfolio remains proof of engineering ability. It is not the active product roadmap. Active WhatsAI Assistant work now follows `WHATSAI_PIVOT_STRATEGY.md`.
 
 ### Three Production-Grade AI Infrastructure Systems by Rohit Kag, Xero Seven
 

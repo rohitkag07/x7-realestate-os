@@ -1,9 +1,9 @@
-# X7 WhatsAI Assistant — Frontend Pivot God Prompt (10 Phases)
+# WhatsAI Assistant — Frontend Pivot God Prompt (10 Phases)
 
 ## Context for Codex
 
-You are a **senior full-stack engineer** working on `x7-realestate-os`.
-The product has been pivoted from "X7 RealEstate OS" to **X7 WhatsAI Assistant** — a 24/7 WhatsApp AI receptionist for Indian SMBs.
+You are a **senior full-stack engineer** working on `whatsai-assistant`.
+The product has been pivoted from "WhatsAI Assistant" to **WhatsAI Assistant** — a 24/7 WhatsApp AI receptionist for Indian SMBs.
 
 **Backend is 100% complete.** All database tables, agent endpoints, and playbook logic are production-ready.
 
@@ -121,7 +121,7 @@ Section: Advanced (collapsed by default or hidden on trial plan)
 
 **Prompt for Codex:**
 ```
-Restructure Sidebar.tsx for X7 WhatsAI Assistant.
+Restructure Sidebar.tsx for WhatsAI Assistant.
 Primary section "WhatsAI Assistant": Dashboard, Conversations, Qualified Leads, Handoffs, Appointments, Daily Summary.
 Secondary section "Setup": Playbook Setup (/playbooks), Business Profile (/settings?tab=profile), Billing/Trial (/settings?tab=billing).
 Tertiary section "SiteVisit AI Pack": Bookings, Trials.
@@ -162,7 +162,7 @@ const DEMO_CONTACTS = [
 
 **Prompt for Codex:**
 ```
-Build a full Conversations page at /conversations for X7 WhatsAI Assistant.
+Build a full Conversations page at /conversations for WhatsAI Assistant.
 Two-column layout: left = WhatsApp contact list with search, status badges (hot/warm/cold/new), last message preview. Right = selected thread with message bubbles (customer left, AI right), qualification answers summary, Mark Handoff button.
 Read from conversation_contacts, conversation_threads, conversation_messages tables via Supabase. Use demo fallback if empty. Run type-check after.
 ```
@@ -193,7 +193,7 @@ Read from conversation_contacts, conversation_threads, conversation_messages tab
 
 **Prompt for Codex:**
 ```
-Convert the Leads page into a generic "Qualified Leads" page for X7 WhatsAI Assistant.
+Convert the Leads page into a generic "Qualified Leads" page for WhatsAI Assistant.
 Show name, phone, vertical, need/problem, budget/urgency, appointment intent, qualification score, AI summary, status, next action.
 Read from conversation_contacts joined with lead_qualification_answers and conversation_threads. Use demo fallback. Remove all real-estate-specific labels (project, booking, property type) from the visible UI. Keep underlying data intact. Run type-check after.
 ```
@@ -275,7 +275,7 @@ Write to `assistant_playbooks` table in Supabase.
 
 **Prompt for Codex:**
 ```
-Create a new Playbook Setup page at /playbooks for X7 WhatsAI Assistant.
+Create a new Playbook Setup page at /playbooks for WhatsAI Assistant.
 Step 1: Vertical selector (real_estate, clinic, coaching, gym, local_service) with icons.
 Step 2: Editable qualification questions list for selected vertical (use vertical-playbooks.js as defaults).
 Step 3: Handoff rules (trigger keywords, min answers, safety override for clinic).
@@ -318,7 +318,7 @@ Create the page file and the API route. Run type-check after.
 
 **Prompt for Codex:**
 ```
-Build a 4-step Business Setup Wizard at /setup for X7 WhatsAI Assistant.
+Build a 4-step Business Setup Wizard at /setup for WhatsAI Assistant.
 Step 1: Business name, category, city, owner name, owner phone.
 Step 2: WhatsApp number, business hours, welcome message.
 Step 3: Services list, pricing range, FAQ pairs (add/remove).
@@ -399,7 +399,7 @@ Read from business_subscriptions and business_usage. Demo fallback if empty. Run
 **Purpose:** Public URL to send to potential trial SMB customers.
 
 **Hero Section:**
-- Headline: **"X7 WhatsAI Assistant"**
+- Headline: **"WhatsAI Assistant"**
 - Subheadline: **"24/7 WhatsApp receptionist for Indian businesses. Never miss a customer again."**
 - Hindi line: **"Aapka business sote waqt bhi leads qualify karta rahe."**
 - CTA button: "Start 7-Day Free Trial →" (opens a WhatsApp link or form)
@@ -429,7 +429,7 @@ Trial (₹999/7 days) → Basic (₹2,999/mo) → Growth (₹7,999/mo) → Pro (
 
 **Prompt for Codex:**
 ```
-Build a public landing page for X7 WhatsAI Assistant in the apps/landing directory.
+Build a public landing page for WhatsAI Assistant in the apps/landing directory.
 Sections: Hero (headline, Hindi subline, CTA), How It Works (3 steps), Example WhatsApp Chat (simulated bubble UI), Business Verticals (5 cards), Pricing (4 tiers), Footer CTA.
 Design should feel modern, mobile-first, and trustworthy for Indian SMB owners. Use Tailwind CSS. No dashboard auth required. Run type-check after.
 ```

@@ -1,7 +1,7 @@
 import { PageHeader } from '@/components/shared/PageHeader';
 import { PlaybookSetupClient } from '@/components/playbooks/PlaybookSetupClient';
 
-export const metadata = { title: 'Playbook Setup — X7 WhatsAI' };
+export const metadata = { title: 'Playbook Setup — WhatsAI Assistant' };
 
 export default function PlaybooksPage() {
   return (

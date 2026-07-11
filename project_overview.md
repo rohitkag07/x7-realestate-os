@@ -1,10 +1,10 @@
-# X7 WhatsAI Assistant - Project Overview
+# WhatsAI Assistant - Project Overview
 
 ## What This Project Is Now
 
-X7 WhatsAI Assistant is a WhatsApp-first AI receptionist and lead conversion platform for Indian businesses.
+WhatsAI Assistant is a WhatsApp-first AI receptionist and lead conversion platform for Indian businesses.
 
-It is a pivot from X7 RealEstate OS. The existing real-estate product remains the first vertical pack, but the core product direction is now horizontal.
+It is a pivot from WhatsAI Assistant. The existing real-estate product remains the first vertical pack, but the core product direction is now horizontal.
 
 ## Product Goal
 

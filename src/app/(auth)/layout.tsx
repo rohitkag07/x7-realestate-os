@@ -25,7 +25,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </ul>
         </div>
 
-        <div className="text-xs text-white/50">{APP_COPYRIGHT} · X7 WhatsAI Assistant</div>
+        <div className="text-xs text-white/50">{APP_COPYRIGHT} · WhatsAI Assistant</div>
       </aside>
 
       {/* Form rail */}

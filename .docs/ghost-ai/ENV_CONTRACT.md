@@ -1,4 +1,4 @@
-# X7 WhatsAI Assistant Env Contract
+# WhatsAI Assistant Env Contract
 
 This file is the source of truth for runtime environment variables required for the current WhatsAI lead-to-appointment MVP.
 

@@ -1,6 +1,6 @@
 # 🏛️ The X7 Evolution Blueprint
 > [!IMPORTANT]
-> Pivot note (2026-07-08): this file is now pre-pivot reference material. The active product direction is `X7_WhatsAI_Pivot_Strategy.md`. Real estate remains the first vertical pack (`X7 SiteVisit AI`), but new work should build the generic WhatsAI business/playbook/conversation layer without rebuilding from scratch.
+> Pivot note (2026-07-08): this file is now pre-pivot reference material. The active product direction is `WHATSAI_PIVOT_STRATEGY.md`. Real estate remains the first vertical pack (`WhatsAI SiteVisit`), but new work should build the generic WhatsAI business/playbook/conversation layer without rebuilding from scratch.
 
 ### From Zero Coding to an Autonomous ₹10 Cr AI Agency Engine
 
@@ -579,7 +579,7 @@ A Next.js 16 website (`kavery-website/`) was already built — basic corporate b
 
 **The ₹1,00,000/Month Service Package:**
 
-| Service | Deliverable | X7 Agent Powering It |
+| Service | Deliverable | WhatsAI Agent Powering It |
 |---|---|---|
 | Premium E-commerce Website | Product catalog, dealer inquiry system, bulk order forms | Frontend Agent + Architect |
 | WhatsApp Business Automation | Auto-reply, order updates, dealer broadcasts | Marketing Agent + Tool Gateway |
@@ -781,7 +781,7 @@ SSMA (Smart Society Management App) serves as Client #2. It leverages a Next.js 
 - [ ] **Stage 21: The Simulator Engine (Predictive Tax Modeling)** — "What-if" simulator agents that run thousands of compliance scenarios to predict tax outcomes and risk factors for CAs.
 - [ ] **Stage 22: Autonomous QA & Evals** — Agent-to-Agent auditing where a dedicated "Validator" agent grades and corrects the work of other agents (e.g., checking legal citations) before user delivery.
 - **Client #2-5:** Replicate Kag Batteries playbook for more local businesses
-- **Fractional CTO SaaS:** Multi-tenant X7 subscriptions (₹75K-3L/month)
+- **Fractional CTO SaaS:** Multi-tenant WhatsAI subscriptions (₹75K-3L/month)
 - **Agentverse Dashboard:** Enterprise portal at `app.xeroseven.ai`
 - **YouTube Content Series:** 10-part documentary of this entire journey
 

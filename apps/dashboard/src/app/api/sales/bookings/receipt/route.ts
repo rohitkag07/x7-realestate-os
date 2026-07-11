@@ -7,7 +7,7 @@ export async function GET(request: Request) {
 
   const buyerName = searchParams.get('buyer_name') ?? 'Unknown buyer';
   const plotLabel = searchParams.get('plot_label') ?? 'Plot TBD';
-  const projectName = searchParams.get('project_name') ?? 'X7 WhatsAI Offer';
+  const projectName = searchParams.get('project_name') ?? 'WhatsAI Assistant Offer';
   const tokenAmount = Number(searchParams.get('token_amount') ?? 0);
   const totalAmount = Number(searchParams.get('total_amount') ?? 0);
   const paymentMode = (searchParams.get('payment_mode') ?? 'UPI').toUpperCase();
@@ -29,7 +29,7 @@ export async function GET(request: Request) {
     color: rgb(0.06, 0.09, 0.16),
   });
 
-  page.drawText('X7 WhatsAI Assistant', {
+  page.drawText('WhatsAI Assistant', {
     x: 56,
     y: 792,
     size: 20,

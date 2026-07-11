@@ -10,7 +10,7 @@ const salesAgentEnvPath = path.join(repoRoot, 'agents/x7-re-sales-agent/.env');
 const proofLogPath = path.join(repoRoot, '.docs/ghost-ai/PROOF_LOG.md');
 const playbookPath = path.join(repoRoot, 'agents/x7-re-sales-agent/vertical-playbooks.js');
 
-const BUSINESS_NAME = 'X7 Test Coaching Center';
+const BUSINESS_NAME = 'WhatsAI Test Coaching Center';
 const OWNER_PHONE = '+919876543210';
 const OWNER_NAME = 'Rohit Kag';
 const WHATSAPP_NUMBER = '+919876543210';
@@ -222,7 +222,7 @@ async function ensurePlaybook(api, businessId, coachingPlaybook) {
 
   const row = {
     business_id: businessId,
-    name: coachingPlaybook.name || 'X7 Admission AI',
+    name: coachingPlaybook.name || 'WhatsAI Admission',
     vertical: 'coaching',
     system_prompt: coachingPlaybook.system_prompt,
     qualification_questions: coachingPlaybook.qualification_questions,
