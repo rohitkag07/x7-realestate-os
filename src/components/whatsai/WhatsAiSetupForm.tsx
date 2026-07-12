@@ -227,7 +227,7 @@ export function WhatsAiSetupForm() {
           <div key={step} className="animate-in fade-in slide-in-from-bottom-2 duration-300">
             {step === 0 ? <BusinessProfileStep form={form} update={update} /> : null}
             {step === 1 ? <WhatsAppStep form={form} update={update} /> : null}
-            {step === 2 ? <PlaybookStep form={form} update={update} /> : null}
+            {step === 2 ? <PlaybookStep form={form} update={update} setupResult={setupResult} /> : null}
             {step === 3 ? <ReadinessStep form={form} setupResult={setupResult} pending={pending} onSubmit={submit} /> : null}
           </div>
 
@@ -332,10 +332,10 @@ function WhatsAppStep({ form, update }: StepProps) {
   );
 }
 
-function PlaybookStep({ form, update }: StepProps) {
+function PlaybookStep({ form, update, setupResult }: StepProps & { setupResult: { businessId?: string; playbookId?: string } | null }) {
   return (
     <div className="grid gap-5">
-      <KeywordReplyEditor rules={form.keyword_replies} fallbackReply={form.fallback_reply} onRulesChange={(rules) => update('keyword_replies', rules)} onFallbackReplyChange={(value) => update('fallback_reply', value)} />
+      <KeywordReplyEditor rules={form.keyword_replies} fallbackReply={form.fallback_reply} businessId={setupResult?.businessId} playbookId={setupResult?.playbookId} onRulesChange={(rules) => update('keyword_replies', rules)} onFallbackReplyChange={(value) => update('fallback_reply', value)} />
       <Field label="Owner follow-up checklist" helper="One item per line. These are saved for the owner to use after WhatsAI hands over an unmatched inquiry.">
         <Textarea value={form.qualification_questions_text} onChange={(event) => update('qualification_questions_text', event.target.value)} rows={5} />
       </Field>

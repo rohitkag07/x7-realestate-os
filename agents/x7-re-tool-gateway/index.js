@@ -20,6 +20,7 @@ import { createHash } from 'node:crypto';
 import PDFDocument from 'pdfkit';
 import { Buffer } from 'node:buffer';
 import { createClient } from '@supabase/supabase-js';
+import { buildWhatsAppMediaPayload } from './whatsapp-media.js';
 
 const PORT         = Number(process.env.PORT) || 8081;
 const AGENT_SECRET = process.env.AGENT_SECRET || '';
@@ -175,7 +176,16 @@ app.post('/whatsapp/send', (req, res) => safe(res, () => {
 app.post('/whatsapp/send/text',     (req, res) => safe(res, () => metaSend({ messaging_product: 'whatsapp', to: req.body.to, type: 'text', text: { body: req.body.body, preview_url: true } }, usageContext(req))));
 app.post('/whatsapp/send/document', (req, res) => safe(res, () => metaSend({ messaging_product: 'whatsapp', to: req.body.to, type: 'document', document: { link: req.body.url, filename: req.body.filename, caption: req.body.caption } }, usageContext(req))));
 app.post('/whatsapp/send/image',    (req, res) => safe(res, () => metaSend({ messaging_product: 'whatsapp', to: req.body.to, type: 'image', image: { link: req.body.url, caption: req.body.caption } }, usageContext(req))));
+app.post('/whatsapp/send/video',    (req, res) => safe(res, () => metaSend({ messaging_product: 'whatsapp', to: req.body.to, type: 'video', video: { link: req.body.url, caption: req.body.caption } }, usageContext(req))));
+app.post('/whatsapp/send/media',    (req, res) => safe(res, () => {
+  const trustedHost = safeUrlHost(process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '');
+  return metaSend(buildWhatsAppMediaPayload(req.body, { trustedHost }), usageContext(req));
+}));
 app.post('/whatsapp/send/buttons',  (req, res) => safe(res, () => metaSend({ messaging_product: 'whatsapp', to: req.body.to, type: 'interactive', interactive: { type: 'button', body: { text: req.body.body }, action: { buttons: (req.body.buttons ?? []).map((b) => ({ type: 'reply', reply: { id: b.id, title: b.title } })) } } }, usageContext(req))));
+
+function safeUrlHost(value) {
+  try { return new URL(value).hostname; } catch { return ''; }
+}
 
 // ---------------------------------------------------------------------------
 // UPI

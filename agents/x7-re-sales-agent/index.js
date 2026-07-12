@@ -714,6 +714,8 @@ async function handlePlaybookRespond(req, res) {
     rule_id: match?.rule.id ?? null,
     matched_keyword: match?.keyword ?? null,
     match_type: match?.rule.match_type ?? null,
+    match_mode: match?.match_mode ?? null,
+    match_confidence: match?.confidence ?? null,
     handoff_reason: reason,
   };
 
@@ -728,6 +730,23 @@ async function handlePlaybookRespond(req, res) {
       })
     : { ok: false, skipped: true, reason: 'send_disabled_or_phone_missing' };
 
+  const media = match?.rule ? await resolveRuleMedia({
+    businessId: payload.business_id,
+    playbookId: playbook.id,
+    rule: match.rule,
+  }) : null;
+  const mediaOutbound = media && payload.phone && payload.send_via_whatsapp !== false
+    ? await sendWhatsAppMedia({
+        to: payload.phone,
+        media,
+        caption: reply,
+        builderId: payload.business_id,
+        leadId: null,
+        projectId: null,
+        agent: 'dynamic-keyword-engine',
+      })
+    : { ok: true, skipped: !media, reason: media ? 'send_disabled_or_phone_missing' : 'no_rule_media' };
+
   await recordOutboundGeneric({
     supabase,
     businessId: payload.business_id,
@@ -735,6 +754,29 @@ async function handlePlaybookRespond(req, res) {
     content: reply,
     metadata: { ...metadata, decision_latency_ms: Math.round(performance.now() - startedAt) },
   });
+
+  if (media && mediaOutbound.ok) {
+    await recordOutboundGeneric({
+      supabase,
+      businessId: payload.business_id,
+      threadId: payload.thread_id,
+      content: media.file_name,
+      messageType: media.media_type,
+      mediaUrl: media.signed_url,
+      metadata: { ...metadata, response_type: RESPONSE_TYPES.ANSWER, media_asset_id: media.id, media_type: media.media_type },
+    });
+  }
+
+  if (media && !mediaOutbound.ok) {
+    await triggerHandoffEvent({
+      supabase,
+      businessId: payload.business_id,
+      threadId: payload.thread_id,
+      reason: 'media_delivery_failed',
+      priority: 'high',
+      summary: `Attachment ${media.file_name} could not be delivered.`,
+    });
+  }
 
   if (handoff) {
     await triggerHandoffEvent({
@@ -768,6 +810,7 @@ async function handlePlaybookRespond(req, res) {
       playbook: { id: playbook.id, version: playbook.playbook_version, vertical: playbook.vertical },
     },
     outbound,
+    media_outbound: mediaOutbound,
     decision_latency_ms: decisionLatencyMs,
   });
 }
@@ -836,7 +879,7 @@ async function incrementBusinessUsage(businessId, field, amount = 1) {
   }
 }
 
-async function recordOutboundGeneric({ supabase: sb, businessId = null, threadId, content, metadata = {} }) {
+async function recordOutboundGeneric({ supabase: sb, businessId = null, threadId, content, messageType = 'text', mediaUrl = null, metadata = {} }) {
   if (!sb || !threadId || !content) return;
   try {
     await sb.from('conversation_messages').insert({
@@ -847,13 +890,37 @@ async function recordOutboundGeneric({ supabase: sb, businessId = null, threadId
       content,
       body: content,
       channel: 'whatsapp',
-      message_type: 'text',
+      message_type: messageType,
+      media_url: mediaUrl,
       status: 'sent',
       metadata,
     });
   } catch {
     // non-fatal
   }
+}
+
+async function resolveRuleMedia({ businessId, playbookId, rule }) {
+  if (!supabase || !rule?.media_asset_id) return null;
+  const { data: asset, error } = await supabase
+    .from('playbook_media_assets')
+    .select('id, storage_bucket, storage_path, media_type, mime_type, file_name, status')
+    .eq('id', rule.media_asset_id)
+    .eq('business_id', businessId)
+    .eq('playbook_id', playbookId)
+    .eq('rule_id', rule.id)
+    .eq('status', 'ready')
+    .maybeSingle();
+  if (error || !asset) {
+    log('warn', 'playbook_media_asset_missing', { business_id: businessId, playbook_id: playbookId, rule_id: rule.id });
+    return null;
+  }
+  const { data, error: signedUrlError } = await supabase.storage.from(asset.storage_bucket).createSignedUrl(asset.storage_path, 10 * 60);
+  if (signedUrlError || !data?.signedUrl) {
+    log('warn', 'playbook_media_signed_url_failed', { asset_id: asset.id, error: signedUrlError?.message ?? 'missing_signed_url' });
+    return null;
+  }
+  return { ...asset, signed_url: data.signedUrl };
 }
 
 async function triggerHandoffEvent({ supabase: sb, businessId, threadId, reason, priority = 'high', summary = null }) {
@@ -1253,6 +1320,34 @@ async function sendWhatsAppDocument({ to, link, filename, caption, builderId, le
       : { ok: false, error: payload?.error || 'whatsapp_document_failed' };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : 'whatsapp_document_failed' };
+  }
+}
+
+async function sendWhatsAppMedia({ to, media, caption, builderId, leadId, projectId, agent }) {
+  try {
+    const response = await fetch(`${toolGatewayUrl}/whatsapp/send/media`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(agentSecret ? { 'x-agent-secret': agentSecret } : {}) },
+      body: JSON.stringify({
+        to: normalizeOutboundPhone(to),
+        url: media.signed_url,
+        media_type: media.media_type,
+        mime_type: media.mime_type,
+        filename: media.file_name,
+        caption,
+        business_id: builderId,
+      }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    const messageId = payload?.wa_message_id ?? null;
+    await recordWhatsAppMessage({
+      builderId, leadId, projectId, direction: 'outbound', phone: normalizePhone(to), waMessageId: messageId,
+      messageType: media.media_type, body: caption, mediaUrl: media.signed_url, status: response.ok ? 'sent' : 'failed',
+      error: response.ok ? null : payload?.error || 'whatsapp_media_failed', agent,
+    });
+    return response.ok ? { ok: true, message_id: messageId, media_url: media.signed_url } : { ok: false, error: payload?.error || 'whatsapp_media_failed' };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'whatsapp_media_failed' };
   }
 }
 

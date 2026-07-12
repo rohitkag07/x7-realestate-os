@@ -70,6 +70,8 @@ export type BusinessStatus = 'trial' | 'active' | 'paused' | 'cancelled';
 export type BusinessPlan = 'trial' | 'starter' | 'growth' | 'pro' | 'enterprise';
 export type AssistantVertical = BusinessCategory;
 export type KeywordReplyMatchType = 'word' | 'exact' | 'contains';
+export type KeywordReplyMediaType = 'image' | 'video' | 'document';
+export type KeywordReplyIntent = 'price' | 'location' | 'timing' | 'booking' | 'offers';
 export type ConversationStatus = 'open' | 'pending_human' | 'automated' | 'resolved' | 'archived';
 export type AiMode = 'assistant' | 'manual' | 'paused';
 
@@ -565,6 +567,16 @@ export interface KeywordReplyRule {
   priority: number;
   enabled: boolean;
   handoff: boolean;
+  intent?: KeywordReplyIntent;
+  fuzzy_enabled?: boolean;
+  fuzzy_threshold?: number;
+  media_asset_id?: string;
+  media_storage_path?: string;
+  media_url?: string;
+  media_type?: KeywordReplyMediaType;
+  media_name?: string;
+  media_mime_type?: 'image/jpeg' | 'image/png' | 'video/mp4' | 'application/pdf';
+  media_size_bytes?: number;
 }
 
 export interface AssistantPlaybook {
@@ -592,6 +604,22 @@ export interface AssistantKnowledgeItem {
   content: string;
   metadata: Record<string, unknown>;
   active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PlaybookMediaAsset {
+  id: string;
+  business_id: string;
+  playbook_id: string;
+  rule_id: string;
+  storage_bucket: 'whatsai-media';
+  storage_path: string;
+  media_type: KeywordReplyMediaType;
+  mime_type: 'image/jpeg' | 'image/png' | 'video/mp4' | 'application/pdf';
+  file_name: string;
+  file_size_bytes: number;
+  status: 'ready' | 'deleted' | 'failed';
   created_at: string;
   updated_at: string;
 }
@@ -736,6 +764,7 @@ export interface Database {
       businesses:            { Row: Business;           Insert: Partial<Business>;           Update: Partial<Business> };
       business_channels:     { Row: BusinessChannel;    Insert: Partial<BusinessChannel>;    Update: Partial<BusinessChannel> };
       assistant_playbooks:   { Row: AssistantPlaybook;  Insert: Partial<AssistantPlaybook>;  Update: Partial<AssistantPlaybook> };
+      playbook_media_assets: { Row: PlaybookMediaAsset; Insert: Partial<PlaybookMediaAsset>; Update: Partial<PlaybookMediaAsset> };
       assistant_knowledge_items: { Row: AssistantKnowledgeItem; Insert: Partial<AssistantKnowledgeItem>; Update: Partial<AssistantKnowledgeItem> };
       conversation_contacts: { Row: ConversationContact; Insert: Partial<ConversationContact>; Update: Partial<ConversationContact> };
       conversation_threads:  { Row: ConversationThread; Insert: Partial<ConversationThread>; Update: Partial<ConversationThread> };
