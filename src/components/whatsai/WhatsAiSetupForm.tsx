@@ -25,10 +25,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
+import { KeywordReplyEditor } from '@/components/whatsai/KeywordReplyEditor';
+import { keywordRepliesSchema, fallbackReplySchema } from '@/lib/keyword-reply-schema';
+import { getStarterKeywordRules } from '@/lib/starter-keyword-rules';
+import type { BusinessCategory, KeywordReplyRule } from '@/types/database';
 
 type WizardForm = {
   name: string;
-  category: 'real_estate' | 'clinic' | 'coaching' | 'gym' | 'local_service' | 'other';
+  category: BusinessCategory;
   city: string;
   owner_name: string;
   owner_whatsapp: string;
@@ -36,13 +40,13 @@ type WizardForm = {
   phone_number_id: string;
   business_account_id: string;
   verify_token: string;
-  goal: string;
-  knowledge: string;
   qualification_questions_text: string;
-  persona: string;
+  keyword_replies: KeywordReplyRule[];
+  fallback_reply: string;
 };
 
-const storageKey = 'x7-whatsai-setup-wizard-v1';
+const storageKey = 'whatsai-setup-wizard-v2';
+const realEstateStarter = getStarterKeywordRules('real_estate');
 
 const defaults: WizardForm = {
   name: 'Shree Krishna Developers',
@@ -54,10 +58,9 @@ const defaults: WizardForm = {
   phone_number_id: '',
   business_account_id: '',
   verify_token: 'x7-whatsapp-test-2026',
-  goal: 'Convert WhatsApp inquiries into qualified appointments/site visits and hand hot leads to the owner quickly.',
-  knowledge: 'Project: Krishna Greens. Location: near Super Corridor, Indore. Buyers ask about budget, plot size, RERA, loan support, registry, location, and site visit slots.',
   qualification_questions_text: 'Budget range?\nPreferred location?\nTimeline for purchase?\nSite visit preferred date/time?\nLoan required?',
-  persona: 'Friendly sales assistant. Ask one question at a time, keep replies short, never overpromise, and hand off to the owner for pricing or payment confirmation.',
+  keyword_replies: realEstateStarter.rules,
+  fallback_reply: realEstateStarter.fallback,
 };
 
 const steps = [
@@ -75,8 +78,8 @@ const steps = [
   },
   {
     id: 'playbook',
-    title: 'Knowledge & Playbook',
-    subtitle: 'What the assistant should know',
+    title: 'Keywords & Replies',
+    subtitle: 'Approve every automated response',
     icon: Bot,
   },
   {
@@ -262,7 +265,13 @@ function BusinessProfileStep({ form, update }: StepProps) {
         <Input value={form.name} onChange={(event) => update('name', event.target.value)} placeholder="e.g. Shree Krishna Developers" />
       </Field>
       <Field label="Industry" helper="Helps the assistant ask the right questions.">
-        <Select value={form.category} onValueChange={(value) => update('category', value as WizardForm['category'])}>
+        <Select value={form.category} onValueChange={(value) => {
+          const category = value as BusinessCategory;
+          const starter = getStarterKeywordRules(category);
+          update('category', category);
+          update('keyword_replies', starter.rules);
+          update('fallback_reply', starter.fallback);
+        }}>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="real_estate">Real estate</SelectItem>
@@ -270,7 +279,7 @@ function BusinessProfileStep({ form, update }: StepProps) {
             <SelectItem value="coaching">Coaching</SelectItem>
             <SelectItem value="gym">Gym / dietitian</SelectItem>
             <SelectItem value="local_service">Local service</SelectItem>
-            <SelectItem value="other">Other</SelectItem>
+            <SelectItem value="other">Salon, spa, or other</SelectItem>
           </SelectContent>
         </Select>
       </Field>
@@ -326,20 +335,10 @@ function WhatsAppStep({ form, update }: StepProps) {
 function PlaybookStep({ form, update }: StepProps) {
   return (
     <div className="grid gap-5">
-      <Field label="Assistant goal" helper="Explain what a successful conversation should do.">
-        <Textarea value={form.goal} onChange={(event) => update('goal', event.target.value)} rows={3} />
+      <KeywordReplyEditor rules={form.keyword_replies} fallbackReply={form.fallback_reply} onRulesChange={(rules) => update('keyword_replies', rules)} onFallbackReplyChange={(value) => update('fallback_reply', value)} />
+      <Field label="Owner follow-up checklist" helper="One item per line. These are saved for the owner to use after WhatsAI hands over an unmatched inquiry.">
+        <Textarea value={form.qualification_questions_text} onChange={(event) => update('qualification_questions_text', event.target.value)} rows={5} />
       </Field>
-      <Field label="FAQs and knowledge base" helper="Paste business facts, pricing notes, location details, policies, and offers.">
-        <Textarea value={form.knowledge} onChange={(event) => update('knowledge', event.target.value)} rows={7} />
-      </Field>
-      <div className="grid gap-5 md:grid-cols-2">
-        <Field label="Qualification questions" helper="One question per line.">
-          <Textarea value={form.qualification_questions_text} onChange={(event) => update('qualification_questions_text', event.target.value)} rows={6} />
-        </Field>
-      <Field label="Assistant instructions" helper="Tone, handoff rules, and do-not-say rules.">
-          <Textarea value={form.persona} onChange={(event) => update('persona', event.target.value)} rows={6} />
-        </Field>
-      </div>
     </div>
   );
 }
@@ -357,14 +356,14 @@ function ReadinessStep({ form, setupResult, pending, onSubmit }: { form: WizardF
         <h3 className="mt-5 text-2xl font-semibold">{setupResult ? 'Assistant is active' : 'Ready to activate'}</h3>
         <p className="mt-2 text-sm text-muted-foreground">
           {setupResult
-            ? 'Business, WhatsApp channel, playbook, and first knowledge item are saved in Supabase.'
+            ? 'Business, WhatsApp channel, and exact-reply playbook are saved in Supabase.'
             : 'Review the summary, then complete setup to create tenant records and activate the first playbook.'}
         </p>
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           <SummaryTile label="Business" value={form.name} />
           <SummaryTile label="Industry" value={form.category.replace('_', ' ')} />
           <SummaryTile label="Owner WhatsApp" value={form.owner_whatsapp || 'Missing'} />
-          <SummaryTile label="Questions" value={`${parseQuestions(form.qualification_questions_text).length} configured`} />
+          <SummaryTile label="Auto-replies" value={`${form.keyword_replies.filter((rule) => rule.enabled).length} active`} />
         </div>
         {setupResult ? (
           <div className="mt-5 rounded-2xl border bg-white p-4 text-xs text-muted-foreground">
@@ -378,7 +377,7 @@ function ReadinessStep({ form, setupResult, pending, onSubmit }: { form: WizardF
         <QrCode className="h-9 w-9 text-[#d9fdd3]" />
         <h3 className="mt-4 font-semibold">First test message</h3>
         <p className="mt-2 text-sm text-slate-300">
-          After setup, send a WhatsApp test inquiry and verify it appears in `/conversations`.
+            After setup, send a WhatsApp test inquiry and verify it appears in Chats.
         </p>
         <Button className="mt-5 w-full" variant="secondary" asChild disabled={!form.owner_whatsapp || pending}>
           <a href={testHref} target="_blank" rel="noreferrer">
@@ -441,10 +440,11 @@ function validateStep(step: number, form: WizardForm) {
     if (!form.verify_token.trim()) errors.push('Webhook verify token is required.');
   }
   if (step === 2) {
-    if (form.goal.trim().length < 10) errors.push('Assistant goal should be at least 10 characters.');
-    if (form.knowledge.trim().length < 10) errors.push('Knowledge base should be at least 10 characters.');
-    if (!parseQuestions(form.qualification_questions_text).length) errors.push('Add at least one qualification question.');
-    if (form.persona.trim().length < 10) errors.push('AI persona instructions should be at least 10 characters.');
+    const rules = keywordRepliesSchema.safeParse(form.keyword_replies);
+    if (!rules.success) errors.push(rules.error.issues[0]?.message ?? 'Check your keyword replies.');
+    if (!form.keyword_replies.some((rule) => rule.enabled)) errors.push('Add at least one active keyword reply.');
+    const fallback = fallbackReplySchema.safeParse(form.fallback_reply);
+    if (!fallback.success) errors.push('Fallback reply is required.');
   }
   return errors;
 }

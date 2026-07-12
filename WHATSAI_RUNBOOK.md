@@ -24,6 +24,7 @@ Required for local proof:
 - `SUMMONER_URL=http://localhost:8082`
 - `SALES_AGENT_URL=http://localhost:8080`
 - `TOOL_GATEWAY_URL=http://localhost:8081`
+- `DYNAMIC_KEYWORD_ENGINE_ENABLED=true`
 
 Also keep the same WhatsApp and Supabase values in:
 
@@ -97,6 +98,14 @@ This checks:
 
 If any check fails, follow the printed fix instruction.
 
+Then prove the deterministic tenant-safe reply engine:
+
+```bash
+npm run prove:keyword-engine
+```
+
+Expected result: all matcher unit tests and all multi-tenant proof checks pass.
+
 ## 5. Test Webhook Verify
 
 Manual verify command:
@@ -136,6 +145,7 @@ After Meta verifies, send one WhatsApp message from the test phone and confirm:
 - `conversation_threads` row exists
 - `conversation_messages` inbound row exists
 - `/conversations` shows the thread
+- the outbound `conversation_messages.metadata` contains `playbook_id`, `playbook_version`, and `rule_id`
 
 ## 7. Access Dashboard
 
@@ -164,3 +174,21 @@ These are not blockers for the WhatsAI MVP:
 - OpenAI-generated marketing content
 
 Build them after the lead-to-appointment WhatsApp flow is stable.
+
+## 9. Keyword Playbook Operations
+
+1. Open `/assistant-setup`.
+2. Select the business category and edit its starter keyword rules.
+3. Test sample customer messages in the Live Tester.
+4. Complete setup to upsert one active tenant playbook in Supabase.
+5. Send a real WhatsApp message and verify the exact approved reply in Chats.
+
+Unmatched messages use the tenant's `fallback_reply` and create a pending handoff. Manual or paused threads suppress automated replies.
+
+Controlled rollback:
+
+```env
+DYNAMIC_KEYWORD_ENGINE_ENABLED=false
+```
+
+After changing the flag, restart `whatsai-sales-agent` with `pm2 restart whatsai-sales-agent --update-env` and move affected threads to human takeover. Do not restore hardcoded vertical replies.

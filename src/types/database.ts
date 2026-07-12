@@ -69,6 +69,7 @@ export type BusinessCategory = 'real_estate' | 'clinic' | 'coaching' | 'gym' | '
 export type BusinessStatus = 'trial' | 'active' | 'paused' | 'cancelled';
 export type BusinessPlan = 'trial' | 'starter' | 'growth' | 'pro' | 'enterprise';
 export type AssistantVertical = BusinessCategory;
+export type KeywordReplyMatchType = 'word' | 'exact' | 'contains';
 export type ConversationStatus = 'open' | 'pending_human' | 'automated' | 'resolved' | 'archived';
 export type AiMode = 'assistant' | 'manual' | 'paused';
 
@@ -555,18 +556,29 @@ export interface BusinessChannel {
   updated_at: string;
 }
 
+export interface KeywordReplyRule {
+  id: string;
+  label: string;
+  keywords: string[];
+  match_type: KeywordReplyMatchType;
+  reply: string;
+  priority: number;
+  enabled: boolean;
+  handoff: boolean;
+}
+
 export interface AssistantPlaybook {
   id: string;
   business_id: string;
   vertical: AssistantVertical;
   name: string;
-  goal: string;
-  tone: string;
+  system_prompt: string | null;
   qualification_questions: unknown[];
-  hot_lead_rules: Record<string, unknown>;
-  guardrails: unknown[];
+  keyword_replies: KeywordReplyRule[];
+  fallback_reply: string;
+  playbook_version: number;
   handoff_rules: Record<string, unknown>;
-  active: boolean;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }

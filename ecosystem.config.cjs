@@ -15,6 +15,10 @@ module.exports = {
       cwd: `${root}/agents/x7-re-sales-agent`,
       script: 'index.js',
       interpreter_args: `--env-file=${root}/agents/x7-re-sales-agent/.env`,
+      env: {
+        TOOL_GATEWAY_URL: 'http://127.0.0.1:8081',
+        DYNAMIC_KEYWORD_ENGINE_ENABLED: 'true',
+      },
     },
     {
       ...common,

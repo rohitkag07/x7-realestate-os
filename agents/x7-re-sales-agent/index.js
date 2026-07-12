@@ -5,9 +5,10 @@ import { createClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import {
   buildAssistantResponse, buildHandoffResponse, buildFallbackResponse,
-  buildQualificationQuestion, checkMandatoryHandoff, RESPONSE_TYPES,
+  checkMandatoryHandoff, RESPONSE_TYPES,
 } from './assistant-contract.js';
-import { getPlaybook, getNextQuestion, computeTemperature } from './vertical-playbooks.js';
+import { findKeywordReply } from './keyword-engine.js';
+import { fetchActivePlaybook, PlaybookStoreError } from './playbook-store.js';
 
 const app = express();
 const port = Number(process.env.PORT || 8080);
@@ -24,6 +25,8 @@ const metaAdAccountId = process.env.META_AD_ACCOUNT_ID || '';
 const defaultBuilderId = process.env.DEFAULT_BUILDER_ID || '';
 const defaultProjectId = process.env.DEFAULT_PROJECT_ID || '';
 const summonerUrl = (process.env.SUMMONER_URL || '').replace(/\/$/, '');
+const toolGatewayUrl = (process.env.TOOL_GATEWAY_URL || 'http://127.0.0.1:8081').replace(/\/$/, '');
+const dynamicKeywordEngineEnabled = process.env.DYNAMIC_KEYWORD_ENGINE_ENABLED !== 'false';
 const supabaseFetchTimeoutMs = Number(process.env.SUPABASE_FETCH_TIMEOUT_MS || 8000);
 
 function fetchWithTimeout(input, init = {}) {
@@ -645,154 +648,139 @@ app.post('/brochure/send', async (req, res) => {
 // Generic multi-vertical endpoints (Phase 4 — Playbook System)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const playbookQualifySchema = z.object({
-  vertical:    z.string().min(1),
-  business_id: z.string().optional(),
-  thread_id:   z.string().optional(),
-  contact_id:  z.string().optional(),
-  phone:       z.string().optional(),
-  message:     z.string().min(1),
-  question_key:z.string().optional(),       // which question was just answered
-  answers:     z.record(z.string()).default({}).optional(), // all answers so far
-  send_via_whatsapp: z.boolean().default(false).optional(),
+const playbookRespondSchema = z.object({
+  business_id: z.string().uuid(),
+  playbook_id: z.string().uuid().optional().nullable(),
+  thread_id: z.string().uuid().optional().nullable(),
+  contact_id: z.string().uuid().optional().nullable(),
+  phone: z.string().min(8).optional().nullable(),
+  message: z.string().min(1).max(4096),
+  send_via_whatsapp: z.boolean().default(true).optional(),
 });
 
-/**
- * POST /playbook/qualify
- * Generic qualification endpoint for any vertical.
- * Accepts the inbound message + answers so far, returns the next question
- * or a handoff response, persists the answer to lead_qualification_answers.
- */
-app.post('/playbook/qualify', async (req, res) => {
-  const parsed = playbookQualifySchema.safeParse(req.body);
+async function handlePlaybookRespond(req, res) {
+  const startedAt = performance.now();
+  const parsed = playbookRespondSchema.safeParse(req.body);
   if (!parsed.success) {
     return res.status(400).json({ ok: false, error: parsed.error.flatten() });
   }
-
-  const { vertical, thread_id, business_id, phone, message, question_key, send_via_whatsapp } = parsed.data;
-  const answers = parsed.data.answers ?? {};
-
-  // Record the latest answer if a question_key was provided
-  if (question_key) {
-    answers[question_key] = message;
+  if (!dynamicKeywordEngineEnabled) {
+    return res.status(503).json({ ok: false, error: 'dynamic_keyword_engine_disabled' });
   }
 
-  const playbook = getPlaybook(vertical);
-  if (!playbook) {
-    return res.status(404).json({ ok: false, error: `Unknown vertical: ${vertical}` });
+  const payload = parsed.data;
+
+  if (payload.thread_id && supabase) {
+    const { data: thread, error } = await supabase
+      .from('conversation_threads')
+      .select('business_id, ai_mode, status')
+      .eq('id', payload.thread_id)
+      .eq('business_id', payload.business_id)
+      .maybeSingle();
+
+    if (error) return res.status(502).json({ ok: false, error: error.message });
+    if (!thread) return res.status(404).json({ ok: false, error: 'thread_not_found_for_business' });
+    if (thread.ai_mode === 'manual' || ['bot_paused', 'human_takeover'].includes(thread.status)) {
+      return res.json({ ok: true, skipped: true, reason: 'human_takeover_active' });
+    }
   }
 
-  // -- Mandatory handoff check
-  const forcedHandoff = checkMandatoryHandoff(message, vertical);
-  const handoffRule = playbook.handoff_rules;
-  const keywordHandoff = handoffRule?.trigger_on_keywords?.some((kw) => message.toLowerCase().includes(kw.toLowerCase()));
+  let playbook;
+  try {
+    playbook = await fetchActivePlaybook({
+      supabase,
+      businessId: payload.business_id,
+      playbookId: payload.playbook_id,
+    });
+  } catch (error) {
+    const status = error instanceof PlaybookStoreError ? error.status : 500;
+    return res.status(status).json({ ok: false, error: error instanceof Error ? error.message : 'playbook_load_failed' });
+  }
 
-  if (forcedHandoff || keywordHandoff) {
-    const handoffMsg = (forcedHandoff && vertical === 'clinic' && handoffRule.safety_override)
-      ? handoffRule.safety_override
-      : handoffRule.message;
+  const forcedHandoff = checkMandatoryHandoff(payload.message, playbook.vertical);
+  const match = forcedHandoff ? null : findKeywordReply(payload.message, playbook.keyword_replies);
+  const unmatched = !forcedHandoff && !match;
+  const handoff = Boolean(forcedHandoff || unmatched || match?.rule.handoff);
+  const reply = forcedHandoff
+    ? mandatoryHandoffReply(playbook.vertical)
+    : match?.rule.reply || playbook.fallback_reply || 'Thank you. A team member will reply shortly.';
+  const reason = forcedHandoff || (unmatched ? 'keyword_no_match' : match?.rule.handoff ? 'keyword_handoff' : null);
+  const metadata = {
+    response_type: handoff ? RESPONSE_TYPES.HANDOFF : RESPONSE_TYPES.ANSWER,
+    engine: 'deterministic_keyword_v1',
+    business_id: payload.business_id,
+    playbook_id: playbook.id,
+    playbook_version: playbook.playbook_version,
+    rule_id: match?.rule.id ?? null,
+    matched_keyword: match?.keyword ?? null,
+    match_type: match?.rule.match_type ?? null,
+    handoff_reason: reason,
+  };
 
-    const handoffResp = buildHandoffResponse({
-      message: handoffMsg,
-      reason: forcedHandoff || 'keyword_trigger',
+  const outbound = payload.phone && payload.send_via_whatsapp !== false
+    ? await sendWhatsAppText({
+        to: payload.phone,
+        body: reply,
+        builderId: payload.business_id,
+        leadId: null,
+        projectId: null,
+        agent: 'dynamic-keyword-engine',
+      })
+    : { ok: false, skipped: true, reason: 'send_disabled_or_phone_missing' };
+
+  await recordOutboundGeneric({
+    supabase,
+    businessId: payload.business_id,
+    threadId: payload.thread_id,
+    content: reply,
+    metadata: { ...metadata, decision_latency_ms: Math.round(performance.now() - startedAt) },
+  });
+
+  if (handoff) {
+    await triggerHandoffEvent({
+      supabase,
+      businessId: payload.business_id,
+      threadId: payload.thread_id,
+      reason,
       priority: forcedHandoff ? 'critical' : 'high',
-      vertical,
-      metadata: { answers, keyword: forcedHandoff || keywordHandoff },
+      summary: payload.message,
     });
-
-    await persistAnswer({ supabase: supabase, threadId: thread_id, businessId: business_id, key: question_key, answer: message });
-    await recordOutboundGeneric({ supabase: supabase, threadId: thread_id, content: handoffMsg, metadata: { response_type: RESPONSE_TYPES.HANDOFF } });
-    await triggerHandoffEvent({ supabase: supabase, businessId: business_id, threadId: thread_id, reason: forcedHandoff || 'keyword_trigger', priority: handoffResp.handoff_priority, summary: message });
-
-    if (phone && send_via_whatsapp) {
-      await sendWhatsAppText({ to: phone, body: handoffMsg, builderId: business_id, leadId: null, projectId: null, agent: 'playbook-handoff' });
-    }
-
-    return res.json({ ok: true, ...handoffResp });
   }
 
-  // -- Persist the answer
-  await persistAnswer({ supabase: supabase, threadId: thread_id, businessId: business_id, key: question_key, answer: message });
-
-  // -- Compute temperature
-  const temperature = computeTemperature(vertical, answers);
-
-  // -- Get next question
-  const nextQ = getNextQuestion(vertical, answers);
-
-  if (!nextQ) {
-    // All questions answered — summarise and request handoff if hot
-    const summary = Object.entries(answers).map(([k, v]) => `${k}: ${v}`).join(', ');
-    const doneMsg = temperature === 'hot'
-      ? (handoffRule?.message ?? 'Main aapko team se connect karta hoon!')
-      : 'Bahut shukriya! Hamari team aapko jald contact karegi. 🙏\n\nThank you! Our team will contact you shortly.';
-
-    if (temperature === 'hot') {
-      await triggerHandoffEvent({ supabase: supabase, businessId: business_id, threadId: thread_id, reason: 'qualification_complete_hot', priority: 'high', summary });
-    }
-
-    const resp = buildAssistantResponse({
-      type: RESPONSE_TYPES.STOP,
-      message: doneMsg,
-      vertical,
-      confidence: 1.0,
-      lead_stage: temperature === 'hot' ? 'qualified' : 'new',
-      metadata: { answers, temperature, all_done: true },
-    });
-
-    if (phone && send_via_whatsapp) {
-      await sendWhatsAppText({ to: phone, body: doneMsg, builderId: business_id, leadId: null, projectId: null, agent: 'playbook-qualify-done' });
-    }
-    await recordOutboundGeneric({ supabase: supabase, threadId: thread_id, content: doneMsg, metadata: { response_type: RESPONSE_TYPES.STOP } });
-
-    return res.json({ ok: true, ...resp, temperature, answers });
-  }
-
-  // -- Send next question
-  const questionResp = buildQualificationQuestion({
-    question: nextQ.question,
-    question_key: nextQ.key,
-    vertical,
-    lead_stage: temperature === 'hot' ? 'qualified' : 'new',
+  const decisionLatencyMs = Math.round(performance.now() - startedAt);
+  log('info', 'keyword_decision_completed', {
+    business_id: payload.business_id,
+    playbook_id: playbook.id,
+    playbook_version: playbook.playbook_version,
+    rule_id: match?.rule.id ?? null,
+    match_type: match?.rule.match_type ?? null,
+    outcome: handoff ? 'handoff' : 'reply',
+    decision_latency_ms: decisionLatencyMs,
   });
-
-  if (phone && send_via_whatsapp) {
-    await sendWhatsAppText({ to: phone, body: nextQ.question, builderId: business_id, leadId: null, projectId: null, agent: 'playbook-qualify' });
-  }
-  await recordOutboundGeneric({ supabase: supabase, threadId: thread_id, content: nextQ.question, metadata: { response_type: RESPONSE_TYPES.ASK_QUALIFICATION, question_key: nextQ.key } });
 
   return res.json({
     ok: true,
-    ...questionResp,
-    temperature,
-    next_question_key: nextQ.key,
-    answers,
+    response: {
+      message: reply,
+      response_type: metadata.response_type,
+      handoff,
+      matched_rule: match ? { id: match.rule.id, label: match.rule.label, keyword: match.keyword } : null,
+      playbook: { id: playbook.id, version: playbook.playbook_version, vertical: playbook.vertical },
+    },
+    outbound,
+    decision_latency_ms: decisionLatencyMs,
   });
-});
+}
 
-/**
- * POST /playbook/next-question
- * Returns the next unanswered question for a vertical given current answers.
- * Lightweight lookup — no side effects.
- */
-app.post('/playbook/next-question', (req, res) => {
-  const { vertical, answers = {} } = req.body;
-  if (!vertical) return res.status(400).json({ ok: false, error: 'vertical is required' });
+function mandatoryHandoffReply(vertical) {
+  if (vertical === 'clinic') {
+    return 'This request needs immediate human attention. For a medical emergency, please contact local emergency services now. Our team has been alerted.';
+  }
+  return 'This request needs a team member. We have alerted the business owner, who will reply shortly.';
+}
 
-  const playbook = getPlaybook(vertical);
-  if (!playbook) return res.status(404).json({ ok: false, error: `Unknown vertical: ${vertical}` });
-
-  const next = getNextQuestion(vertical, answers);
-  const temperature = computeTemperature(vertical, answers);
-
-  return res.json({
-    ok: true,
-    vertical,
-    all_done: !next,
-    next_question: next ?? null,
-    temperature,
-  });
-});
+app.post('/playbook/respond', handlePlaybookRespond);
+app.post('/playbook/qualify', handlePlaybookRespond);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Phase 4 helpers — persist answers and events
@@ -848,11 +836,12 @@ async function incrementBusinessUsage(businessId, field, amount = 1) {
   }
 }
 
-async function recordOutboundGeneric({ supabase: sb, threadId, content, metadata = {} }) {
+async function recordOutboundGeneric({ supabase: sb, businessId = null, threadId, content, metadata = {} }) {
   if (!sb || !threadId || !content) return;
   try {
     await sb.from('conversation_messages').insert({
       thread_id: threadId,
+      business_id: businessId,
       direction: 'outbound',
       role: 'assistant',
       content,
@@ -1159,30 +1148,22 @@ async function maybeSendBrochureBundle({ builderId, leadId, projectId, phone, lo
 }
 
 async function sendWhatsAppText({ to, body, builderId, leadId, projectId, agent }) {
-  if (!whatsappReady) {
-    return { ok: false, skipped: true, reason: 'whatsapp_not_configured' };
-  }
-
   try {
-    const response = await fetch(whatsappGraphUrl('/messages'), {
+    const response = await fetch(`${toolGatewayUrl}/whatsapp/send/text`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${whatsappAccessToken}`,
         'Content-Type': 'application/json',
+        ...(agentSecret ? { 'x-agent-secret': agentSecret } : {}),
       },
       body: JSON.stringify({
-        messaging_product: 'whatsapp',
         to: normalizeOutboundPhone(to),
-        type: 'text',
-        text: {
-          preview_url: true,
-          body,
-        },
+        body,
+        business_id: builderId,
       }),
     });
 
     const payload = await response.json().catch(() => ({}));
-    const messageId = payload?.messages?.[0]?.id ?? null;
+    const messageId = payload?.wa_message_id ?? null;
 
     await recordWhatsAppMessage({
       builderId,
@@ -1197,24 +1178,16 @@ async function sendWhatsAppText({ to, body, builderId, leadId, projectId, agent 
       agent,
     });
 
-    if (!response.ok && (response.status === 401 || payload?.error?.type === 'OAuthException')) {
-      log('error', 'whatsapp_token_error', {
+    if (!response.ok) {
+      log('error', 'tool_gateway_whatsapp_error', {
         status: response.status,
-        code: payload?.error?.code ?? null,
-        type: payload?.error?.type ?? null,
-        message: payload?.error?.message ?? 'whatsapp_send_failed',
-        details: payload?.error?.error_data?.details ?? null,
-        fbtrace_id: payload?.error?.fbtrace_id ?? null,
+        message: payload?.error ?? 'whatsapp_send_failed',
       });
-    }
-
-    if (response.ok) {
-      await incrementBusinessUsage(builderId, 'messages_out');
     }
 
     return response.ok
       ? { ok: true, message_id: messageId }
-      : { ok: false, error: payload?.error?.message || 'whatsapp_send_failed' };
+      : { ok: false, error: payload?.error || 'whatsapp_send_failed' };
   } catch (error) {
     await recordWhatsAppMessage({
       builderId,
@@ -1234,31 +1207,24 @@ async function sendWhatsAppText({ to, body, builderId, leadId, projectId, agent 
 }
 
 async function sendWhatsAppDocument({ to, link, filename, caption, builderId, leadId, projectId, agent }) {
-  if (!whatsappReady) {
-    return { ok: false, skipped: true, reason: 'whatsapp_not_configured' };
-  }
-
   try {
-    const response = await fetch(whatsappGraphUrl('/messages'), {
+    const response = await fetch(`${toolGatewayUrl}/whatsapp/send/document`, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${whatsappAccessToken}`,
         'Content-Type': 'application/json',
+        ...(agentSecret ? { 'x-agent-secret': agentSecret } : {}),
       },
       body: JSON.stringify({
-        messaging_product: 'whatsapp',
         to: normalizeOutboundPhone(to),
-        type: 'document',
-        document: {
-          link,
-          filename,
-          caption,
-        },
+        url: link,
+        filename,
+        caption,
+        business_id: builderId,
       }),
     });
 
     const payload = await response.json().catch(() => ({}));
-    const messageId = payload?.messages?.[0]?.id ?? null;
+    const messageId = payload?.wa_message_id ?? null;
 
     await recordWhatsAppMessage({
       builderId,
@@ -1270,29 +1236,21 @@ async function sendWhatsAppDocument({ to, link, filename, caption, builderId, le
       body: caption,
       mediaUrl: link,
       status: response.ok ? 'sent' : 'failed',
-      error: response.ok ? null : payload?.error?.message || 'whatsapp_document_failed',
+      error: response.ok ? null : payload?.error || 'whatsapp_document_failed',
       agent,
       projectId,
     });
 
-    if (!response.ok && (response.status === 401 || payload?.error?.type === 'OAuthException')) {
-      log('error', 'whatsapp_token_error', {
+    if (!response.ok) {
+      log('error', 'tool_gateway_whatsapp_document_error', {
         status: response.status,
-        code: payload?.error?.code ?? null,
-        type: payload?.error?.type ?? null,
-        message: payload?.error?.message ?? 'whatsapp_document_failed',
-        details: payload?.error?.error_data?.details ?? null,
-        fbtrace_id: payload?.error?.fbtrace_id ?? null,
+        message: payload?.error ?? 'whatsapp_document_failed',
       });
-    }
-
-    if (response.ok) {
-      await incrementBusinessUsage(builderId, 'messages_out');
     }
 
     return response.ok
       ? { ok: true, message_id: messageId, media_url: link }
-      : { ok: false, error: payload?.error?.message || 'whatsapp_document_failed' };
+      : { ok: false, error: payload?.error || 'whatsapp_document_failed' };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : 'whatsapp_document_failed' };
   }

@@ -1,12 +1,12 @@
 # WhatsAI Assistant - WhatsApp-First Lead Conversion Platform
 
-This repo is the canonical WhatsAI Assistant codebase for a horizontal WhatsApp AI assistant platform for Indian businesses.
+This repo is the canonical WhatsAI Assistant codebase for a deterministic WhatsApp receptionist platform for Indian businesses.
 
 The existing real-estate system is not being discarded. It becomes the first vertical pack: `WhatsAI SiteVisit` for builders and brokers.
 
 ## Current Positioning
 
-WhatsAI Assistant is a 24/7 WhatsApp receptionist, lead qualifier, follow-up assistant, and owner handoff system for Indian SMBs.
+WhatsAI Assistant is a 24/7 rule-based WhatsApp receptionist, lead qualifier, follow-up assistant, and owner handoff system for Indian SMBs. Automated replies are exact business-approved keyword responses; no LLM key is required.
 
 Primary buyer promise:
 
@@ -129,9 +129,17 @@ npm run prove:whatsai
 
 This checks required env, PM2 health on ports `8080`, `8081`, `8082`, WhatsApp webhook verification, and Supabase `conversation_threads`.
 
+Run the deterministic reply release gate:
+
+```bash
+npm run prove:keyword-engine
+```
+
+This proves tenant isolation for overlapping keywords, exact replies, fallback handoff, manual takeover suppression, unified Summoner routing, and Tool Gateway sending.
+
 ## Current Build Rule
 
-Do not rebuild from scratch. Add the generic WhatsAI business/playbook layer beside the current real-estate implementation, preserve working real-estate flows, and migrate to generic routes only after parity is proven.
+Supabase `assistant_playbooks` is the only source of truth for live keyword replies. Vertical templates are copied into onboarding and saved to the tenant playbook; agents must never load business reply text from source files.
 
 ## Launch Blockers
 

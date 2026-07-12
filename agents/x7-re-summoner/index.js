@@ -938,6 +938,11 @@ async function handleInboundWhatsAppMessage(message, envelope) {
   const body = extractMessageBody(message);
   const channelId = envelope?.metadata?.phone_number_id || null;
 
+  if (await isDuplicateInboundMessage(message?.id)) {
+    logEvent('duplicate_webhook_skipped', { waMessageId: message.id });
+    return { ok: true, skipped: true, reason: 'duplicate_webhook' };
+  }
+
   // ── Phase 2: Generic business context resolution ──────────────────────────
   const channelContext = await resolveBusinessChannel(channelId);
   const businessId = channelContext.businessId;
@@ -1029,35 +1034,36 @@ async function handleInboundWhatsAppMessage(message, envelope) {
 
   // Generic context to append to all agent payloads for downstream awareness.
   const genericCtx = businessId
-    ? { business_id: businessId, contact_id: contact?.id ?? null, thread_id: thread?.id ?? null, playbook_vertical: playbook?.vertical ?? null }
+    ? {
+        business_id: businessId,
+        contact_id: contact?.id ?? null,
+        thread_id: thread?.id ?? null,
+        playbook_id: playbook?.id ?? null,
+        playbook_vertical: playbook?.vertical ?? null,
+      }
     : {};
 
-  // ── Phase 4: non-real-estate verticals route through generic /playbook/qualify
-  if (genericCtx.playbook_vertical && genericCtx.playbook_vertical !== 'real_estate') {
-    const answers = thread ? await getQualificationAnswers(thread.id) : {};
-    const questionKey = thread ? await getLastPlaybookQuestionKey(thread.id) : null;
-    const result = await agentFetch('sales', '/playbook/qualify', {
-      vertical: genericCtx.playbook_vertical,
+  // Every configured business uses its tenant-scoped deterministic playbook.
+  if (businessId && playbook?.id) {
+    const result = await agentFetch('sales', '/playbook/respond', {
       business_id: businessId,
+      playbook_id: playbook.id,
       thread_id: thread?.id ?? null,
       contact_id: contact?.id ?? null,
       phone,
       message: body,
-      question_key: questionKey || undefined,
-      answers,
       send_via_whatsapp: true,
     });
 
     await logRun({
       builderId: businessId,
-      action: 'webhook-inbound-playbook',
-      input: { from: phone, body, vertical: genericCtx.playbook_vertical },
+      action: 'webhook-inbound-keyword-playbook',
+      input: { from: phone, body, playbook_id: playbook.id },
       output: result,
     });
 
     return result;
   }
-  // ── End Phase 4 routing
 
   if (resident) {
     const result = await agentFetch('colony', '/inbound', {
@@ -1115,6 +1121,23 @@ async function handleInboundWhatsAppMessage(message, envelope) {
   });
 
   return result;
+}
+
+async function isDuplicateInboundMessage(waMessageId) {
+  const sb = supabase();
+  if (!sb || !waMessageId) return false;
+  const { data, error } = await sb
+    .from('whatsapp_messages')
+    .select('id')
+    .eq('wa_message_id', waMessageId)
+    .eq('direction', 'inbound')
+    .limit(1)
+    .maybeSingle();
+  if (error) {
+    logEvent('duplicate_webhook_check_failed', { waMessageId, error: error.message });
+    return false;
+  }
+  return Boolean(data);
 }
 
 async function handleWhatsAppWebhook(payload) {

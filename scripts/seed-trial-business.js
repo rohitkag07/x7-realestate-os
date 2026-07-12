@@ -2,13 +2,11 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { pathToFileURL } = require('node:url');
 
 const repoRoot = path.resolve(__dirname, '..');
 const summonerEnvPath = path.join(repoRoot, 'agents/x7-re-summoner/.env');
 const salesAgentEnvPath = path.join(repoRoot, 'agents/x7-re-sales-agent/.env');
 const proofLogPath = path.join(repoRoot, '.docs/ghost-ai/PROOF_LOG.md');
-const playbookPath = path.join(repoRoot, 'agents/x7-re-sales-agent/vertical-playbooks.js');
 
 const BUSINESS_NAME = 'WhatsAI Test Coaching Center';
 const OWNER_PHONE = '+919876543210';
@@ -154,11 +152,36 @@ class SupabaseRest {
   }
 }
 
-async function loadCoachingPlaybook() {
-  const module = await import(pathToFileURL(playbookPath).href);
-  const playbook = module.getPlaybook?.('coaching') || module.PLAYBOOKS?.coaching;
-  if (!playbook) throw new Error('coaching playbook not found in vertical-playbooks.js');
-  return cleanJson(playbook);
+function loadCoachingPlaybook() {
+  return cleanJson({
+    name: 'WhatsAI Coaching Admission',
+    system_prompt: null,
+    qualification_questions: ['course_interest', 'student_level', 'batch_timing', 'online_or_offline'],
+    keyword_replies: [
+      {
+        id: 'coaching-fees',
+        label: 'Course fees',
+        keywords: ['fees', 'fee', 'price'],
+        match_type: 'word',
+        reply: 'Our course fees depend on the selected program. Please share the course name and our counsellor will send the exact fee structure.',
+        priority: 100,
+        enabled: true,
+        handoff: false,
+      },
+      {
+        id: 'coaching-demo',
+        label: 'Demo class',
+        keywords: ['demo', 'trial class'],
+        match_type: 'contains',
+        reply: 'Yes, a demo class is available. Please share the student name and preferred day.',
+        priority: 90,
+        enabled: true,
+        handoff: false,
+      },
+    ],
+    fallback_reply: 'Thank you for contacting us. A counsellor will reply shortly.',
+    handoff_rules: { no_keyword_match: true, owner_request: true },
+  });
 }
 
 async function ensureBusiness(api) {
@@ -226,7 +249,10 @@ async function ensurePlaybook(api, businessId, coachingPlaybook) {
     vertical: 'coaching',
     system_prompt: coachingPlaybook.system_prompt,
     qualification_questions: coachingPlaybook.qualification_questions,
+    keyword_replies: coachingPlaybook.keyword_replies,
+    fallback_reply: coachingPlaybook.fallback_reply,
     handoff_rules: coachingPlaybook.handoff_rules,
+    playbook_version: 1,
     is_active: true,
   };
 
@@ -272,7 +298,7 @@ async function main() {
   const serviceRoleKey = requireEnv(env, 'SUPABASE_SERVICE_ROLE_KEY');
   const phoneNumberId = env.WHATSAPP_PHONE_NUMBER_ID || env.WHATSAPP_PHONE_ID || WHATSAPP_NUMBER.replace(/\D/g, '');
   const api = new SupabaseRest({ url: supabaseUrl, serviceRoleKey });
-  const coachingPlaybook = await loadCoachingPlaybook();
+  const coachingPlaybook = loadCoachingPlaybook();
   const actions = {};
 
   const business = await ensureBusiness(api);
