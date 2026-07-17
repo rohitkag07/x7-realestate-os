@@ -2,10 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Bell, CalendarDays, Home, Menu, MessageCircle, Search, Settings, SlidersHorizontal, Users } from 'lucide-react';
+import { Bell, CalendarDays, Home, Menu, MessageCircle, Settings, SlidersHorizontal, Users } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
 interface TopBarProps {
@@ -24,7 +23,12 @@ const quickLinks = [
 
 export function TopBar({ builderName = 'WhatsAI Assistant', onMenuClick }: TopBarProps) {
   const pathname = usePathname();
-  const fallback = builderName.split(' ').slice(0, 2).map((p) => p[0]).join('').toUpperCase();
+  const fallback = builderName
+    .split(' ')
+    .slice(0, 2)
+    .map((p) => p[0])
+    .join('')
+    .toUpperCase();
 
   return (
     <header className="sticky top-0 z-30 flex min-h-16 items-center gap-3 border-b border-[#d8dee4] bg-white/95 px-4 backdrop-blur lg:px-6">
@@ -32,29 +36,14 @@ export function TopBar({ builderName = 'WhatsAI Assistant', onMenuClick }: TopBa
         <Menu className="h-5 w-5" />
       </Button>
 
-      <div className="relative hidden flex-1 max-w-md md:block">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#667781]" />
-        <Input
-          placeholder="Search chats or leads"
-          className="h-10 rounded-full border-[#d8dee4] bg-[#f0f2f5] pl-9 focus-visible:ring-[#00a884]"
-        />
-      </div>
+      <div className="flex-1" />
 
       <nav className="hidden items-center gap-1 xl:flex">
         {quickLinks.map((link) => {
           const Icon = link.icon;
           const active = pathname === link.href || pathname.startsWith(`${link.href}/`);
           return (
-            <Button
-              key={link.href}
-              asChild
-              variant="ghost"
-              size="sm"
-              className={cn(
-                'rounded-full px-3 text-[#667781] hover:bg-[#e7fce3] hover:text-[#075e54]',
-                active && 'bg-[#e7fce3] text-[#075e54]',
-              )}
-            >
+            <Button key={link.href} asChild variant="ghost" size="sm" className={cn('rounded-full px-3 text-[#667781] hover:bg-[#e7fce3] hover:text-[#075e54]', active && 'bg-[#e7fce3] text-[#075e54]')}>
               <Link href={link.href}>
                 <Icon className="mr-1.5 h-3.5 w-3.5" />
                 {link.label}
@@ -64,8 +53,10 @@ export function TopBar({ builderName = 'WhatsAI Assistant', onMenuClick }: TopBa
         })}
       </nav>
 
-      <Button variant="ghost" size="icon" aria-label="Notifications">
-        <Bell className="h-5 w-5" />
+      <Button asChild variant="ghost" size="icon">
+        <Link href="/chats" aria-label="Open conversations requiring attention">
+          <Bell className="h-5 w-5" />
+        </Link>
       </Button>
 
       <Link href="/settings" className="flex items-center gap-2 rounded-full p-1 transition-colors hover:bg-[#e7fce3]" aria-label="Open settings">

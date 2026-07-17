@@ -1,10 +1,7 @@
-import { Save, Sparkles, MessageCircle, CreditCard, Palette, ServerCog } from 'lucide-react';
+import { Sparkles, MessageCircle, CreditCard, ServerCog } from 'lucide-react';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { ReadinessPanel } from '@/components/settings/ReadinessPanel';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -22,10 +19,9 @@ export default async function SettingsPage() {
       <PageHeader title="Settings" description="Business profile, WhatsApp integrations, launch readiness, and billing." />
 
       <Tabs defaultValue="ops">
-        <TabsList>
+        <TabsList className="grid h-auto w-full grid-cols-2 gap-1 sm:grid-cols-4">
           <TabsTrigger value="ops"><ServerCog className="h-3.5 w-3.5 mr-1.5" /> Ops</TabsTrigger>
           <TabsTrigger value="profile"><Sparkles className="h-3.5 w-3.5 mr-1.5" /> Profile</TabsTrigger>
-          <TabsTrigger value="brand"><Palette className="h-3.5 w-3.5 mr-1.5" /> Brand</TabsTrigger>
           <TabsTrigger value="integrations"><MessageCircle className="h-3.5 w-3.5 mr-1.5" /> Integrations</TabsTrigger>
           <TabsTrigger value="billing"><CreditCard className="h-3.5 w-3.5 mr-1.5" /> Billing</TabsTrigger>
         </TabsList>
@@ -40,35 +36,9 @@ export default async function SettingsPage() {
               <CardTitle className="text-base">Business Profile</CardTitle>
               <CardDescription>Public-facing business name, address, and contact details.</CardDescription>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Field label="Company Name" defaultValue="Demo SMB" />
-              <Field label="Founder Name" defaultValue="Rohit Kag" />
-              <Field label="Phone"        defaultValue="+91 98765 43210" />
-              <Field label="WhatsApp Business Number" defaultValue="+91 98765 43210" />
-              <Field label="Email"        defaultValue="owner@business.in" />
-              <Field label="City"         defaultValue="Indore" />
-              <div className="md:col-span-2">
-                <Label htmlFor="about">About</Label>
-                <Textarea id="about" rows={3} defaultValue="Indian SMB using WhatsApp for leads, appointments, and customer follow-up." />
-              </div>
-              <div className="md:col-span-2 flex justify-end">
-                <Button><Save className="h-4 w-4 mr-2" /> Save Profile</Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="brand">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Brand Kit</CardTitle>
-              <CardDescription>Logo, colors, and fonts applied to every auto-generated content piece.</CardDescription>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Field label="Primary Color" defaultValue="#0F172A" />
-              <Field label="Accent Color"  defaultValue="#F59E0B" />
-              <Field label="Logo URL"      defaultValue="" />
-              <Field label="Message Font"    defaultValue="Inter" />
+            <CardContent>
+              <p className="text-sm text-muted-foreground">Business name, category, offer, and WhatsApp contact details are managed in the guided setup so the assistant and dashboard always use the same source of truth.</p>
+              <Button asChild className="mt-4"><Link href="/assistant-setup">Edit business profile</Link></Button>
             </CardContent>
           </Card>
         </TabsContent>
@@ -106,25 +76,12 @@ export default async function SettingsPage() {
                 <li>· Conversation summaries and handoff tracking</li>
                 <li>· Usage and billing readiness</li>
               </ul>
-              <div className="mt-4 flex gap-2">
-                <Button variant="outline" size="sm">Change Plan</Button>
-                <Button variant="ghost" size="sm" className="text-red-600">Cancel Subscription</Button>
-              </div>
+              <p className="mt-4 rounded-xl bg-[#f0f2f5] p-3 text-sm text-muted-foreground">Plans are managed directly during the 10-business launch. Self-serve billing controls will appear here only after billing is connected.</p>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
     </>
-  );
-}
-
-function Field({ label, defaultValue }: { label: string; defaultValue: string }) {
-  const id = label.toLowerCase().replace(/\s+/g, '-');
-  return (
-    <div className="space-y-1.5">
-      <Label htmlFor={id}>{label}</Label>
-      <Input id={id} defaultValue={defaultValue} />
-    </div>
   );
 }
 

@@ -3,19 +3,7 @@ import 'server-only';
 import { serviceClientOrNull } from '@/lib/sales-server';
 import { createClient } from '@/lib/supabase/server';
 import { DEMO_BUILDER_ID } from '@/lib/sales-data';
-import type {
-  AiMode,
-  Appointment,
-  Business,
-  ConversationStage,
-  ConversationContact,
-  ConversationMessage,
-  ConversationStatus,
-  ConversationThread,
-  HandoffEvent,
-  Lead,
-  LeadQualificationAnswer,
-} from '@/types/database';
+import type { AiMode, Appointment, Business, ConversationStage, ConversationContact, ConversationMessage, ConversationStatus, ConversationThread, HandoffEvent, Lead, LeadQualificationAnswer } from '@/types/database';
 
 export type WhatsAiReadSource = 'supabase' | 'demo' | 'error';
 
@@ -30,6 +18,7 @@ export type WhatsAiThread = {
   stage: ConversationStage;
   temperature: Lead['temperature'];
   assignedTo: string | null;
+  assignedUserId: string | null;
   tags: string[];
   unreadCount: number;
   inboundCount: number;
@@ -117,39 +106,14 @@ export async function loadWhatsAiInboxData(selectedPhone?: string | null): Promi
   if (!client) return buildDemoInbox(selectedPhone);
 
   const [threadsResult, messagesResult, contactsResult, leadsResult, qualificationResult, appointmentsResult, businessResult, handoffsResult] = await Promise.all([
-    (client.from('conversation_threads') as any)
-      .select('*')
-      .order('last_message_at', { ascending: false, nullsFirst: false })
-      .limit(200),
-    (client.from('conversation_messages') as any)
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(1000),
-    (client.from('conversation_contacts') as any)
-      .select('*')
-      .order('last_message_at', { ascending: false, nullsFirst: false })
-      .limit(500),
-    (client.from('leads') as any)
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(300),
-    (client.from('lead_qualification_answers') as any)
-      .select('*')
-      .order('extracted_at', { ascending: false })
-      .limit(1000),
-    (client.from('appointments') as any)
-      .select('*')
-      .order('scheduled_at', { ascending: false })
-      .limit(300),
-    (client.from('businesses') as any)
-      .select('id,name,category,status,plan,trial_ends_at,daily_message_limit')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-    (client.from('handoff_events') as any)
-      .select('*')
-      .in('status', ['open', 'pending'])
-      .limit(200),
+    (client.from('conversation_threads') as any).select('*').order('last_message_at', { ascending: false, nullsFirst: false }).limit(200),
+    (client.from('conversation_messages') as any).select('*').order('created_at', { ascending: false }).limit(1000),
+    (client.from('conversation_contacts') as any).select('*').order('last_message_at', { ascending: false, nullsFirst: false }).limit(500),
+    (client.from('leads') as any).select('*').order('created_at', { ascending: false }).limit(300),
+    (client.from('lead_qualification_answers') as any).select('*').order('extracted_at', { ascending: false }).limit(1000),
+    (client.from('appointments') as any).select('*').order('scheduled_at', { ascending: false }).limit(300),
+    (client.from('businesses') as any).select('id,name,category,status,plan,trial_ends_at,daily_message_limit').order('created_at', { ascending: false }).limit(1).maybeSingle(),
+    (client.from('handoff_events') as any).select('*').in('status', ['open', 'pending']).limit(200),
   ]);
 
   const fatalError = threadsResult.error || messagesResult.error || contactsResult.error || leadsResult.error;
@@ -176,60 +140,38 @@ export async function loadWhatsAiInboxData(selectedPhone?: string | null): Promi
     messages: (messagesResult.data ?? []) as ConversationMessage[],
     contacts: (contactsResult.data ?? []) as ConversationContact[],
     leads: (leadsResult.data ?? []) as Lead[],
-    qualificationAnswers: qualificationResult.error ? [] : (qualificationResult.data ?? []) as LeadQualificationAnswer[],
-    appointments: appointmentsResult.error ? [] : (appointmentsResult.data ?? []) as Appointment[],
-    handoffs: handoffsResult.error ? [] : (handoffsResult.data ?? []) as HandoffEvent[],
-    business: businessResult.error ? null : businessResult.data ?? null,
+    qualificationAnswers: qualificationResult.error ? [] : ((qualificationResult.data ?? []) as LeadQualificationAnswer[]),
+    appointments: appointmentsResult.error ? [] : ((appointmentsResult.data ?? []) as Appointment[]),
+    handoffs: handoffsResult.error ? [] : ((handoffsResult.data ?? []) as HandoffEvent[]),
+    business: businessResult.error ? null : (businessResult.data ?? null),
     humanHandoffs: handoffsResult.error ? 0 : (handoffsResult.data ?? []).length,
     selectedPhone,
   });
 }
 
-function buildCanonicalInbox({
-  source,
-  error = null,
-  threads,
-  messages,
-  contacts,
-  leads,
-  qualificationAnswers,
-  appointments,
-  handoffs,
-  business,
-  humanHandoffs,
-  selectedPhone,
-}: CanonicalInboxInput): WhatsAiInboxData {
+function buildCanonicalInbox({ source, error = null, threads, messages, contacts, leads, qualificationAnswers, appointments, handoffs, business, humanHandoffs, selectedPhone }: CanonicalInboxInput): WhatsAiInboxData {
   const contactsById = new Map(contacts.map((contact) => [contact.id, contact]));
   const leadsById = new Map(leads.map((lead) => [lead.id, lead]));
   const messagesByThread = new Map<string, ConversationMessage[]>();
   const qualificationsByThread = groupBy(qualificationAnswers, 'thread_id');
-  const appointmentsByThread = groupBy(appointments.filter((appointment) => appointment.thread_id), 'thread_id');
-  const handoffsByThread = groupBy(handoffs.filter((handoff) => handoff.thread_id), 'thread_id');
+  const appointmentsByThread = groupBy(
+    appointments.filter((appointment) => appointment.thread_id),
+    'thread_id',
+  );
+  const handoffsByThread = groupBy(
+    handoffs.filter((handoff) => handoff.thread_id),
+    'thread_id',
+  );
 
   for (const message of messages) {
     if (!message.thread_id) continue;
     messagesByThread.set(message.thread_id, [...(messagesByThread.get(message.thread_id) ?? []), message]);
   }
 
-  const mappedThreads = threads
-    .map((thread) => buildCanonicalThread(
-      thread,
-      messagesByThread.get(thread.id) ?? [],
-      contactsById,
-      leadsById,
-      business?.id ?? thread.business_id ?? null,
-      qualificationsByThread.get(thread.id) ?? [],
-      appointmentsByThread.get(thread.id) ?? [],
-      handoffsByThread.get(thread.id) ?? [],
-    ))
-    .sort((left, right) => right.lastMessageAt.localeCompare(left.lastMessageAt));
+  const mappedThreads = threads.map((thread) => buildCanonicalThread(thread, messagesByThread.get(thread.id) ?? [], contactsById, leadsById, business?.id ?? thread.business_id ?? null, qualificationsByThread.get(thread.id) ?? [], appointmentsByThread.get(thread.id) ?? [], handoffsByThread.get(thread.id) ?? [])).sort((left, right) => right.lastMessageAt.localeCompare(left.lastMessageAt));
 
   const selected = pickSelectedThread(mappedThreads, selectedPhone);
-  const selectedMessages = selected
-    ? (messagesByThread.get(selected.id) ?? [])
-        .sort((left, right) => left.created_at.localeCompare(right.created_at))
-        .map(mapCanonicalMessage)
-    : [];
+  const selectedMessages = selected ? (messagesByThread.get(selected.id) ?? []).sort((left, right) => left.created_at.localeCompare(right.created_at)).map(mapCanonicalMessage) : [];
   const today = new Date().toISOString().slice(0, 10);
 
   return {
@@ -253,22 +195,11 @@ function buildCanonicalInbox({
   };
 }
 
-function buildCanonicalThread(
-  thread: ConversationThread,
-  rows: ConversationMessage[],
-  contactsById: Map<string, ConversationContact>,
-  leadsById: Map<string, Lead>,
-  businessId: string | null,
-  qualificationRows: LeadQualificationAnswer[],
-  appointmentRows: Appointment[],
-  handoffRows: HandoffEvent[],
-): WhatsAiThread {
+function buildCanonicalThread(thread: ConversationThread, rows: ConversationMessage[], contactsById: Map<string, ConversationContact>, leadsById: Map<string, Lead>, businessId: string | null, qualificationRows: LeadQualificationAnswer[], appointmentRows: Appointment[], handoffRows: HandoffEvent[]): WhatsAiThread {
   const sorted = [...rows].sort((left, right) => right.created_at.localeCompare(left.created_at));
   const last = sorted[0];
-  const contact = thread.contact_id ? contactsById.get(thread.contact_id) ?? null : null;
-  const lead = (thread.lead_id ? leadsById.get(thread.lead_id) : null)
-    ?? (contact?.lead_id ? leadsById.get(contact.lead_id) : null)
-    ?? null;
+  const contact = thread.contact_id ? (contactsById.get(thread.contact_id) ?? null) : null;
+  const lead = (thread.lead_id ? leadsById.get(thread.lead_id) : null) ?? (contact?.lead_id ? leadsById.get(contact.lead_id) : null) ?? null;
   const inboundCount = rows.filter((row) => row.direction === 'inbound').length;
   const outboundCount = rows.filter((row) => row.direction === 'outbound').length;
   const lastBody = last?.body ?? thread.summary ?? 'No messages yet';
@@ -294,12 +225,8 @@ function buildCanonicalThread(
     stage: thread.stage ?? contact?.stage ?? stageFromLegacyLead(lead?.lead_stage),
     temperature: lead?.temperature ?? contact?.temperature ?? (thread.unread_count > 0 ? 'warm' : 'cold'),
     assignedTo: thread.assigned_to ?? lead?.assigned_to ?? null,
-    tags: [
-      lead?.source ?? contact?.source ?? 'whatsapp',
-      lead?.budget_range ?? null,
-      thread.status === 'pending_human' || thread.ai_mode === 'manual' || thread.ai_mode === 'paused' ? 'human-control' : null,
-      ...(Array.isArray(contact?.tags) ? contact.tags : []),
-    ].filter(Boolean) as string[],
+    assignedUserId: thread.assigned_user_id ?? null,
+    tags: [lead?.source ?? contact?.source ?? 'whatsapp', lead?.budget_range ?? null, thread.status === 'pending_human' || thread.ai_mode === 'manual' || thread.ai_mode === 'paused' ? 'human-control' : null, ...(Array.isArray(contact?.tags) ? contact.tags : [])].filter(Boolean) as string[],
     unreadCount: thread.unread_count ?? 0,
     inboundCount,
     outboundCount,
@@ -316,30 +243,38 @@ function buildCanonicalThread(
       nextQuestion: stringValue(metadataQualification.next_question),
       qualified: Boolean(metadataQualification.qualified) || qualificationAnswered >= Math.min(qualificationTotal, 3),
     },
-    appointment: latestAppointment ? {
-      id: latestAppointment.id,
-      status: latestAppointment.status,
-      scheduledAt: latestAppointment.scheduled_at,
-      type: latestAppointment.appointment_type,
-      title: latestAppointment.title,
-    } : metadataAppointment.id ? {
-      id: stringValue(metadataAppointment.id) || 'metadata-appointment',
-      status: (stringValue(metadataAppointment.status) || 'scheduled') as Appointment['status'],
-      scheduledAt: stringValue(metadataAppointment.scheduled_at) || thread.last_message_at || thread.created_at,
-      type: (stringValue(metadataAppointment.type) || 'site_visit') as Appointment['appointment_type'],
-      title: 'Appointment',
-    } : null,
-    hotHandoff: latestHandoff ? {
-      id: latestHandoff.id,
-      reason: latestHandoff.reason,
-      priority: latestHandoff.priority,
-      status: latestHandoff.status,
-    } : metadataHandoff.id ? {
-      id: stringValue(metadataHandoff.id) || 'metadata-handoff',
-      reason: stringValue(metadataHandoff.reason) || 'Hot lead needs handoff',
-      priority: stringValue(metadataHandoff.priority) || 'high',
-      status: stringValue(metadataHandoff.status) || 'pending',
-    } : null,
+    appointment: latestAppointment
+      ? {
+          id: latestAppointment.id,
+          status: latestAppointment.status,
+          scheduledAt: latestAppointment.scheduled_at,
+          type: latestAppointment.appointment_type,
+          title: latestAppointment.title,
+        }
+      : metadataAppointment.id
+        ? {
+            id: stringValue(metadataAppointment.id) || 'metadata-appointment',
+            status: (stringValue(metadataAppointment.status) || 'scheduled') as Appointment['status'],
+            scheduledAt: stringValue(metadataAppointment.scheduled_at) || thread.last_message_at || thread.created_at,
+            type: (stringValue(metadataAppointment.type) || 'site_visit') as Appointment['appointment_type'],
+            title: 'Appointment',
+          }
+        : null,
+    hotHandoff: latestHandoff
+      ? {
+          id: latestHandoff.id,
+          reason: latestHandoff.reason,
+          priority: latestHandoff.priority,
+          status: latestHandoff.status,
+        }
+      : metadataHandoff.id
+        ? {
+            id: stringValue(metadataHandoff.id) || 'metadata-handoff',
+            reason: stringValue(metadataHandoff.reason) || 'Hot lead needs handoff',
+            priority: stringValue(metadataHandoff.priority) || 'high',
+            status: stringValue(metadataHandoff.status) || 'pending',
+          }
+        : null,
   };
 }
 
@@ -364,16 +299,7 @@ export function buildOwnerSummaryText(data: WhatsAiInboxData) {
     .map((thread) => `- ${thread.contactName} (${thread.phone}): ${thread.lastBody.slice(0, 90)}`)
     .join('\n');
 
-  return [
-    'WhatsAI Daily Summary',
-    `Total conversations: ${metrics.totalThreads}`,
-    `Unread threads: ${metrics.unreadThreads}`,
-    `Hot leads: ${metrics.hotThreads}`,
-    `AI paused threads: ${metrics.aiPausedThreads}`,
-    `Inbound today: ${metrics.inboundToday}`,
-    `Outbound today: ${metrics.outboundToday}`,
-    hot ? `\nTop hot leads:\n${hot}` : '\nTop hot leads: none right now',
-  ].join('\n');
+  return ['WhatsAI Daily Summary', `Total conversations: ${metrics.totalThreads}`, `Unread threads: ${metrics.unreadThreads}`, `Hot leads: ${metrics.hotThreads}`, `AI paused threads: ${metrics.aiPausedThreads}`, `Inbound today: ${metrics.inboundToday}`, `Outbound today: ${metrics.outboundToday}`, hot ? `\nTop hot leads:\n${hot}` : '\nTop hot leads: none right now'].join('\n');
 }
 
 async function getReadClientOrNull(): Promise<any> {
@@ -453,15 +379,7 @@ function makeDemoContact(id: string, phone: string, name: string, temperature: L
   };
 }
 
-function makeDemoThread(
-  id: string,
-  contact: ConversationContact,
-  status: ConversationStatus,
-  aiMode: AiMode,
-  assignedTo: string,
-  minutesAgo: number,
-  summary: string,
-): ConversationThread {
+function makeDemoThread(id: string, contact: ConversationContact, status: ConversationStatus, aiMode: AiMode, assignedTo: string, minutesAgo: number, summary: string): ConversationThread {
   const time = new Date(now.getTime() + minutesAgo * 60 * 1000).toISOString();
   return {
     id,
@@ -488,34 +406,31 @@ function makeDemoThread(
         next_question: status === 'pending_human' ? null : 'visit_slot',
         qualified: status === 'pending_human',
       },
-      appointment_status: status === 'pending_human' ? {
-        id: `${id}-appointment`,
-        status: 'scheduled',
-        scheduled_at: new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString(),
-        type: 'site_visit',
-      } : null,
-      hot_handoff: status === 'pending_human' ? {
-        id: `${id}-handoff`,
-        reason: 'Qualified hot lead needs owner confirmation',
-        priority: 'high',
-        status: 'pending',
-      } : null,
+      appointment_status:
+        status === 'pending_human'
+          ? {
+              id: `${id}-appointment`,
+              status: 'scheduled',
+              scheduled_at: new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString(),
+              type: 'site_visit',
+            }
+          : null,
+      hot_handoff:
+        status === 'pending_human'
+          ? {
+              id: `${id}-handoff`,
+              reason: 'Qualified hot lead needs owner confirmation',
+              priority: 'high',
+              status: 'pending',
+            }
+          : null,
     },
     created_at: time,
     updated_at: time,
   };
 }
 
-function makeDemoConversationMessage(
-  id: string,
-  thread: ConversationThread,
-  contact: ConversationContact,
-  direction: 'inbound' | 'outbound',
-  body: string,
-  minutesAgo: number,
-  status: ConversationMessage['status'],
-  agent: string,
-): ConversationMessage {
+function makeDemoConversationMessage(id: string, thread: ConversationThread, contact: ConversationContact, direction: 'inbound' | 'outbound', body: string, minutesAgo: number, status: ConversationMessage['status'], agent: string): ConversationMessage {
   const time = new Date(now.getTime() + minutesAgo * 60 * 1000).toISOString();
   return {
     id,
@@ -537,10 +452,9 @@ function makeDemoConversationMessage(
 }
 
 function pickSelectedThread(threads: WhatsAiThread[], selectedPhone?: string | null) {
-  if (!threads.length) return null;
-  if (!selectedPhone) return threads[0];
+  if (!threads.length || !selectedPhone) return null;
   const key = normalizePhoneKey(selectedPhone);
-  return threads.find((thread) => normalizePhoneKey(thread.phone) === key || thread.id === selectedPhone) ?? threads[0];
+  return threads.find((thread) => normalizePhoneKey(thread.phone) === key || thread.id === selectedPhone) ?? null;
 }
 
 function detectAuthorType(message: ConversationMessage): WhatsAiMessage['authorType'] {
@@ -552,7 +466,7 @@ function detectAuthorType(message: ConversationMessage): WhatsAiMessage['authorT
 }
 
 function asRecord(value: unknown): Record<string, unknown> {
-  return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
+  return value && typeof value === 'object' && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
 }
 
 function stringValue(value: unknown) {
