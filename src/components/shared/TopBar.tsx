@@ -68,7 +68,7 @@ export function TopBar({ builderName = 'WhatsAI Assistant', onMenuClick }: TopBa
         <Bell className="h-5 w-5" />
       </Button>
 
-      <div className="flex items-center gap-2">
+      <Link href="/settings" className="flex items-center gap-2 rounded-full p-1 transition-colors hover:bg-[#e7fce3]" aria-label="Open settings">
         <Avatar className="h-8 w-8">
           <AvatarFallback className="bg-[#00a884] text-xs text-white">{fallback}</AvatarFallback>
         </Avatar>
@@ -76,7 +76,7 @@ export function TopBar({ builderName = 'WhatsAI Assistant', onMenuClick }: TopBa
           <div className="text-sm font-medium">{builderName}</div>
           <div className="text-[10px] text-[#667781]">WhatsApp inbox and lead desk</div>
         </div>
-      </div>
+      </Link>
     </header>
   );
 }

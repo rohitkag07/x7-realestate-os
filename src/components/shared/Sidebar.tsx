@@ -30,11 +30,11 @@ const items: Item[] = [
   { href: '/settings', label: 'Settings', description: 'Business setup', icon: Settings },
 ];
 
-export function Sidebar() {
+export function Sidebar({ mobile = false, onNavigate }: { mobile?: boolean; onNavigate?: () => void }) {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden lg:flex h-screen w-72 shrink-0 flex-col border-r border-[#d8dee4] bg-white sticky top-0">
+    <aside className={cn('h-full w-72 shrink-0 flex-col border-r border-[#d8dee4] bg-white', mobile ? 'flex' : 'sticky top-0 hidden lg:flex h-screen')}>
       {/* Brand */}
       <div className="flex items-center gap-3 px-6 py-5 border-b border-[#d8dee4]">
         <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#00a884] text-white shadow-sm">
@@ -58,6 +58,7 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={onNavigate}
               className={cn(
                 'flex items-center gap-3 rounded-2xl px-3 py-3 text-sm transition-colors',
                 isActive

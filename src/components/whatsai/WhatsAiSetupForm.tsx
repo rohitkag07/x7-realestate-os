@@ -206,12 +206,12 @@ export function WhatsAiSetupForm() {
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
+    <div className="grid gap-4 xl:grid-cols-[320px_minmax(0,1fr)] xl:gap-6">
       <Card className="overflow-hidden border-[#d8dee4] bg-white shadow-sm">
-        <CardHeader className="bg-[#075e54] text-white">
+        <CardHeader className="bg-[#075e54] p-5 text-white sm:p-6">
           <Badge className="w-fit bg-[#d9fdd3] text-[#075e54] hover:bg-[#d9fdd3]">Guided setup</Badge>
-          <CardTitle className="mt-3 text-xl">WhatsAI Onboarding</CardTitle>
-          <CardDescription className="text-white/80">
+          <CardTitle className="mt-3 text-xl sm:text-2xl">WhatsAI Onboarding</CardTitle>
+          <CardDescription className="text-sm text-white/80 sm:text-base">
             Four simple steps: business profile, WhatsApp connection, playbook, and first test.
           </CardDescription>
           <div className="pt-2">
@@ -222,7 +222,7 @@ export function WhatsAiSetupForm() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-2 p-3">
+        <CardContent className="flex gap-2 overflow-x-auto p-3 xl:block xl:space-y-2">
           {steps.map((item, index) => {
             const Icon = item.icon;
             const active = index === step;
@@ -233,7 +233,7 @@ export function WhatsAiSetupForm() {
                 type="button"
                 onClick={() => goToStep(index)}
                 className={cn(
-                  'w-full rounded-2xl border p-3 text-left transition duration-200',
+                  'min-w-[220px] rounded-2xl border p-3 text-left transition duration-200 xl:w-full',
                   active ? 'border-[#00a884] bg-[#e7fce3] shadow-sm' : 'border-transparent hover:bg-[#f0f2f5]',
                 )}
               >
@@ -243,7 +243,7 @@ export function WhatsAiSetupForm() {
                   </div>
                   <div>
                     <div className="font-semibold">{item.title}</div>
-                    <div className="text-xs text-muted-foreground">{item.subtitle}</div>
+                    <div className="hidden text-xs text-muted-foreground sm:block">{item.subtitle}</div>
                   </div>
                 </div>
               </button>
@@ -266,7 +266,7 @@ export function WhatsAiSetupForm() {
           </div>
         </CardHeader>
 
-        <CardContent className="min-h-[560px] p-6">
+        <CardContent className="min-h-[560px] p-4 sm:p-6">
           <div key={step} className="animate-in fade-in slide-in-from-bottom-2 duration-300">
             {step === 0 ? <BusinessProfileStep form={form} update={update} onCategoryChange={changeCategory} /> : null}
             {step === 1 ? <WhatsAppStep form={form} update={update} /> : null}
