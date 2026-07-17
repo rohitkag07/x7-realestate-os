@@ -1,4 +1,5 @@
 const root = __dirname;
+const ngrokDomain = process.env.NGROK_DOMAIN || 'litigator-perish-graded.ngrok-free.dev';
 
 const common = {
   interpreter: 'node',
@@ -33,6 +34,15 @@ module.exports = {
       cwd: `${root}/agents/x7-re-summoner`,
       script: 'index.js',
       interpreter_args: `--env-file=${root}/agents/x7-re-summoner/.env`,
+    },
+    {
+      name: 'whatsai-ngrok',
+      cwd: root,
+      script: process.env.NGROK_BIN || '/opt/homebrew/bin/ngrok',
+      interpreter: 'none',
+      args: ['http', `--url=${ngrokDomain}`, '8082'],
+      autorestart: true,
+      watch: false,
     },
   ],
 };

@@ -22,6 +22,11 @@ const DEFAULT_BUSINESS_ID = process.env.DEFAULT_BUSINESS_ID || DEFAULT_BUILDER_I
 const TRIAL_MESSAGES_PER_DAY = Number(process.env.TRIAL_MESSAGES_PER_DAY || 50);
 
 const AGENT_TARGETS = {
+  tool_gateway: {
+    service: 'x7-re-tool-gateway',
+    baseUrl: (process.env.TOOL_GATEWAY_URL || 'http://localhost:8081').replace(/\/$/, ''),
+    healthPath: '/health',
+  },
   sales: {
     service: 'x7-re-sales-agent',
     baseUrl: (process.env.SALES_AGENT_URL || 'http://localhost:8080').replace(/\/$/, ''),
