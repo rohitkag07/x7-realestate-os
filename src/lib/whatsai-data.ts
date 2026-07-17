@@ -7,6 +7,7 @@ import type {
   AiMode,
   Appointment,
   Business,
+  ConversationStage,
   ConversationContact,
   ConversationMessage,
   ConversationStatus,
@@ -26,7 +27,7 @@ export type WhatsAiThread = {
   builderId: string;
   businessId: string | null;
   contactId: string | null;
-  stage: Lead['lead_stage'] | 'unknown';
+  stage: ConversationStage;
   temperature: Lead['temperature'];
   assignedTo: string | null;
   tags: string[];
@@ -290,7 +291,7 @@ function buildCanonicalThread(
     builderId: thread.builder_id ?? contact?.builder_id ?? lead?.builder_id ?? DEMO_BUILDER_ID,
     businessId: thread.business_id ?? contact?.business_id ?? businessId,
     contactId: thread.contact_id ?? contact?.id ?? null,
-    stage: lead?.lead_stage ?? 'unknown',
+    stage: thread.stage ?? contact?.stage ?? stageFromLegacyLead(lead?.lead_stage),
     temperature: lead?.temperature ?? contact?.temperature ?? (thread.unread_count > 0 ? 'warm' : 'cold'),
     assignedTo: thread.assigned_to ?? lead?.assigned_to ?? null,
     tags: [
@@ -442,6 +443,7 @@ function makeDemoContact(id: string, phone: string, name: string, temperature: L
     source: tags[0] ?? 'whatsapp',
     lifecycle_stage: 'lead',
     temperature,
+    stage: temperature === 'cold' ? 'cold' : 'new',
     tags,
     last_message_at: time,
     last_handoff_at: null,
@@ -471,7 +473,9 @@ function makeDemoThread(
     channel: 'whatsapp',
     status,
     assigned_to: assignedTo,
+    assigned_user_id: null,
     ai_mode: aiMode,
+    stage: contact.stage,
     unread_count: status === 'pending_human' ? 1 : 0,
     last_message_at: time,
     summary,
@@ -561,6 +565,13 @@ function numberValue(value: unknown) {
 
 function normalizePhoneKey(value: string | null | undefined) {
   return String(value || '').replace(/\D/g, '');
+}
+
+function stageFromLegacyLead(stage: Lead['lead_stage'] | undefined): ConversationStage {
+  if (stage === 'qualified' || stage === 'visit_scheduled' || stage === 'visited') return 'interested';
+  if (stage === 'negotiation') return 'negotiating';
+  if (stage === 'booked' || stage === 'lost' || stage === 'new') return stage;
+  return 'cold';
 }
 
 function groupBy<T extends Record<string, any>>(rows: T[], key: keyof T) {

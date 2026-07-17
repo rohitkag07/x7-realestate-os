@@ -1,50 +1,23 @@
-import { Plus, Filter, Download } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 import { PageHeader } from '@/components/shared/PageHeader';
-import { Button } from '@/components/ui/button';
 import { LeadPipeline } from '@/components/leads/LeadPipeline';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { loadLeadsPageData, salesReadSourceLabel } from '@/lib/sales-read';
+import { loadWhatsAiInboxData } from '@/lib/whatsai-data';
 
 export const metadata = { title: 'Leads' };
 
 export default async function LeadsPage() {
-  const { leads, source } = await loadLeadsPageData();
+  const data = await loadWhatsAiInboxData();
 
   return (
     <>
       <PageHeader
         title="Lead Pipeline"
-        titleHi="लीड पाइपलाइन"
-        description="Every lead from ads, WhatsApp, walk-ins, and Ghost Closer — in one Kanban."
-        actions={
-          <>
-            <Button variant="outline" size="sm"><Filter className="h-4 w-4 mr-2" /> Filter</Button>
-            <Button variant="outline" size="sm"><Download className="h-4 w-4 mr-2" /> Export</Button>
-            <Button size="sm"><Plus className="h-4 w-4 mr-2" /> Add Lead</Button>
-          </>
-        }
+        titleHi=""
+        description="Every WhatsApp conversation is grouped by its current sales stage."
+        actions={<span className="inline-flex items-center gap-2 rounded-lg border bg-white px-3 py-2 text-sm text-muted-foreground"><MessageCircle className="h-4 w-4 text-[#00a884]" />Live WhatsApp pipeline</span>}
       />
-      <p className="mb-6 -mt-3 text-xs text-muted-foreground">{salesReadSourceLabel(source)}</p>
-
-      <Tabs defaultValue="pipeline">
-        <TabsList>
-          <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
-          <TabsTrigger value="list">List</TabsTrigger>
-          <TabsTrigger value="hot">Hot Leads</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="pipeline">
-          <LeadPipeline leads={leads} />
-        </TabsContent>
-
-        <TabsContent value="list">
-          <LeadPipeline leads={leads} />
-        </TabsContent>
-
-        <TabsContent value="hot">
-          <LeadPipeline leads={leads.filter((lead) => lead.temperature === 'hot')} />
-        </TabsContent>
-      </Tabs>
+      <p className="mb-6 -mt-3 text-xs text-muted-foreground">{data.source === 'supabase' ? 'Live canonical WhatsAI conversations.' : 'Showing the local demo pipeline until Supabase is available.'}</p>
+      <LeadPipeline threads={data.threads} />
     </>
   );
 }

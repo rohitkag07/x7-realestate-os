@@ -1,6 +1,12 @@
 import { z } from 'zod';
 import type { KeywordReplyRule } from '@/types/database';
 
+export const TEMPLATE_PLACEHOLDER_PATTERN = /\[[^\]\n]+\]/;
+
+export function hasTemplatePlaceholder(value: string) {
+  return TEMPLATE_PLACEHOLDER_PATTERN.test(value);
+}
+
 export const keywordReplyRuleSchema = z.object({
   id: z.string().trim().min(1).max(60).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Use lowercase letters, numbers, and hyphens.'),
   label: z.string().trim().min(1).max(60),
@@ -21,6 +27,9 @@ export const keywordReplyRuleSchema = z.object({
   media_mime_type: z.enum(['image/jpeg', 'image/png', 'video/mp4', 'application/pdf']).optional(),
   media_size_bytes: z.number().int().positive().max(16 * 1024 * 1024).optional(),
 }).superRefine((rule, context) => {
+  if (hasTemplatePlaceholder(rule.reply)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, path: ['reply'], message: 'Replace every [placeholder] with your real business information before saving.' });
+  }
   const hasMedia = Boolean(rule.media_asset_id || rule.media_storage_path || rule.media_url);
   if (hasMedia && !rule.media_type) context.addIssue({ code: z.ZodIssueCode.custom, path: ['media_type'], message: 'Choose the attachment type.' });
   if (rule.media_type && !hasMedia) context.addIssue({ code: z.ZodIssueCode.custom, path: ['media_asset_id'], message: 'Attach a file before choosing media.' });
@@ -51,7 +60,10 @@ export const keywordRepliesSchema = z.array(keywordReplyRuleSchema).max(30).supe
   });
 });
 
-export const fallbackReplySchema = z.string().trim().min(1).max(1000);
+export const fallbackReplySchema = z.string().trim().min(1).max(1000).refine(
+  (value) => !hasTemplatePlaceholder(value),
+  'Replace every [placeholder] in the fallback reply before saving.',
+);
 
 export const keywordPlaybookInputSchema = z.object({
   keyword_replies: keywordRepliesSchema,

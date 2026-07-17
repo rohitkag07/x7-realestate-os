@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState, useTransition } from 'react';
+import Link from 'next/link';
 import {
   ArrowLeft,
   ArrowRight,
@@ -27,7 +28,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { KeywordReplyEditor } from '@/components/whatsai/KeywordReplyEditor';
 import { keywordRepliesSchema, fallbackReplySchema } from '@/lib/keyword-reply-schema';
-import { getStarterKeywordRules } from '@/lib/starter-keyword-rules';
+import { getIndustryTemplatePack } from '@/lib/industry-templates';
 import type { BusinessCategory, KeywordReplyRule } from '@/types/database';
 
 type WizardForm = {
@@ -43,10 +44,12 @@ type WizardForm = {
   qualification_questions_text: string;
   keyword_replies: KeywordReplyRule[];
   fallback_reply: string;
+  followup_enabled: boolean;
+  followup_steps: Array<{ day: number; message: string }>;
 };
 
 const storageKey = 'whatsai-setup-wizard-v2';
-const realEstateStarter = getStarterKeywordRules('real_estate');
+const realEstateStarter = getIndustryTemplatePack('real_estate');
 
 const defaults: WizardForm = {
   name: 'Shree Krishna Developers',
@@ -61,6 +64,12 @@ const defaults: WizardForm = {
   qualification_questions_text: 'Budget range?\nPreferred location?\nTimeline for purchase?\nSite visit preferred date/time?\nLoan required?',
   keyword_replies: realEstateStarter.rules,
   fallback_reply: realEstateStarter.fallback,
+  followup_enabled: true,
+  followup_steps: [
+    { day: 1, message: 'Hi {{name}}, just checking if you need any more details. I can help with the next step.' },
+    { day: 3, message: 'Hi {{name}}, would you like us to reserve a convenient time for a quick call or visit?' },
+    { day: 7, message: 'Hi {{name}}, we are here whenever you are ready. Reply YES and our team will help you.' },
+  ],
 };
 
 const steps = [
@@ -122,6 +131,21 @@ export function WhatsAiSetupForm() {
     setForm((current) => ({ ...current, [key]: value }));
   }
 
+  function changeCategory(category: BusinessCategory) {
+    if (category === form.category) return;
+    if (hasEditedRules(form) && !window.confirm('Replace your current keyword replies? Your unsaved rule edits and attachments will be removed.')) return;
+    const pack = getIndustryTemplatePack(category);
+    setForm((current) => ({
+      ...current,
+      category,
+      keyword_replies: pack.rules,
+      fallback_reply: pack.fallback,
+      qualification_questions_text: pack.qualificationQuestions.join('\n'),
+    }));
+    setSetupResult(null);
+    toast.message(`${pack.title} loaded. Replace every highlighted placeholder before setup.`);
+  }
+
   function next() {
     if (errors.length) {
       toast.error(errors[0]);
@@ -132,6 +156,17 @@ export function WhatsAiSetupForm() {
 
   function back() {
     setStep((current) => Math.max(current - 1, 0));
+  }
+
+  function goToStep(targetStep: number) {
+    const blocking = Array.from({ length: Math.min(targetStep, 3) }, (_, index) => validateStep(index, form)).flat();
+    if (blocking.length) {
+      const firstInvalid = Array.from({ length: Math.min(targetStep, 3) }, (_, index) => index).find((index) => validateStep(index, form).length > 0);
+      if (firstInvalid !== undefined) setStep(firstInvalid);
+      toast.error(blocking[0]);
+      return;
+    }
+    setStep(targetStep);
   }
 
   function submit() {
@@ -157,6 +192,14 @@ export function WhatsAiSetupForm() {
       }
 
       setSetupResult({ businessId: payload.business?.id, playbookId: payload.playbook?.id });
+      if (form.followup_enabled && payload.business?.id) {
+        const followupResponse = await fetch('/api/whatsai/followup-sequence', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ business_id: payload.business.id, playbook_id: payload.playbook?.id ?? null, enabled: true, steps: form.followup_steps }),
+        });
+        if (!followupResponse.ok) toast.error('Setup saved, but follow-up sequence could not be saved.');
+      }
       setStep(3);
       toast.success('WhatsAI setup completed.');
     });
@@ -188,7 +231,7 @@ export function WhatsAiSetupForm() {
               <button
                 key={item.id}
                 type="button"
-                onClick={() => setStep(index)}
+                onClick={() => goToStep(index)}
                 className={cn(
                   'w-full rounded-2xl border p-3 text-left transition duration-200',
                   active ? 'border-[#00a884] bg-[#e7fce3] shadow-sm' : 'border-transparent hover:bg-[#f0f2f5]',
@@ -225,7 +268,7 @@ export function WhatsAiSetupForm() {
 
         <CardContent className="min-h-[560px] p-6">
           <div key={step} className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-            {step === 0 ? <BusinessProfileStep form={form} update={update} /> : null}
+            {step === 0 ? <BusinessProfileStep form={form} update={update} onCategoryChange={changeCategory} /> : null}
             {step === 1 ? <WhatsAppStep form={form} update={update} /> : null}
             {step === 2 ? <PlaybookStep form={form} update={update} setupResult={setupResult} /> : null}
             {step === 3 ? <ReadinessStep form={form} setupResult={setupResult} pending={pending} onSubmit={submit} /> : null}
@@ -245,9 +288,9 @@ export function WhatsAiSetupForm() {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               ) : (
-                <Button onClick={submit} disabled={pending || Boolean(setupResult)}>
+                <Button onClick={submit} disabled={pending}>
                   {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
-                  {setupResult ? 'Setup Complete' : 'Complete Setup'}
+                  {setupResult ? 'Save updates' : 'Complete Setup'}
                 </Button>
               )}
             </div>
@@ -258,20 +301,14 @@ export function WhatsAiSetupForm() {
   );
 }
 
-function BusinessProfileStep({ form, update }: StepProps) {
+function BusinessProfileStep({ form, update, onCategoryChange }: StepProps & { onCategoryChange: (category: BusinessCategory) => void }) {
   return (
     <div className="grid gap-5 md:grid-cols-2">
       <Field label="Business name" helper="Customer-facing brand name.">
         <Input value={form.name} onChange={(event) => update('name', event.target.value)} placeholder="e.g. Shree Krishna Developers" />
       </Field>
       <Field label="Industry" helper="Helps the assistant ask the right questions.">
-        <Select value={form.category} onValueChange={(value) => {
-          const category = value as BusinessCategory;
-          const starter = getStarterKeywordRules(category);
-          update('category', category);
-          update('keyword_replies', starter.rules);
-          update('fallback_reply', starter.fallback);
-        }}>
+        <Select value={form.category} onValueChange={(value) => onCategoryChange(value as BusinessCategory)}>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="real_estate">Real estate</SelectItem>
@@ -339,6 +376,24 @@ function PlaybookStep({ form, update, setupResult }: StepProps & { setupResult: 
       <Field label="Owner follow-up checklist" helper="One item per line. These are saved for the owner to use after WhatsAI hands over an unmatched inquiry.">
         <Textarea value={form.qualification_questions_text} onChange={(event) => update('qualification_questions_text', event.target.value)} rows={5} />
       </Field>
+      <div className="rounded-2xl border border-[#d8dee4] bg-[#f7faf9] p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h3 className="font-semibold text-slate-900">Automatic follow-up</h3>
+            <p className="mt-1 text-sm text-muted-foreground">Send these only after a customer gets their first automated reply. Any customer reply stops pending reminders.</p>
+          </div>
+          <Button type="button" size="sm" variant={form.followup_enabled ? 'default' : 'outline'} onClick={() => update('followup_enabled', !form.followup_enabled)}>
+            {form.followup_enabled ? 'Enabled' : 'Disabled'}
+          </Button>
+        </div>
+        {form.followup_enabled ? <div className="mt-4 grid gap-3">
+          {form.followup_steps.map((followup, index) => <div key={index} className="grid gap-2 sm:grid-cols-[110px_1fr]">
+            <Input type="number" min={0} max={90} value={followup.day} onChange={(event) => update('followup_steps', form.followup_steps.map((item, itemIndex) => itemIndex === index ? { ...item, day: Number(event.target.value) } : item))} aria-label={`Follow-up ${index + 1} day`} />
+            <Textarea rows={2} value={followup.message} onChange={(event) => update('followup_steps', form.followup_steps.map((item, itemIndex) => itemIndex === index ? { ...item, message: event.target.value } : item))} placeholder="Follow-up message" />
+          </div>)}
+          <p className="text-xs text-muted-foreground">Use <code>{'{{name}}'}</code> to include the customer name. Days are counted from the prior customer interaction.</p>
+        </div> : null}
+      </div>
     </div>
   );
 }
@@ -385,12 +440,11 @@ function ReadinessStep({ form, setupResult, pending, onSubmit }: { form: WizardF
             Send first test
           </a>
         </Button>
-        {!setupResult ? (
-          <Button className="mt-3 w-full" onClick={onSubmit} disabled={pending}>
-            {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
-            Complete Setup
-          </Button>
-        ) : null}
+        <Button className="mt-3 w-full" onClick={onSubmit} disabled={pending}>
+          {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
+          {setupResult ? 'Save updates' : 'Complete Setup'}
+        </Button>
+        <Button className="mt-3 w-full" variant="outline" asChild><Link href="/assistant-setup/whatsapp-connection">Connection guide</Link></Button>
       </div>
     </div>
   );
@@ -445,8 +499,18 @@ function validateStep(step: number, form: WizardForm) {
     if (!form.keyword_replies.some((rule) => rule.enabled)) errors.push('Add at least one active keyword reply.');
     const fallback = fallbackReplySchema.safeParse(form.fallback_reply);
     if (!fallback.success) errors.push('Fallback reply is required.');
+    if (form.followup_enabled && form.followup_steps.some((item) => !Number.isInteger(item.day) || item.day < 0 || item.message.trim().length < 3)) {
+      errors.push('Every enabled follow-up needs a day and a message.');
+    }
   }
   return errors;
+}
+
+function hasEditedRules(form: WizardForm) {
+  const baseline = getIndustryTemplatePack(form.category);
+  return JSON.stringify(form.keyword_replies) !== JSON.stringify(baseline.rules)
+    || form.fallback_reply !== baseline.fallback
+    || form.qualification_questions_text !== baseline.qualificationQuestions.join('\n');
 }
 
 function parseQuestions(value: string) {

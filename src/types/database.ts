@@ -27,6 +27,9 @@ export type LeadStage        =
 
 export type LeadTemperature  = 'hot' | 'warm' | 'cold';
 
+/** Operator-facing CRM stage used by canonical WhatsAI contacts and threads. */
+export type ConversationStage = 'new' | 'interested' | 'negotiating' | 'booked' | 'lost' | 'cold';
+
 export type SiteVisitStatus  =
   | 'scheduled' | 'confirmed' | 'completed' | 'no_show' | 'cancelled' | 'rescheduled';
 
@@ -634,6 +637,7 @@ export interface ConversationContact {
   source: string;
   lifecycle_stage: 'lead' | 'qualified' | 'appointment' | 'customer' | 'support' | 'lost';
   temperature: LeadTemperature;
+  stage: ConversationStage;
   tags: string[];
   last_message_at: string | null;
   last_handoff_at: string | null;
@@ -652,7 +656,9 @@ export interface ConversationThread {
   channel: 'whatsapp' | 'instagram' | 'facebook' | 'website' | 'phone';
   status: ConversationStatus;
   assigned_to: string | null;
+  assigned_user_id: string | null;
   ai_mode: AiMode;
+  stage: ConversationStage;
   unread_count: number;
   last_message_at: string | null;
   summary: string | null;
@@ -732,6 +738,43 @@ export interface DailyOwnerSummary {
   created_at: string;
 }
 
+export interface FollowupSequence {
+  id: string;
+  business_id: string;
+  playbook_id: string | null;
+  name: string;
+  steps: Array<{ day: number; message: string }>;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FollowupJob {
+  id: string;
+  sequence_id: string;
+  thread_id: string;
+  contact_id: string;
+  business_id: string;
+  step_index: number;
+  scheduled_at: string;
+  sent_at: string | null;
+  locked_at: string | null;
+  status: 'pending' | 'processing' | 'sent' | 'cancelled' | 'failed';
+  error: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BusinessMember {
+  id: string;
+  business_id: string;
+  user_id: string;
+  display_name: string | null;
+  role: 'owner' | 'manager' | 'agent';
+  active: boolean;
+  created_at: string;
+}
+
 // ---------------------------------------------------------------------
 // Database (shape expected by @supabase/supabase-js generics)
 // ---------------------------------------------------------------------
@@ -773,6 +816,9 @@ export interface Database {
       appointments:         { Row: Appointment;       Insert: Partial<Appointment>;       Update: Partial<Appointment> };
       handoff_events:        { Row: HandoffEvent;       Insert: Partial<HandoffEvent>;       Update: Partial<HandoffEvent> };
       daily_owner_summaries: { Row: DailyOwnerSummary;  Insert: Partial<DailyOwnerSummary>;  Update: Partial<DailyOwnerSummary> };
+      followup_sequences:    { Row: FollowupSequence;   Insert: Partial<FollowupSequence>;   Update: Partial<FollowupSequence> };
+      followup_jobs:         { Row: FollowupJob;        Insert: Partial<FollowupJob>;        Update: Partial<FollowupJob> };
+      business_members:      { Row: BusinessMember;     Insert: Partial<BusinessMember>;     Update: Partial<BusinessMember> };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

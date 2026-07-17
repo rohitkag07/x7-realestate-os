@@ -9,6 +9,7 @@ import {
 } from './assistant-contract.js';
 import { findKeywordReply } from './keyword-engine.js';
 import { fetchActivePlaybook, PlaybookStoreError } from './playbook-store.js';
+import { enqueueFirstFollowup, startFollowupScheduler } from './followup-scheduler.js';
 
 const app = express();
 const port = Number(process.env.PORT || 8080);
@@ -719,6 +720,14 @@ async function handlePlaybookRespond(req, res) {
     handoff_reason: reason,
   };
 
+  const firstAutomatedReply = Boolean(payload.thread_id && payload.contact_id && supabase)
+    && !(await supabase
+      .from('conversation_messages')
+      .select('id')
+      .eq('thread_id', payload.thread_id)
+      .eq('direction', 'outbound')
+      .limit(1)).data?.length;
+
   const outbound = payload.phone && payload.send_via_whatsapp !== false
     ? await sendWhatsAppText({
         to: payload.phone,
@@ -754,6 +763,20 @@ async function handlePlaybookRespond(req, res) {
     content: reply,
     metadata: { ...metadata, decision_latency_ms: Math.round(performance.now() - startedAt) },
   });
+
+  if (outbound.ok && firstAutomatedReply) {
+    try {
+      await enqueueFirstFollowup({
+        supabase,
+        businessId: payload.business_id,
+        playbookId: playbook.id,
+        threadId: payload.thread_id,
+        contactId: payload.contact_id,
+      });
+    } catch (error) {
+      log('warn', 'followup_enqueue_failed', { thread_id: payload.thread_id, error: error instanceof Error ? error.message : 'unknown' });
+    }
+  }
 
   if (media && mediaOutbound.ok) {
     await recordOutboundGeneric({
@@ -941,6 +964,7 @@ async function triggerHandoffEvent({ supabase: sb, businessId, threadId, reason,
 
 app.listen(port, () => {
   log('info', 'sales-agent-started', { port, supabase: Boolean(supabase) });
+  startFollowupScheduler({ supabase, toolGatewayUrl, agentSecret, log: console });
 });
 
 function inferIntent(message) {

@@ -1025,6 +1025,15 @@ async function handleInboundWhatsAppMessage(message, envelope) {
         envelope_metadata: envelope?.metadata ?? undefined,
       },
     });
+
+    // Any customer reply makes prior nudges irrelevant. The sales agent creates a
+    // new sequence only for the first automated answer, preventing duplicate sends.
+    await supabase
+      .from('followup_jobs')
+      .update({ status: 'cancelled', updated_at: new Date().toISOString(), locked_at: null })
+      .eq('thread_id', thread.id)
+      .eq('business_id', businessId)
+      .eq('status', 'pending');
   }
   // ── End dual-write ───────────────────────────────────────────────────────
 

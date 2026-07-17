@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -16,13 +16,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import type { WhatsAiInboxData, WhatsAiMessage, WhatsAiThread } from '@/lib/whatsai-data';
-import type { AiMode } from '@/types/database';
+import type { AiMode, ConversationStage } from '@/types/database';
 
 type Props = { data: WhatsAiInboxData };
 const ownerOptions = ['Owner Desk', 'Arjun Sales', 'Ritika Closer', 'Ghost Closer Desk'];
+type TeamMember = { user_id: string; display_name: string | null; role: string };
 
 export function WhatsAiInbox({ data }: Props) {
   const router = useRouter();
@@ -30,10 +32,34 @@ export function WhatsAiInbox({ data }: Props) {
   const [owner, setOwner] = useState(data.selectedThread?.assignedTo ?? 'Owner Desk');
   const [note, setNote] = useState(data.selectedThread?.internalNote ?? '');
   const [leadOpen, setLeadOpen] = useState(false);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [pending, startTransition] = useTransition();
   const selected = data.selectedThread;
   const isPaused = selected?.aiMode === 'manual' || selected?.aiMode === 'paused';
   const refresh = () => router.refresh();
+
+  useEffect(() => {
+    if (!selected?.businessId) return;
+    void fetch(`/api/chats/team?business_id=${encodeURIComponent(selected.businessId)}`)
+      .then((response) => response.json())
+      .then((payload) => setTeamMembers(payload?.ok ? payload.members : []))
+      .catch(() => setTeamMembers([]));
+  }, [selected?.businessId]);
+
+  function assignTeamMember(userId: string) {
+    if (!selected?.businessId) return;
+    startTransition(async () => {
+      const response = await fetch(`/api/chats/${selected.id}/assign`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ business_id: selected.businessId, assigned_user_id: userId === 'unassigned' ? null : userId }) });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok || !payload?.ok) {
+        toast.error(payload?.error || 'Assignment failed.');
+        return;
+      }
+      setOwner(payload.thread.assigned_to || 'Unassigned');
+      toast.success('Conversation assigned.');
+      refresh();
+    });
+  }
 
   function sendReply() {
     if (!selected || !draft.trim()) return;
@@ -78,6 +104,28 @@ export function WhatsAiInbox({ data }: Props) {
     });
   }
 
+  function updateStage(stage: ConversationStage) {
+    if (!selected?.contactId || !selected.businessId) {
+      toast.error('This conversation is not linked to a business contact yet.');
+      return;
+    }
+
+    startTransition(async () => {
+      const response = await fetch(`/api/leads/${selected.contactId}/stage`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ business_id: selected.businessId, stage }),
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok || !payload?.ok) {
+        toast.error(payload?.error || 'Lead stage update failed.');
+        return;
+      }
+      toast.success(`Lead moved to ${stage}.`);
+      refresh();
+    });
+  }
+
   function draftSummary() {
     startTransition(async () => {
       const response = await fetch('/api/whatsai/owner-summary', { method: 'POST' });
@@ -90,7 +138,7 @@ export function WhatsAiInbox({ data }: Props) {
   if (data.source === 'error') return <InboxErrorState message={data.error ?? 'Canonical conversation data could not be loaded.'} onRetry={refresh} />;
   if (!data.threads.length) return <InboxEmptyState onRefresh={refresh} />;
 
-  const panel = selected ? <LeadPanel selected={selected} owner={owner} setOwner={setOwner} note={note} setNote={setNote} onSave={saveContext} onPause={() => updateThreadState('paused', 'AI paused. Human is in control.')} onResume={() => updateThreadState('assistant', 'AI resumed for this thread.')} pending={pending} /> : null;
+  const panel = selected ? <LeadPanel selected={selected} owner={owner} setOwner={setOwner} teamMembers={teamMembers} onAssign={assignTeamMember} note={note} setNote={setNote} onSave={saveContext} onPause={() => updateThreadState('paused', 'AI paused. Human is in control.')} onResume={() => updateThreadState('assistant', 'AI resumed for this thread.')} onStageChange={updateStage} pending={pending} /> : null;
 
   return (
     <div className="space-y-4">
@@ -146,9 +194,22 @@ function MessageBubble({ message }: { message: WhatsAiMessage }) {
   return <div className={cn('flex', outbound ? 'justify-end' : 'justify-start')}><div className="max-w-[88%] sm:max-w-[76%]"><div className={cn('mb-1 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide', outbound ? 'justify-end' : 'justify-start', message.authorType === 'ai' || message.authorType === 'human' ? 'text-[#075e54]' : 'text-[#667781]')}>{message.authorType === 'ai' ? <Bot className="h-3.5 w-3.5" /> : message.authorType === 'human' ? <UserRoundCheck className="h-3.5 w-3.5" /> : null}{message.authorType === 'customer' ? 'Customer' : message.authorType === 'human' ? 'Manual reply' : message.authorType === 'ai' ? 'AI reply' : 'System'}</div><div className={cn('rounded-2xl px-4 py-3 text-sm shadow-sm ring-1', outbound ? 'rounded-br-sm bg-[#d9fdd3] text-[#111b21] ring-[#c6edbd]' : 'rounded-bl-sm bg-white text-[#111b21] ring-[#d8dee4]')}><div className="whitespace-pre-wrap leading-relaxed">{message.body}</div><div className="mt-2 flex items-center justify-end gap-1 text-[10px] text-[#667781]"><span>{formatTime(message.createdAt)}</span>{outbound ? <CheckCheck className="h-3 w-3" /> : null}</div></div></div></div>;
 }
 
-function LeadPanel({ selected, owner, setOwner, note, setNote, onSave, onPause, onResume, pending }: { selected: WhatsAiThread; owner: string; setOwner: (value: string) => void; note: string; setNote: (value: string) => void; onSave: () => void; onPause: () => void; onResume: () => void; pending: boolean }) {
+function LeadPanel({ selected, owner, setOwner, teamMembers, onAssign, note, setNote, onSave, onPause, onResume, onStageChange, pending }: { selected: WhatsAiThread; owner: string; setOwner: (value: string) => void; teamMembers: TeamMember[]; onAssign: (userId: string) => void; note: string; setNote: (value: string) => void; onSave: () => void; onPause: () => void; onResume: () => void; onStageChange: (stage: ConversationStage) => void; pending: boolean }) {
   const isPaused = selected.aiMode === 'manual' || selected.aiMode === 'paused';
-  return <div className="space-y-4"><Card className="border-[#d8dee4] bg-white shadow-sm"><CardHeader className="bg-[#075e54] p-4 text-white"><CardTitle className="flex items-center gap-2 text-base"><UserRoundCheck className="h-4 w-4" />Lead details</CardTitle><p className="text-xs text-white/80">Context for the next owner action.</p></CardHeader><CardContent className="space-y-4 p-4"><div className="rounded-2xl border border-[#d8dee4] bg-[#f0f2f5] p-3"><div className="font-semibold">{selected.contactName}</div><div className="mt-1 text-xs text-muted-foreground">{selected.phone}</div><div className="mt-3 grid grid-cols-2 gap-2"><MiniMetric label="Stage" value={selected.stage} /><MiniMetric label="Temperature" value={selected.temperature} /></div></div><ContextLine icon={Clock3} label="Last message" value={formatTime(selected.lastMessageAt)} /><ContextLine icon={MessageCircle} label="Messages" value={`${selected.inboundCount} in / ${selected.outboundCount} out`} /><Separator /><div><div className="mb-2 flex items-center gap-2 text-sm font-semibold"><CheckCheck className="h-4 w-4 text-[#00a884]" />Qualification</div><div className="rounded-xl border bg-[#f8fafb] p-3 text-sm"><div>{selected.qualification.answered} of {selected.qualification.total} questions answered</div><div className="mt-2 h-2 overflow-hidden rounded-full bg-[#e4e9ed]"><div className="h-full rounded-full bg-[#00a884]" style={{ width: `${Math.min(100, (selected.qualification.answered / Math.max(1, selected.qualification.total)) * 100)}%` }} /></div><p className="mt-2 text-xs text-muted-foreground">{selected.qualification.qualified ? 'Qualified for the next step.' : selected.qualification.nextQuestion ? `Next: ${selected.qualification.nextQuestion}` : 'AI is collecting the next answer.'}</p></div></div><div><div className="mb-2 flex items-center gap-2 text-sm font-semibold"><CalendarDays className="h-4 w-4 text-[#00a884]" />Appointment</div><div className="rounded-xl border bg-[#f8fafb] p-3 text-sm">{selected.appointment ? <><div className="font-semibold">{selected.appointment.title}</div><div className="mt-1 text-muted-foreground">{formatTime(selected.appointment.scheduledAt)}</div><Badge className="mt-2" variant={selected.appointment.status === 'cancelled' ? 'destructive' : 'success'}>{selected.appointment.status.replace('_', ' ')}</Badge></> : <p className="text-muted-foreground">No appointment booked yet.</p>}</div></div><div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950"><div className="flex items-center gap-2 font-semibold"><ShieldAlert className="h-4 w-4" />Hot handoff</div><p className="mt-1 text-xs">{selected.hotHandoff ? `${selected.hotHandoff.priority} priority · ${selected.hotHandoff.reason}` : 'No active handoff. Use Take over when you need to step in.'}</p></div></CardContent></Card><Card className="border-[#d8dee4] bg-white shadow-sm"><CardHeader className="p-4"><CardTitle className="text-base">Owner controls</CardTitle></CardHeader><CardContent className="space-y-4 p-4 pt-0"><div><label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Assignment</label><div className="mt-2 grid grid-cols-2 gap-2">{ownerOptions.map((option) => <Button key={option} type="button" variant={owner === option ? 'default' : 'outline'} size="sm" className="justify-start truncate" onClick={() => setOwner(option)}>{option}</Button>)}</div></div><div><label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Internal note</label><Textarea value={note} onChange={(event) => setNote(event.target.value)} rows={3} className="mt-2" placeholder="Private note for your team." /></div><div className="flex gap-2">{isPaused ? <Button className="flex-1" variant="success" onClick={onResume} disabled={pending}><RotateCcw className="mr-2 h-4 w-4" />Resume AI</Button> : <Button className="flex-1" variant="destructive" onClick={onPause} disabled={pending}><PauseCircle className="mr-2 h-4 w-4" />Take over</Button>}<Button variant="outline" onClick={onSave} disabled={pending}>Save</Button></div></CardContent></Card></div>;
+  return <div className="space-y-4"><Card className="border-[#d8dee4] bg-white shadow-sm"><CardHeader className="bg-[#075e54] p-4 text-white"><CardTitle className="flex items-center gap-2 text-base"><UserRoundCheck className="h-4 w-4" />Lead details</CardTitle><p className="text-xs text-white/80">Context for the next owner action.</p></CardHeader><CardContent className="space-y-4 p-4"><div className="rounded-2xl border border-[#d8dee4] bg-[#f0f2f5] p-3"><div className="font-semibold">{selected.contactName}</div><div className="mt-1 text-xs text-muted-foreground">{selected.phone}</div><div className="mt-3 grid grid-cols-2 gap-2"><MiniMetric label="Temperature" value={selected.temperature} /><StageSelector stage={selected.stage} onChange={onStageChange} disabled={pending} /></div></div><ContextLine icon={Clock3} label="Last message" value={formatTime(selected.lastMessageAt)} /><ContextLine icon={MessageCircle} label="Messages" value={`${selected.inboundCount} in / ${selected.outboundCount} out`} /><Separator /><div><div className="mb-2 flex items-center gap-2 text-sm font-semibold"><CheckCheck className="h-4 w-4 text-[#00a884]" />Qualification</div><div className="rounded-xl border bg-[#f8fafb] p-3 text-sm"><div>{selected.qualification.answered} of {selected.qualification.total} questions answered</div><div className="mt-2 h-2 overflow-hidden rounded-full bg-[#e4e9ed]"><div className="h-full rounded-full bg-[#00a884]" style={{ width: `${Math.min(100, (selected.qualification.answered / Math.max(1, selected.qualification.total)) * 100)}%` }} /></div><p className="mt-2 text-xs text-muted-foreground">{selected.qualification.qualified ? 'Qualified for the next step.' : selected.qualification.nextQuestion ? `Next: ${selected.qualification.nextQuestion}` : 'AI is collecting the next answer.'}</p></div></div><div><div className="mb-2 flex items-center gap-2 text-sm font-semibold"><CalendarDays className="h-4 w-4 text-[#00a884]" />Appointment</div><div className="rounded-xl border bg-[#f8fafb] p-3 text-sm">{selected.appointment ? <><div className="font-semibold">{selected.appointment.title}</div><div className="mt-1 text-muted-foreground">{formatTime(selected.appointment.scheduledAt)}</div><Badge className="mt-2" variant={selected.appointment.status === 'cancelled' ? 'destructive' : 'success'}>{selected.appointment.status.replace('_', ' ')}</Badge></> : <p className="text-muted-foreground">No appointment booked yet.</p>}</div></div><div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950"><div className="flex items-center gap-2 font-semibold"><ShieldAlert className="h-4 w-4" />Hot handoff</div><p className="mt-1 text-xs">{selected.hotHandoff ? `${selected.hotHandoff.priority} priority · ${selected.hotHandoff.reason}` : 'No active handoff. Use Take over when you need to step in.'}</p></div></CardContent></Card><Card className="border-[#d8dee4] bg-white shadow-sm"><CardHeader className="p-4"><CardTitle className="text-base">Owner controls</CardTitle></CardHeader><CardContent className="space-y-4 p-4 pt-0"><div><label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Assign to</label><Select value="unassigned" onValueChange={onAssign}><SelectTrigger className="mt-2"><SelectValue placeholder={owner || 'Unassigned'} /></SelectTrigger><SelectContent><SelectItem value="unassigned">Unassigned</SelectItem>{teamMembers.map((member) => <SelectItem key={member.user_id} value={member.user_id}>{member.display_name || member.role}</SelectItem>)}</SelectContent></Select><p className="mt-1 text-xs text-muted-foreground">Current: {owner || 'Unassigned'}</p></div><div><label className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Internal note</label><Textarea value={note} onChange={(event) => setNote(event.target.value)} rows={3} className="mt-2" placeholder="Private note for your team." /></div><div className="flex gap-2">{isPaused ? <Button className="flex-1" variant="success" onClick={onResume} disabled={pending}><RotateCcw className="mr-2 h-4 w-4" />Resume AI</Button> : <Button className="flex-1" variant="destructive" onClick={onPause} disabled={pending}><PauseCircle className="mr-2 h-4 w-4" />Take over</Button>}<Button variant="outline" onClick={onSave} disabled={pending}>Save</Button></div></CardContent></Card></div>;
+}
+
+function StageSelector({ stage, onChange, disabled }: { stage: ConversationStage; onChange: (stage: ConversationStage) => void; disabled: boolean }) {
+  return <div className="rounded-xl bg-white px-3 py-2"><div className="text-[10px] uppercase text-muted-foreground">Stage</div><Select value={stage} onValueChange={(value) => onChange(value as ConversationStage)} disabled={disabled}><SelectTrigger className={cn('mt-1 h-7 border-0 px-0 text-xs font-semibold shadow-none focus:ring-0', stageTone(stage))}><SelectValue /></SelectTrigger><SelectContent>{stageOptions.map((option) => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}</SelectContent></Select></div>;
+}
+
+const stageOptions: Array<{ value: ConversationStage; label: string }> = [
+  { value: 'new', label: 'New' }, { value: 'interested', label: 'Interested' }, { value: 'negotiating', label: 'Negotiating' },
+  { value: 'booked', label: 'Booked' }, { value: 'lost', label: 'Lost' }, { value: 'cold', label: 'Cold' },
+];
+
+function stageTone(stage: ConversationStage) {
+  return { new: 'text-blue-700', interested: 'text-emerald-700', negotiating: 'text-orange-700', booked: 'text-purple-700', lost: 'text-red-700', cold: 'text-slate-600' }[stage];
 }
 
 function InboxEmptyState({ onRefresh }: { onRefresh: () => void }) { return <div className="rounded-3xl border border-dashed border-[#b7bdc3] bg-gradient-to-br from-white via-[#e7fce3] to-[#f0f2f5] p-8 text-center shadow-sm"><div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#d9fdd3] text-[#075e54]"><Inbox className="h-8 w-8" /></div><h2 className="mt-5 text-xl font-semibold">No conversations yet</h2><p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground">Send a WhatsApp test message or connect a business channel to start the inbox.</p><div className="mt-6 flex justify-center gap-2"><Button asChild><Link href="/assistant-setup">Open Assistant Setup</Link></Button><Button variant="outline" onClick={onRefresh}><RefreshCw className="mr-2 h-4 w-4" />Refresh</Button></div></div>; }

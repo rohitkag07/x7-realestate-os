@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { getOpsReadiness } from '@/lib/ops-readiness';
+import Link from 'next/link';
 
 export const metadata = { title: 'Settings' };
 export const dynamic = 'force-dynamic';
@@ -74,6 +75,8 @@ export default async function SettingsPage() {
 
         <TabsContent value="integrations">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <Card><CardContent className="p-4"><div className="font-medium text-sm">JustDial leads</div><div className="mt-1 text-xs text-muted-foreground">POST leads to <code>/api/webhooks/justdial</code> with the configured secret.</div></CardContent></Card>
+            <Card><CardContent className="p-4"><div className="font-medium text-sm">IndiaMART leads</div><div className="mt-1 text-xs text-muted-foreground">POST leads to <code>/api/webhooks/indiamart</code> with your CRM key.</div></CardContent></Card>
             {readiness.envGroups.map((group) => (
               <IntegrationCard
                 key={group.key}
@@ -83,6 +86,7 @@ export default async function SettingsPage() {
               />
             ))}
           </div>
+          <div className="mt-4"><Button asChild variant="outline"><Link href="/assistant-setup/whatsapp-connection">Open WhatsApp connection guide</Link></Button></div>
         </TabsContent>
 
         <TabsContent value="billing">
