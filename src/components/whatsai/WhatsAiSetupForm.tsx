@@ -16,14 +16,12 @@ import {
   Store,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { KeywordReplyEditor } from '@/components/whatsai/KeywordReplyEditor';
@@ -206,23 +204,22 @@ export function WhatsAiSetupForm() {
   }
 
   return (
-    <div className="grid gap-4 xl:grid-cols-[320px_minmax(0,1fr)] xl:gap-6">
-      <Card className="overflow-hidden border-[#d8dee4] bg-white shadow-sm">
-        <CardHeader className="bg-[#075e54] p-5 text-white sm:p-6">
-          <Badge className="w-fit bg-[#d9fdd3] text-[#075e54] hover:bg-[#d9fdd3]">Guided setup</Badge>
-          <CardTitle className="mt-3 text-xl sm:text-2xl">WhatsAI Onboarding</CardTitle>
-          <CardDescription className="text-sm text-white/80 sm:text-base">
-            Four simple steps: business profile, WhatsApp connection, playbook, and first test.
+    <div className="mx-auto grid max-w-[1400px] gap-4 xl:grid-cols-[292px_minmax(0,1fr)] xl:gap-5">
+      <Card className="overflow-hidden border-[#d8dee4] bg-white">
+        <CardHeader className="bg-[#075e54] p-4 text-white sm:p-5">
+          <CardTitle className="text-lg tracking-[-0.02em]">Set up your reception desk</CardTitle>
+          <CardDescription className="text-sm leading-5 text-white/75">
+            Complete four guided steps. Your progress stays on this device.
           </CardDescription>
           <div className="pt-2">
-            <Progress value={progress} className="h-2 bg-white/15" />
-            <div className="mt-2 flex items-center justify-between text-xs text-slate-300">
-              <span>Step {step + 1} of {steps.length}</span>
+            <Progress value={progress} className="h-1.5 bg-white/15" />
+            <div className="mt-2 flex items-center justify-between text-xs text-white/70">
+              <span>Step {step + 1} of {steps.length}: {steps[step].title}</span>
               <span>{saved ? 'Saved locally' : 'Autosaves on this device'}</span>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="flex gap-2 overflow-x-auto p-3 xl:block xl:space-y-2">
+        <CardContent className="hidden p-3 xl:block xl:space-y-1">
           {steps.map((item, index) => {
             const Icon = item.icon;
             const active = index === step;
@@ -233,8 +230,8 @@ export function WhatsAiSetupForm() {
                 type="button"
                 onClick={() => goToStep(index)}
                 className={cn(
-                  'min-w-[220px] rounded-2xl border p-3 text-left transition duration-200 xl:w-full',
-                  active ? 'border-[#00a884] bg-[#e7fce3] shadow-sm' : 'border-transparent hover:bg-[#f0f2f5]',
+                  'w-full rounded-xl border p-3 text-left transition duration-200',
+                  active ? 'border-[#b7ddd2] bg-[#edf8f4]' : 'border-transparent hover:bg-[#f5f7f6]',
                 )}
               >
                 <div className="flex gap-3">
@@ -252,21 +249,21 @@ export function WhatsAiSetupForm() {
         </CardContent>
       </Card>
 
-      <Card className="overflow-hidden border-[#d8dee4] bg-white shadow-sm">
+      <Card className="overflow-hidden border-[#d8dee4] bg-white">
         <CardHeader className="border-b bg-white">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <CardTitle className="flex items-center gap-2 text-2xl">
+              <CardTitle className="flex items-center gap-2 text-xl tracking-[-0.025em] sm:text-2xl">
                 <Sparkles className="h-5 w-5 text-[#00a884]" />
                 {steps[step].title}
               </CardTitle>
               <CardDescription className="mt-1">{steps[step].subtitle}</CardDescription>
             </div>
-            <Badge variant={errors.length ? 'warning' : 'success'}>{errors.length ? 'Needs input' : 'Ready'}</Badge>
+            <div className={cn('text-xs font-medium', errors.length ? 'text-[#b45309]' : 'text-[#087d70]')}>{errors.length ? `${errors.length} item${errors.length === 1 ? '' : 's'} to complete` : 'Step complete'}</div>
           </div>
         </CardHeader>
 
-        <CardContent className="min-h-[560px] p-4 sm:p-6">
+        <CardContent className="min-h-[560px] p-4 pb-0 sm:p-6 sm:pb-0">
           <div key={step} className="animate-in fade-in slide-in-from-bottom-2 duration-300">
             {step === 0 ? <BusinessProfileStep form={form} update={update} onCategoryChange={changeCategory} /> : null}
             {step === 1 ? <WhatsAppStep form={form} update={update} /> : null}
@@ -274,21 +271,19 @@ export function WhatsAiSetupForm() {
             {step === 3 ? <ReadinessStep form={form} setupResult={setupResult} pending={pending} onSubmit={submit} /> : null}
           </div>
 
-          <Separator className="my-6" />
-
-          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="sticky bottom-0 z-10 -mx-4 mt-7 flex gap-3 border-t border-[#e5e9e7] bg-white/95 px-4 py-4 backdrop-blur sm:-mx-6 sm:items-center sm:justify-between sm:px-6">
             <Button variant="outline" onClick={back} disabled={step === 0 || pending}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Button>
-            <div className="flex flex-col gap-2 sm:flex-row">
+            <div className="ml-auto flex flex-1 sm:flex-none">
               {step < steps.length - 1 ? (
-                <Button onClick={next} disabled={pending}>
+                <Button className="w-full sm:w-auto" onClick={next} disabled={pending}>
                   Next
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               ) : (
-                <Button onClick={submit} disabled={pending}>
+                <Button className="w-full sm:w-auto" onClick={submit} disabled={pending}>
                   {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
                   {setupResult ? 'Save updates' : 'Complete Setup'}
                 </Button>

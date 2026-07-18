@@ -6,7 +6,6 @@ import { DragDropContext, Draggable, Droppable, type DropResult } from '@hello-p
 import { Flame, GripVertical, MessageCircle, Phone, ThermometerSun } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/shared/EmptyState';
 import { cn, formatPhone } from '@/lib/utils';
 import type { WhatsAiThread } from '@/lib/whatsai-data';
@@ -17,12 +16,12 @@ interface LeadPipelineProps {
 }
 
 const STAGES: Array<{ value: ConversationStage; label: string; tone: string }> = [
-  { value: 'new', label: 'New', tone: 'border-blue-200 bg-blue-50 text-blue-800' },
-  { value: 'interested', label: 'Interested', tone: 'border-emerald-200 bg-emerald-50 text-emerald-800' },
-  { value: 'negotiating', label: 'Negotiating', tone: 'border-orange-200 bg-orange-50 text-orange-800' },
-  { value: 'booked', label: 'Booked', tone: 'border-purple-200 bg-purple-50 text-purple-800' },
-  { value: 'lost', label: 'Lost', tone: 'border-red-200 bg-red-50 text-red-800' },
-  { value: 'cold', label: 'Cold', tone: 'border-slate-200 bg-slate-50 text-slate-700' },
+  { value: 'new', label: 'New', tone: 'bg-blue-500' },
+  { value: 'interested', label: 'Interested', tone: 'bg-emerald-500' },
+  { value: 'negotiating', label: 'Negotiating', tone: 'bg-orange-500' },
+  { value: 'booked', label: 'Booked', tone: 'bg-violet-500' },
+  { value: 'lost', label: 'Lost', tone: 'bg-red-500' },
+  { value: 'cold', label: 'Cold', tone: 'bg-slate-400' },
 ];
 
 export function LeadPipeline({ threads }: LeadPipelineProps) {
@@ -72,14 +71,14 @@ export function LeadPipeline({ threads }: LeadPipelineProps) {
   if (!items.length) return <EmptyState icon={MessageCircle} title="No WhatsApp leads yet" description="New conversations appear here as soon as a customer messages your business number." />;
 
   return <>
-    <div className="mb-5 grid gap-3 sm:grid-cols-3">
+    <div className="wa-panel mb-5 grid grid-cols-3 divide-x divide-[#e7ebe9] overflow-hidden">
       <Signal label="Hot leads" value={items.filter((thread) => thread.temperature === 'hot').length} icon={Flame} />
       <Signal label="Need attention" value={items.filter((thread) => thread.aiMode === 'manual' || thread.aiMode === 'paused').length} icon={ThermometerSun} />
       <Signal label="Booked" value={byStage.booked.length} icon={MessageCircle} />
     </div>
-    <p className="mb-3 text-sm text-muted-foreground">Drag a card to update its stage. Every move is saved to the WhatsAI contact and conversation thread.</p>
+    <div className="mb-3 flex items-center justify-between gap-3"><p className="text-sm text-muted-foreground">Drag a lead to move it forward. Every change saves automatically.</p><span className="hidden text-xs font-medium text-[#087d70] sm:block">{items.length} active leads</span></div>
     <DragDropContext onDragEnd={handleDragEnd}>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+      <div className="flex snap-x gap-3 overflow-x-auto pb-4">
         {STAGES.map((stage) => <StageColumn key={stage.value} stage={stage} threads={byStage[stage.value]} pending={pending} />)}
       </div>
     </DragDropContext>
@@ -87,21 +86,21 @@ export function LeadPipeline({ threads }: LeadPipelineProps) {
 }
 
 function StageColumn({ stage, threads, pending }: { stage: typeof STAGES[number]; threads: WhatsAiThread[]; pending: boolean }) {
-  return <Droppable droppableId={stage.value} isDropDisabled={pending}>{(provided, snapshot) => <section ref={provided.innerRef} {...provided.droppableProps} className={cn('min-h-[235px] rounded-2xl border p-3 transition', stage.tone, snapshot.isDraggingOver && 'ring-2 ring-[#00a884] ring-offset-2')}>
-    <header className="mb-3 flex items-center justify-between"><h2 className="text-sm font-bold">{stage.label} ({threads.length})</h2><Badge variant="outline" className="bg-white/70">{threads.length}</Badge></header>
+  return <Droppable droppableId={stage.value} isDropDisabled={pending}>{(provided, snapshot) => <section ref={provided.innerRef} {...provided.droppableProps} className={cn('min-h-[300px] w-[280px] shrink-0 snap-start rounded-[16px] border border-[#d8dee4] bg-[#f7f9f8] p-3 transition sm:w-[300px]', snapshot.isDraggingOver && 'border-[#00a884] bg-[#edf8f4] ring-2 ring-[#00a884]/20')}>
+    <header className="mb-3 flex items-center justify-between"><h2 className="flex items-center gap-2 text-sm font-semibold text-[#111b21]"><span className={cn('h-2 w-2 rounded-full', stage.tone)} />{stage.label}</h2><span className="text-xs font-semibold text-[#667781]">{threads.length}</span></header>
     <div className="space-y-2">{threads.map((thread, index) => <PipelineCard key={thread.id} thread={thread} index={index} disabled={pending} />)}{provided.placeholder}</div>
-    {!threads.length && <div className="mt-10 rounded-xl border border-dashed border-current/20 bg-white/40 px-3 py-7 text-center text-xs opacity-70">Drop leads here</div>}
+    {!threads.length && <div className="mt-10 rounded-xl border border-dashed border-[#cfd6d2] px-3 py-7 text-center text-xs text-[#8696a0]">Drop leads here</div>}
   </section>}</Droppable>;
 }
 
 function PipelineCard({ thread, index, disabled }: { thread: WhatsAiThread; index: number; disabled: boolean }) {
-  return <Draggable draggableId={thread.id} index={index} isDragDisabled={disabled}>{(provided, snapshot) => <Link ref={provided.innerRef} href={`/chats?phone=${encodeURIComponent(thread.phone)}`} {...provided.draggableProps} className={cn('block rounded-xl border border-slate-200 bg-white p-3 shadow-sm transition hover:border-[#00a884] hover:shadow-md', snapshot.isDragging && 'rotate-1 opacity-80 shadow-lg')}>
-    <div className="flex gap-2"><button type="button" aria-label="Drag lead" className="mt-0.5 cursor-grab text-slate-400 active:cursor-grabbing" onClick={(event) => event.preventDefault()} {...provided.dragHandleProps}><GripVertical className="h-4 w-4" /></button><div className="min-w-0 flex-1"><div className="flex items-center justify-between gap-2"><div className="truncate text-sm font-semibold text-slate-950">{thread.contactName}</div>{thread.temperature === 'hot' && <Flame className="h-4 w-4 shrink-0 text-red-500" />}</div><div className="mt-1 flex items-center gap-1 text-xs text-slate-500"><Phone className="h-3 w-3" />{formatPhone(thread.phone)}</div><div className="mt-2 line-clamp-2 text-xs leading-relaxed text-slate-600">{thread.lastBody}</div><div className="mt-3 flex items-center justify-between gap-2"><Badge variant={thread.temperature === 'hot' ? 'destructive' : thread.temperature === 'warm' ? 'warning' : 'secondary'} className="text-[10px]">{thread.temperature}</Badge><span className="text-[10px] text-slate-400">{formatRelativeTime(thread.lastMessageAt)}</span></div></div></div>
+  return <Draggable draggableId={thread.id} index={index} isDragDisabled={disabled}>{(provided, snapshot) => <Link ref={provided.innerRef} href={`/chats?phone=${encodeURIComponent(thread.phone)}`} {...provided.draggableProps} className={cn('group block overflow-hidden rounded-xl border border-[#e0e5e2] bg-white p-3 transition duration-200 hover:-translate-y-0.5 hover:border-[#00a884] hover:shadow-sm', snapshot.isDragging && 'rotate-1 opacity-80 shadow-lg')}>
+    <div className="flex gap-2"><button type="button" aria-label="Drag lead" className="-my-1 flex h-10 w-8 shrink-0 cursor-grab items-center justify-center rounded-lg text-slate-400 hover:bg-[#edf8f4] hover:text-[#075e54] active:cursor-grabbing" onClick={(event) => event.preventDefault()} {...provided.dragHandleProps}><GripVertical className="h-4 w-4" /></button><div className="min-w-0 flex-1"><div className="flex items-center justify-between gap-2"><div className="truncate text-sm font-semibold text-slate-950">{thread.contactName}</div>{thread.temperature === 'hot' && <Flame className="h-4 w-4 shrink-0 text-red-500" />}</div><div className="mt-1 flex items-center gap-1 text-xs text-slate-500"><Phone className="h-3 w-3" />{formatPhone(thread.phone)}</div><div className="mt-2 line-clamp-2 text-xs leading-relaxed text-slate-600">{thread.lastBody}</div><div className="mt-3 flex items-center justify-between gap-2"><Badge variant={thread.temperature === 'hot' ? 'destructive' : thread.temperature === 'warm' ? 'warning' : 'secondary'} className="text-[10px]">{thread.temperature}</Badge><span className="text-[10px] text-slate-400">{formatRelativeTime(thread.lastMessageAt)}</span></div></div></div>
   </Link>}</Draggable>;
 }
 
 function Signal({ label, value, icon: Icon }: { label: string; value: number; icon: typeof Flame }) {
-  return <Card><CardContent className="flex items-center gap-3 p-4"><span className="rounded-xl bg-[#d9fdd3] p-2 text-[#075e54]"><Icon className="h-4 w-4" /></span><div><div className="text-xs text-muted-foreground">{label}</div><div className="text-2xl font-bold text-slate-950">{value}</div></div></CardContent></Card>;
+  return <div className="flex min-w-0 items-center gap-3 p-3 sm:p-4"><span className="hidden rounded-xl bg-[#edf8f4] p-2 text-[#075e54] sm:block"><Icon className="h-4 w-4" /></span><div><div className="text-xl font-semibold text-[#111b21] sm:text-2xl">{value}</div><div className="truncate text-[10px] text-muted-foreground sm:text-xs">{label}</div></div></div>;
 }
 
 function formatRelativeTime(value: string) {

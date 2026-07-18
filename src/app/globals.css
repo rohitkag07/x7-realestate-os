@@ -4,8 +4,8 @@
 
 @layer base {
   :root {
-    --background: 210 11% 95%;
-    --foreground: 180 13% 10%;
+    --background: 150 11% 97%;
+    --foreground: 192 32% 10%;
 
     --card: 0 0% 100%;
     --card-foreground: 180 13% 10%;
@@ -19,8 +19,8 @@
     --secondary: 126 76% 94%;
     --secondary-foreground: 174 86% 20%;
 
-    --muted: 210 11% 95%;
-    --muted-foreground: 201 10% 45%;
+    --muted: 150 8% 94%;
+    --muted-foreground: 198 10% 41%;
 
     --accent: 126 76% 94%;
     --accent-foreground: 174 86% 20%;
@@ -34,11 +34,22 @@
     --warning: 32.1 94.6% 43.7%;
     --warning-foreground: 355.7 100% 97.3%;
 
-    --border: 210 11% 86%;
-    --input: 210 11% 86%;
+    --border: 180 8% 85%;
+    --input: 180 8% 85%;
     --ring: 169 100% 33%;
 
-    --radius: 0.875rem;
+    --radius: 0.75rem;
+
+    --wa-ink: #111b21;
+    --wa-deep: #075e54;
+    --wa-action: #00a884;
+    --wa-mint: #d9fdd3;
+    --wa-canvas: #f4f6f5;
+    --wa-surface: #ffffff;
+    --wa-line: #d8dee4;
+    --wa-subtle: #667781;
+    --wa-attention: #d97706;
+    --wa-danger: #c2413b;
   }
 
   .dark {
@@ -73,11 +84,21 @@
     @apply border-border;
   }
   html {
+    scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
   body {
     @apply bg-background text-foreground font-sans;
+    background-image:
+      radial-gradient(circle at 92% 4%, rgba(0, 168, 132, 0.06), transparent 28rem),
+      linear-gradient(180deg, #f8faf9 0%, #f2f5f4 100%);
+    min-height: 100dvh;
+  }
+
+  :focus-visible {
+    outline: 3px solid rgba(0, 168, 132, 0.3);
+    outline-offset: 2px;
   }
 }
 
@@ -88,5 +109,38 @@
 
 /* Legacy helper kept for old screens; new WhatsAI surfaces use English-only labels. */
 [lang='hi'] {
-  font-family: var(--font-noto-devanagari), var(--font-inter), system-ui, sans-serif;
+  font-family: var(--font-noto-devanagari), var(--font-geist-sans), system-ui, sans-serif;
+}
+
+@layer components {
+  .wa-panel {
+    @apply border border-[var(--wa-line)] bg-white;
+    border-radius: 18px;
+  }
+
+  .wa-row {
+    @apply transition-[background-color,border-color,transform] duration-200 ease-out;
+  }
+
+  .wa-row:hover {
+    background: #f6faf8;
+  }
+
+  .wa-kicker {
+    @apply text-xs font-semibold uppercase tracking-[0.12em] text-[#087d70];
+  }
+
+  .wa-page-title {
+    @apply max-w-5xl text-2xl font-semibold tracking-[-0.035em] text-[var(--wa-ink)] sm:text-3xl;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }

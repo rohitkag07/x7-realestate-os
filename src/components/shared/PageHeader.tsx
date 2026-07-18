@@ -11,12 +11,12 @@ export function PageHeader({ title, titleHi, description, actions }: PageHeaderP
   void titleHi;
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
+    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-[#111b21]">{title}</h1>
-        {description && <p className="text-sm text-muted-foreground mt-1">{description}</p>}
+        <h1 className="wa-page-title">{title}</h1>
+        {description && <p className="mt-1.5 max-w-2xl text-sm leading-6 text-muted-foreground">{description}</p>}
       </div>
-      {actions && <div className="flex items-center gap-2">{actions}</div>}
+      {actions && <div className="flex items-center gap-2 sm:pb-0.5">{actions}</div>}
     </div>
   );
 }

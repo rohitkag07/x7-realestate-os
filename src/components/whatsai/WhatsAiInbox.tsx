@@ -212,7 +212,7 @@ export function WhatsAiInbox({ data }: Props) {
         ) : null}
       </div>
 
-      <div className="grid gap-0 overflow-hidden rounded-2xl border border-[#d8dee4] bg-white shadow-sm md:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[340px_minmax(0,1fr)_340px]">
+      <div className="grid gap-0 overflow-hidden rounded-[18px] border border-[#d8dee4] bg-white md:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[340px_minmax(0,1fr)_340px]">
         <Card id="inbox-list" className={cn('overflow-hidden rounded-none border-0 border-r border-[#d8dee4] bg-white shadow-none', selected && 'hidden md:block')}>
           <CardHeader className="border-b border-[#d8dee4] p-4">
             <div className="flex items-center justify-between gap-3">
@@ -231,7 +231,7 @@ export function WhatsAiInbox({ data }: Props) {
           <div className="border-b border-[#d8dee4] bg-white p-3">
             <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search name, phone, or message" className="h-10 rounded-full bg-[#f0f2f5]" />
           </div>
-          <CardContent className="h-[calc(100dvh-230px)] min-h-[520px] space-y-1 overflow-y-auto bg-[#f0f2f5] p-2">{visibleThreads.length ? visibleThreads.map((thread) => <ThreadListItem key={thread.id} thread={thread} active={selected?.id === thread.id} />) : <div className="p-6 text-center text-sm text-[#667781]">No chats match your search.</div>}</CardContent>
+          <CardContent className="h-[calc(100dvh-230px)] min-h-[520px] space-y-1 overflow-y-auto bg-[#f6f8f7] p-2">{visibleThreads.length ? visibleThreads.map((thread) => <ThreadListItem key={thread.id} thread={thread} active={selected?.id === thread.id} />) : <div className="p-6 text-center text-sm text-[#667781]">No chats match your search.</div>}</CardContent>
         </Card>
 
         <Card id="chat-view" className={cn('min-h-[calc(100dvh-112px)] overflow-hidden rounded-none border-0 bg-white shadow-none md:min-h-[720px]', !selected && 'hidden md:block')}>
@@ -241,7 +241,7 @@ export function WhatsAiInbox({ data }: Props) {
               <div className="border-b border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
                 <div className="flex items-center gap-2 font-semibold">
                   <PauseCircle className="h-4 w-4" />
-                  AI is currently paused. Human is in control.
+                  Auto-replies are paused. You are in control.
                 </div>
                 <p className="mt-1 text-xs text-amber-800">Replies from the owner are clearly marked in the history.</p>
               </div>
@@ -253,7 +253,7 @@ export function WhatsAiInbox({ data }: Props) {
                   <i className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#00a884] [animation-delay:120ms]" />
                   <i className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#00a884] [animation-delay:240ms]" />
                 </span>
-                AI is typing...
+                Preparing reply...
               </div>
             ) : null}
             <div className="flex-1 space-y-4 overflow-y-auto bg-[#efeae2] p-4 sm:p-6">
@@ -261,10 +261,10 @@ export function WhatsAiInbox({ data }: Props) {
                 data.messages.map((message) => <MessageBubble key={message.id} message={message} />)
               ) : (
                 <div className="flex h-full items-center justify-center">
-                  <div className="max-w-sm rounded-2xl border border-dashed bg-white/90 p-6 text-center shadow-sm">
+                  <div className="max-w-sm rounded-2xl bg-white/90 p-7 text-center">
                     <MessageCircle className="mx-auto h-9 w-9 text-slate-400" />
-                    <div className="mt-3 font-semibold">No messages in this thread yet</div>
-                    <p className="mt-1 text-sm text-muted-foreground">The conversation exists, but no canonical messages are attached.</p>
+                    <div className="mt-3 font-semibold">{selected ? 'No messages in this thread yet' : 'Choose a customer conversation'}</div>
+                    <p className="mt-1 text-sm leading-6 text-muted-foreground">{selected ? 'This customer is connected, but no message history is available yet.' : 'Select a customer from the inbox to read messages and take action.'}</p>
                   </div>
                 </div>
               )}
@@ -272,7 +272,7 @@ export function WhatsAiInbox({ data }: Props) {
             <div className="border-t border-[#d8dee4] bg-white p-4">
               <div className="mb-2 flex items-center justify-between gap-3 text-xs text-muted-foreground">
                 <span>{selected ? `${selected.contactName} · ${selected.stage}` : 'Select a conversation'}</span>
-                {selected ? <Badge variant={isPaused ? 'warning' : 'success'}>{isPaused ? 'Manual mode' : 'AI assist active'}</Badge> : null}
+                {selected ? <span className={cn('font-medium', isPaused ? 'text-[#b45309]' : 'text-[#087d70]')}>{isPaused ? 'You are replying' : 'Auto-replies active'}</span> : null}
               </div>
               <div className="flex gap-2">
                 <Textarea value={draft} onChange={(event) => setDraft(event.target.value)} placeholder={isPaused ? 'Type a reply to send on WhatsApp.' : 'Pause AI first to take over this chat.'} rows={2} disabled={!selected || pending} className="min-h-[72px] resize-none" />
@@ -320,12 +320,11 @@ function ChatHeader({ selected, isPaused, pending, onPause, onResume }: { select
         )}{' '}
         {selected ? (
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant={selected.temperature === 'hot' ? 'destructive' : selected.temperature === 'warm' ? 'warning' : 'secondary'}>{selected.temperature} lead</Badge>
-            <Badge variant={isPaused ? 'warning' : 'success'}>{isPaused ? 'Human control' : 'AI active'}</Badge>
+            <span className={cn('inline-flex items-center gap-2 text-xs font-medium', isPaused ? 'text-[#b45309]' : 'text-[#087d70]')}><span className={cn('h-2 w-2 rounded-full', isPaused ? 'bg-[#d97706]' : 'bg-[#00a884]')} />{isPaused ? 'Needs you' : 'Automated'}</span>
             {isPaused ? (
               <Button size="sm" variant="success" onClick={onResume} disabled={pending}>
                 <RotateCcw className="mr-2 h-4 w-4" />
-                Resume AI
+                Resume assistant
               </Button>
             ) : (
               <Button size="sm" variant="destructive" onClick={onPause} disabled={pending}>
@@ -343,7 +342,7 @@ function ChatHeader({ selected, isPaused, pending, onPause, onResume }: { select
 function ThreadListItem({ thread, active }: { thread: WhatsAiThread; active: boolean }) {
   const state = thread.status === 'resolved' ? 'resolved' : thread.aiMode === 'manual' || thread.aiMode === 'paused' ? 'human' : 'active';
   return (
-    <Link href={`/chats?phone=${encodeURIComponent(thread.phone)}`} className={cn('block min-h-[80px] rounded-xl border border-transparent border-l-4 bg-white p-3 transition hover:border-[#00a884] hover:shadow-sm', active && 'border-[#00a884] bg-[#f8fffa] shadow-sm', thread.unreadCount > 0 && 'border-l-[#00a884]')}>
+    <Link href={`/chats?phone=${encodeURIComponent(thread.phone)}`} className={cn('wa-row block min-h-[80px] rounded-xl border border-transparent border-l-[3px] bg-white p-3 hover:border-[#b7ddd2]', active && 'border-[#b7ddd2] border-l-[#00a884] bg-[#edf8f4]', thread.unreadCount > 0 && 'border-l-[#00a884]')}>
       <div className="flex items-start gap-3">
         <Avatar className="h-11 w-11 shrink-0 border border-[#d8dee4]">
           <AvatarFallback className="bg-[#d9fdd3] text-[#075e54]">{initials(thread.contactName)}</AvatarFallback>
@@ -357,13 +356,11 @@ function ThreadListItem({ thread, active }: { thread: WhatsAiThread; active: boo
             <div className="shrink-0 text-[10px] text-muted-foreground">{formatTime(thread.lastMessageAt)}</div>
           </div>
           <div className="mt-1 truncate text-xs text-[#667781]">{thread.lastBody}</div>
-          <div className="mt-2 flex items-center gap-1.5">
+          <div className="mt-2 flex items-center gap-2 text-[10px] font-medium text-[#667781]">
             {thread.temperature === 'hot' ? <Flame className="h-3.5 w-3.5 text-red-500" /> : null}
-            <Badge variant="outline" className="text-[10px]">
-              {thread.stage}
-            </Badge>
+            <span className="capitalize">{thread.stage}</span>
             {thread.unreadCount ? (
-              <Badge variant="default" className="text-[10px]">
+              <Badge variant="default" className="ml-auto text-[10px]">
                 {thread.unreadCount} new
               </Badge>
             ) : null}
@@ -381,9 +378,9 @@ function MessageBubble({ message }: { message: WhatsAiMessage }) {
       <div className="max-w-[88%] sm:max-w-[76%]">
         <div className={cn('mb-1 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide', outbound ? 'justify-end' : 'justify-start', message.authorType === 'ai' || message.authorType === 'human' ? 'text-[#075e54]' : 'text-[#667781]')}>
           {message.authorType === 'ai' ? <Bot className="h-3.5 w-3.5" /> : message.authorType === 'human' ? <UserRoundCheck className="h-3.5 w-3.5" /> : null}
-          {message.authorType === 'customer' ? 'Customer' : message.authorType === 'human' ? 'Manual reply' : message.authorType === 'ai' ? 'AI reply' : 'System'}
+          {message.authorType === 'customer' ? 'Customer' : message.authorType === 'human' ? 'You' : message.authorType === 'ai' ? 'Auto-reply' : 'System'}
         </div>
-        <div className={cn('rounded-2xl px-4 py-3 text-sm shadow-sm ring-1', outbound ? 'rounded-br-sm bg-[#d9fdd3] text-[#111b21] ring-[#c6edbd]' : 'rounded-bl-sm bg-white text-[#111b21] ring-[#d8dee4]')}>
+        <div className={cn('px-4 py-3 text-sm shadow-sm ring-1', outbound ? 'rounded-[12px_2px_12px_12px] bg-[#d9fdd3] text-[#111b21] ring-[#c6edbd]' : 'rounded-[2px_12px_12px_12px] bg-white text-[#111b21] ring-[#d8dee4]')}>
           <div className="whitespace-pre-wrap leading-relaxed">{message.body}</div>
           <div className="mt-2 flex items-center justify-end gap-1 text-[10px] text-[#667781]">
             <span>{formatTime(message.createdAt)}</span>
@@ -399,7 +396,7 @@ function LeadPanel({ selected, owner, setOwner, teamMembers, onAssign, note, set
   const isPaused = selected.aiMode === 'manual' || selected.aiMode === 'paused';
   return (
     <div className="space-y-4">
-      <Card className="border-[#d8dee4] bg-white shadow-sm">
+      <Card className="overflow-hidden border-[#d8dee4] bg-white">
         <CardHeader className="bg-[#075e54] p-4 text-white">
           <CardTitle className="flex items-center gap-2 text-base">
             <UserRoundCheck className="h-4 w-4" />
@@ -467,7 +464,7 @@ function LeadPanel({ selected, owner, setOwner, teamMembers, onAssign, note, set
           </div>
         </CardContent>
       </Card>
-      <Card className="border-[#d8dee4] bg-white shadow-sm">
+      <Card className="border-[#d8dee4] bg-white">
         <CardHeader className="p-4">
           <CardTitle className="text-base">Owner controls</CardTitle>
         </CardHeader>
@@ -497,7 +494,7 @@ function LeadPanel({ selected, owner, setOwner, teamMembers, onAssign, note, set
             {isPaused ? (
               <Button className="flex-1" variant="success" onClick={onResume} disabled={pending}>
                 <RotateCcw className="mr-2 h-4 w-4" />
-                Resume AI
+                Resume assistant
               </Button>
             ) : (
               <Button className="flex-1" variant="destructive" onClick={onPause} disabled={pending}>

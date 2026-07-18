@@ -19,11 +19,11 @@ export default async function SettingsPage() {
       <PageHeader title="Settings" description="Business profile, WhatsApp integrations, launch readiness, and billing." />
 
       <Tabs defaultValue="ops">
-        <TabsList className="grid h-auto w-full grid-cols-2 gap-1 sm:grid-cols-4">
-          <TabsTrigger value="ops"><ServerCog className="h-3.5 w-3.5 mr-1.5" /> Ops</TabsTrigger>
-          <TabsTrigger value="profile"><Sparkles className="h-3.5 w-3.5 mr-1.5" /> Profile</TabsTrigger>
-          <TabsTrigger value="integrations"><MessageCircle className="h-3.5 w-3.5 mr-1.5" /> Integrations</TabsTrigger>
-          <TabsTrigger value="billing"><CreditCard className="h-3.5 w-3.5 mr-1.5" /> Billing</TabsTrigger>
+        <TabsList className="grid h-auto w-full grid-cols-2 gap-1 sm:max-w-2xl sm:grid-cols-4">
+          <TabsTrigger className="min-h-11" value="ops"><ServerCog className="h-3.5 w-3.5 mr-1.5" /> Ops</TabsTrigger>
+          <TabsTrigger className="min-h-11" value="profile"><Sparkles className="h-3.5 w-3.5 mr-1.5" /> Profile</TabsTrigger>
+          <TabsTrigger className="min-h-11" value="integrations"><MessageCircle className="h-3.5 w-3.5 mr-1.5" /> Integrations</TabsTrigger>
+          <TabsTrigger className="min-h-11" value="billing"><CreditCard className="h-3.5 w-3.5 mr-1.5" /> Billing</TabsTrigger>
         </TabsList>
 
         <TabsContent value="ops">

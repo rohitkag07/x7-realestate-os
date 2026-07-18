@@ -17,7 +17,7 @@ const config: Config = {
     },
     extend: {
       fontFamily: {
-        sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-geist-sans)', 'Geist', 'system-ui', 'sans-serif'],
         hindi: ['var(--font-noto-devanagari)', 'system-ui', 'sans-serif'],
       },
       colors: {

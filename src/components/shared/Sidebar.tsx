@@ -8,7 +8,6 @@ import {
   MessageCircle,
   Settings,
   SlidersHorizontal,
-  Sparkles,
   Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -34,20 +33,21 @@ export function Sidebar({ mobile = false, onNavigate }: { mobile?: boolean; onNa
   const pathname = usePathname();
 
   return (
-    <aside className={cn('h-full w-72 shrink-0 flex-col border-r border-[#d8dee4] bg-white', mobile ? 'flex' : 'sticky top-0 hidden lg:flex h-screen')}>
+    <aside className={cn('h-full w-[272px] shrink-0 flex-col border-r border-[#d8dee4] bg-white', mobile ? 'flex' : 'sticky top-0 hidden lg:flex h-screen')}>
       {/* Brand */}
-      <div className="flex items-center gap-3 px-6 py-5 border-b border-[#d8dee4]">
-        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#00a884] text-white shadow-sm">
-          <Sparkles className="h-5 w-5" />
+      <div className="flex items-center gap-3 border-b border-[#e5e9e7] px-5 py-5">
+        <div className="relative flex h-11 w-11 items-center justify-center rounded-[14px] bg-[#075e54] text-white">
+          <MessageCircle className="h-5 w-5" />
+          <span className="absolute -right-1 -top-1 h-3.5 w-3.5 rounded-full border-2 border-white bg-[#25d366]" />
         </div>
         <div className="leading-tight">
-          <div className="text-sm font-semibold text-[#111b21]">{APP_NAME}</div>
-          <div className="mt-0.5 text-[11px] text-[#667781]">{APP_TAGLINE}</div>
+          <div className="text-[15px] font-semibold tracking-[-0.02em] text-[#111b21]">{APP_NAME}</div>
+          <div className="mt-1 max-w-[170px] text-[11px] leading-4 text-[#667781]">{APP_TAGLINE}</div>
         </div>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1.5">
+      <nav className="flex-1 overflow-y-auto px-3 py-5 space-y-1">
         {items.map((item) => {
           const isActive =
             item.href === '/'
@@ -60,15 +60,16 @@ export function Sidebar({ mobile = false, onNavigate }: { mobile?: boolean; onNa
               href={item.href}
               onClick={onNavigate}
               className={cn(
-                'flex items-center gap-3 rounded-2xl px-3 py-3 text-sm transition-colors',
+                'group relative flex items-center gap-3 rounded-xl px-3 py-3 text-sm transition-colors',
                 isActive
-                  ? 'bg-[#e7fce3] text-[#075e54] shadow-sm ring-1 ring-[#b7efc5]'
-                  : 'text-[#667781] hover:bg-[#f0f2f5] hover:text-[#111b21]',
+                  ? 'bg-[#edf8f4] text-[#075e54]'
+                  : 'text-[#667781] hover:bg-[#f5f7f6] hover:text-[#111b21]',
               )}
             >
-              <Icon className="h-4 w-4 shrink-0" />
+              {isActive ? <span className="absolute inset-y-2 left-0 w-0.5 rounded-full bg-[#00a884]" /> : null}
+              <Icon className="h-[18px] w-[18px] shrink-0" />
               <div className="flex flex-col leading-tight">
-                <span className="font-semibold">{item.label}</span>
+                <span className="font-medium">{item.label}</span>
                 <span className={cn('mt-0.5 text-[11px]', isActive ? 'text-[#128c7e]' : 'text-[#8696a0]')}>
                   {item.description}
                 </span>
@@ -78,9 +79,9 @@ export function Sidebar({ mobile = false, onNavigate }: { mobile?: boolean; onNa
         })}
       </nav>
 
-      <div className="m-4 rounded-2xl border border-[#d8dee4] bg-[#f0f2f5] p-4 text-[12px] text-[#667781]">
-        <div className="font-semibold text-[#111b21]">Owner-friendly mode</div>
-        <p className="mt-1 leading-relaxed">Focused on inbox, leads, setup, and handoffs.</p>
+      <div className="mx-5 mb-5 border-t border-[#e5e9e7] pt-4 text-[11px] leading-4 text-[#667781]">
+        <span className="inline-flex items-center gap-2 font-medium text-[#075e54]"><span className="h-2 w-2 rounded-full bg-[#00a884]" /> Reception desk</span>
+        <p className="mt-1">Inbox, appointments, and handoffs in one place.</p>
       </div>
     </aside>
   );
