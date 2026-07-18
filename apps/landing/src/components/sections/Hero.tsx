@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { MessageCircle, MapPin } from 'lucide-react';
 import type { LandingProject, LandingBuilder } from '@/lib/types';
 export function Hero({ project, builder, heroImageUrl }: { project: LandingProject; builder: LandingBuilder; heroImageUrl?: string | null }) {
@@ -7,7 +8,7 @@ export function Hero({ project, builder, heroImageUrl }: { project: LandingProje
   return (
     <section className="relative min-h-[88vh] flex flex-col text-white overflow-hidden">
       <div className="absolute inset-0 -z-10">
-        {heroImageUrl ? <img src={heroImageUrl} alt={project.name} className="h-full w-full object-cover" /> : <div className="h-full w-full" style={{ background: `linear-gradient(135deg, ${primary}, ${accent})` }} />}
+        {heroImageUrl ? <Image src={heroImageUrl} alt={project.name} fill priority className="object-cover" sizes="100vw" /> : <div className="h-full w-full" style={{ background: `linear-gradient(135deg, ${primary}, ${accent})` }} />}
         <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(15,23,42,0.35), rgba(15,23,42,0.85))' }} />
       </div>
       <nav className="px-6 py-5 lg:px-12 flex items-center justify-between">

@@ -2,13 +2,35 @@
   "name": "@x7/whatsai-landing",
   "version": "1.0.0",
   "private": true,
-  "scripts": { "dev": "next dev -p 3001", "build": "next build", "start": "next start -p 3001", "lint": "next lint", "type-check": "tsc --noEmit" },
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p 3001",
+    "lint": "eslint .",
+    "type-check": "tsc --noEmit"
+  },
   "dependencies": {
-    "@supabase/supabase-js": "^2.45.0", "lucide-react": "^0.439.0",
-    "next": "14.2.7", "react": "^18.3.1", "react-dom": "^18.3.1"
+    "@gsap/react": "^2.1.2",
+    "@supabase/supabase-js": "^2.45.0",
+    "geist": "^1.7.2",
+    "gsap": "^3.15.0",
+    "lucide-react": "^0.439.0",
+    "next": "^16.2.10",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
   },
   "devDependencies": {
-    "@types/node": "^20.16.5", "@types/react": "^18.3.5", "@types/react-dom": "^18.3.0",
-    "autoprefixer": "^10.4.20", "postcss": "^8.4.45", "tailwindcss": "^3.4.10", "typescript": "^5.5.4"
+    "@types/node": "^20.16.5",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.2.10",
+    "postcss": "^8.5.19",
+    "tailwindcss": "^3.4.10",
+    "typescript": "^5.5.4"
+  },
+  "overrides": {
+    "postcss": "$postcss"
   }
 }

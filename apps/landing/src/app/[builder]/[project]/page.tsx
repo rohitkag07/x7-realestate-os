@@ -20,17 +20,17 @@ function slugify(s: string): string {
 
 async function fetchPage(params: PageParams['params']) {
   const sb = landingSupabase();
-  const { data: builderRows } = await (sb.from('builders') as any).select('*');
+  const { data: builderRows } = await sb.from('builders').select('*');
   const builders = (builderRows ?? []) as LandingBuilder[];
   const builder = builders.find(
-    (b) => (b.brand_colors as any)?.slug === params.builder || slugify(b.company_name) === params.builder,
+    (b) => b.brand_colors?.slug === params.builder || slugify(b.company_name) === params.builder,
   );
   if (!builder) return null;
 
-  const { data: project } = await (sb.from('projects') as any).select('*').eq('slug', params.project).eq('builder_id', builder.id).maybeSingle();
+  const { data: project } = await sb.from('projects').select('*').eq('slug', params.project).eq('builder_id', builder.id).maybeSingle();
   if (!project) return null;
 
-  const { data: config } = await (sb.from('landing_pages') as any).select('*').eq('project_id', project.id).maybeSingle();
+  const { data: config } = await sb.from('landing_pages').select('*').eq('project_id', project.id).maybeSingle();
   return { project: project as LandingProject, builder, config: config as LandingPageConfig | null };
 }
 
@@ -88,6 +88,7 @@ function defaultFaqs(project: LandingProject, builder: LandingBuilder) {
 function MetaPixel({ id }: { id: string }) {
   return (
     <>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <noscript><img height="1" width="1" alt="" style={{ display: 'none' }} src={`https://www.facebook.com/tr?id=${id}&ev=PageView&noscript=1`} /></noscript>
       <script dangerouslySetInnerHTML={{ __html: `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${id}');fbq('track','PageView');` }} />
     </>
