@@ -603,10 +603,21 @@ export interface AssistantKnowledgeItem {
   business_id: string;
   playbook_id: string | null;
   title: string;
-  kind: 'faq' | 'service' | 'pricing' | 'policy' | 'location' | 'offer' | 'script' | 'other';
+  type: 'faq' | 'service' | 'pricing' | 'policy' | 'location' | 'offer' | 'document' | 'other';
+  question: string | null;
   content: string;
+  keywords: string[];
+  locale: 'en-IN' | 'hi-IN' | 'hinglish';
+  status: 'draft' | 'published' | 'archived';
+  okf_slug: string;
+  source_type: 'manual' | 'website' | 'document' | 'okf';
+  source_url: string | null;
+  media_url: string | null;
   metadata: Record<string, unknown>;
-  active: boolean;
+  is_active: boolean;
+  published_at: string | null;
+  last_reviewed_at: string | null;
+  version: number;
   created_at: string;
   updated_at: string;
 }

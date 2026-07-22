@@ -9,6 +9,8 @@ import {
 } from './assistant-contract.js';
 import { findKeywordReply } from './keyword-engine.js';
 import { fetchActivePlaybook, PlaybookStoreError } from './playbook-store.js';
+import { findKnowledgeReply } from './knowledge-engine.js';
+import { fetchPublishedKnowledge } from './knowledge-store.js';
 import { enqueueFirstFollowup, startFollowupScheduler } from './followup-scheduler.js';
 
 const app = express();
@@ -28,6 +30,7 @@ const defaultProjectId = process.env.DEFAULT_PROJECT_ID || '';
 const summonerUrl = (process.env.SUMMONER_URL || '').replace(/\/$/, '');
 const toolGatewayUrl = (process.env.TOOL_GATEWAY_URL || 'http://127.0.0.1:8081').replace(/\/$/, '');
 const dynamicKeywordEngineEnabled = process.env.DYNAMIC_KEYWORD_ENGINE_ENABLED !== 'false';
+const knowledgeBaseEnabled = process.env.KNOWLEDGE_BASE_ENABLED !== 'false';
 const supabaseFetchTimeoutMs = Number(process.env.SUPABASE_FETCH_TIMEOUT_MS || 8000);
 
 function fetchWithTimeout(input, init = {}) {
@@ -700,15 +703,28 @@ async function handlePlaybookRespond(req, res) {
 
   const forcedHandoff = checkMandatoryHandoff(payload.message, playbook.vertical);
   const match = forcedHandoff ? null : findKeywordReply(payload.message, playbook.keyword_replies);
-  const unmatched = !forcedHandoff && !match;
+  let knowledgeMatch = null;
+  if (!forcedHandoff && !match && knowledgeBaseEnabled) {
+    try {
+      const knowledgeItems = await fetchPublishedKnowledge({
+        supabase,
+        businessId: payload.business_id,
+        playbookId: playbook.id,
+      });
+      knowledgeMatch = findKnowledgeReply(payload.message, knowledgeItems);
+    } catch (error) {
+      log('warn', 'knowledge_lookup_failed', { business_id: payload.business_id, error: error instanceof Error ? error.message : 'unknown' });
+    }
+  }
+  const unmatched = !forcedHandoff && !match && !knowledgeMatch;
   const handoff = Boolean(forcedHandoff || unmatched || match?.rule.handoff);
   const reply = forcedHandoff
     ? mandatoryHandoffReply(playbook.vertical)
-    : match?.rule.reply || playbook.fallback_reply || 'Thank you. A team member will reply shortly.';
-  const reason = forcedHandoff || (unmatched ? 'keyword_no_match' : match?.rule.handoff ? 'keyword_handoff' : null);
+    : match?.rule.reply || knowledgeMatch?.item.content || playbook.fallback_reply || 'Thank you. A team member will reply shortly.';
+  const reason = forcedHandoff || (unmatched ? 'knowledge_no_match' : match?.rule.handoff ? 'keyword_handoff' : null);
   const metadata = {
     response_type: handoff ? RESPONSE_TYPES.HANDOFF : RESPONSE_TYPES.ANSWER,
-    engine: 'deterministic_keyword_v1',
+    engine: knowledgeMatch ? 'deterministic_knowledge_v1' : 'deterministic_keyword_v1',
     business_id: payload.business_id,
     playbook_id: playbook.id,
     playbook_version: playbook.playbook_version,
@@ -717,6 +733,12 @@ async function handlePlaybookRespond(req, res) {
     match_type: match?.rule.match_type ?? null,
     match_mode: match?.match_mode ?? null,
     match_confidence: match?.confidence ?? null,
+    knowledge_item_id: knowledgeMatch?.item.id ?? null,
+    knowledge_slug: knowledgeMatch?.item.okf_slug ?? null,
+    knowledge_source_type: knowledgeMatch?.item.source_type ?? null,
+    knowledge_last_reviewed_at: knowledgeMatch?.item.last_reviewed_at ?? null,
+    knowledge_match_mode: knowledgeMatch?.match_mode ?? null,
+    knowledge_match_confidence: knowledgeMatch?.confidence ?? null,
     handoff_reason: reason,
   };
 
@@ -818,6 +840,7 @@ async function handlePlaybookRespond(req, res) {
     playbook_id: playbook.id,
     playbook_version: playbook.playbook_version,
     rule_id: match?.rule.id ?? null,
+    knowledge_item_id: knowledgeMatch?.item.id ?? null,
     match_type: match?.rule.match_type ?? null,
     outcome: handoff ? 'handoff' : 'reply',
     decision_latency_ms: decisionLatencyMs,
@@ -830,6 +853,7 @@ async function handlePlaybookRespond(req, res) {
       response_type: metadata.response_type,
       handoff,
       matched_rule: match ? { id: match.rule.id, label: match.rule.label, keyword: match.keyword } : null,
+      matched_knowledge: knowledgeMatch ? { id: knowledgeMatch.item.id, title: knowledgeMatch.item.title, keyword: knowledgeMatch.keyword } : null,
       playbook: { id: playbook.id, version: playbook.playbook_version, vertical: playbook.vertical },
     },
     outbound,

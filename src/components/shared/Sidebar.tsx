@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   CalendarDays,
+  BookOpen,
   Home,
   MessageCircle,
   Settings,
@@ -25,6 +26,7 @@ const items: Item[] = [
   { href: '/chats', label: 'Chats', description: 'WhatsApp inbox', icon: MessageCircle },
   { href: '/calendar', label: 'Calendar', description: 'Appointments', icon: CalendarDays },
   { href: '/leads', label: 'Leads', description: 'Active leads', icon: Users },
+  { href: '/knowledge', label: 'Knowledge', description: 'Approved answers', icon: BookOpen },
   { href: '/assistant-setup', label: 'Setup', description: 'Connect WhatsApp', icon: SlidersHorizontal },
   { href: '/settings', label: 'Settings', description: 'Business setup', icon: Settings },
 ];

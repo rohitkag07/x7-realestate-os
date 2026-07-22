@@ -6,6 +6,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Bot,
+  BookOpen,
   CheckCircle2,
   Loader2,
   MessageCircle,
@@ -25,7 +26,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { KeywordReplyEditor } from '@/components/whatsai/KeywordReplyEditor';
+import { KnowledgeBaseEditor } from '@/components/whatsai/KnowledgeBaseEditor';
 import { keywordRepliesSchema, fallbackReplySchema } from '@/lib/keyword-reply-schema';
+import { knowledgeItemsInputSchema, type KnowledgeItemInput } from '@/lib/knowledge-schema';
 import { getIndustryTemplatePack } from '@/lib/industry-templates';
 import type { BusinessCategory, KeywordReplyRule } from '@/types/database';
 
@@ -42,6 +45,7 @@ type WizardForm = {
   qualification_questions_text: string;
   keyword_replies: KeywordReplyRule[];
   fallback_reply: string;
+  knowledge_items: KnowledgeItemInput[];
   followup_enabled: boolean;
   followup_steps: Array<{ day: number; message: string }>;
 };
@@ -62,6 +66,7 @@ const defaults: WizardForm = {
   qualification_questions_text: 'Budget range?\nPreferred location?\nTimeline for purchase?\nSite visit preferred date/time?\nLoan required?',
   keyword_replies: realEstateStarter.rules,
   fallback_reply: realEstateStarter.fallback,
+  knowledge_items: [],
   followup_enabled: true,
   followup_steps: [
     { day: 1, message: 'Hi {{name}}, just checking if you need any more details. I can help with the next step.' },
@@ -88,6 +93,12 @@ const steps = [
     title: 'Keywords & Replies',
     subtitle: 'Approve every automated response',
     icon: Bot,
+  },
+  {
+    id: 'knowledge',
+    title: 'Business Knowledge',
+    subtitle: 'Add services, prices, and policies',
+    icon: BookOpen,
   },
   {
     id: 'readiness',
@@ -157,9 +168,9 @@ export function WhatsAiSetupForm() {
   }
 
   function goToStep(targetStep: number) {
-    const blocking = Array.from({ length: Math.min(targetStep, 3) }, (_, index) => validateStep(index, form)).flat();
+    const blocking = Array.from({ length: Math.min(targetStep, 4) }, (_, index) => validateStep(index, form)).flat();
     if (blocking.length) {
-      const firstInvalid = Array.from({ length: Math.min(targetStep, 3) }, (_, index) => index).find((index) => validateStep(index, form).length > 0);
+      const firstInvalid = Array.from({ length: Math.min(targetStep, 4) }, (_, index) => index).find((index) => validateStep(index, form).length > 0);
       if (firstInvalid !== undefined) setStep(firstInvalid);
       toast.error(blocking[0]);
       return;
@@ -198,7 +209,7 @@ export function WhatsAiSetupForm() {
         });
         if (!followupResponse.ok) toast.error('Setup saved, but follow-up sequence could not be saved.');
       }
-      setStep(3);
+      setStep(4);
       toast.success('WhatsAI setup completed.');
     });
   }
@@ -209,7 +220,7 @@ export function WhatsAiSetupForm() {
         <CardHeader className="bg-[#075e54] p-4 text-white sm:p-5">
           <CardTitle className="text-lg tracking-[-0.02em]">Set up your reception desk</CardTitle>
           <CardDescription className="text-sm leading-5 text-white/75">
-            Complete four guided steps. Your progress stays on this device.
+            Complete five guided steps. Your progress stays on this device.
           </CardDescription>
           <div className="pt-2">
             <Progress value={progress} className="h-1.5 bg-white/15" />
@@ -223,7 +234,7 @@ export function WhatsAiSetupForm() {
           {steps.map((item, index) => {
             const Icon = item.icon;
             const active = index === step;
-            const complete = index < step || (index === 3 && Boolean(setupResult));
+            const complete = index < step || (index === steps.length - 1 && Boolean(setupResult));
             return (
               <button
                 key={item.id}
@@ -268,7 +279,8 @@ export function WhatsAiSetupForm() {
             {step === 0 ? <BusinessProfileStep form={form} update={update} onCategoryChange={changeCategory} /> : null}
             {step === 1 ? <WhatsAppStep form={form} update={update} /> : null}
             {step === 2 ? <PlaybookStep form={form} update={update} setupResult={setupResult} /> : null}
-            {step === 3 ? <ReadinessStep form={form} setupResult={setupResult} pending={pending} onSubmit={submit} /> : null}
+            {step === 3 ? <KnowledgeBaseEditor items={form.knowledge_items} onChange={(items) => update('knowledge_items', items)} compact /> : null}
+            {step === 4 ? <ReadinessStep form={form} setupResult={setupResult} pending={pending} onSubmit={submit} /> : null}
           </div>
 
           <div className="sticky bottom-0 z-10 -mx-4 mt-7 flex gap-3 border-t border-[#e5e9e7] bg-white/95 px-4 py-4 backdrop-blur sm:-mx-6 sm:items-center sm:justify-between sm:px-6">
@@ -414,6 +426,7 @@ function ReadinessStep({ form, setupResult, pending, onSubmit }: { form: WizardF
           <SummaryTile label="Industry" value={form.category.replace('_', ' ')} />
           <SummaryTile label="Owner WhatsApp" value={form.owner_whatsapp || 'Missing'} />
           <SummaryTile label="Auto-replies" value={`${form.keyword_replies.filter((rule) => rule.enabled).length} active`} />
+          <SummaryTile label="Knowledge" value={`${form.knowledge_items.filter((item) => item.status === 'published').length} published`} />
         </div>
         {setupResult ? (
           <div className="mt-5 rounded-2xl border bg-white p-4 text-xs text-muted-foreground">
@@ -497,6 +510,10 @@ function validateStep(step: number, form: WizardForm) {
     if (form.followup_enabled && form.followup_steps.some((item) => !Number.isInteger(item.day) || item.day < 0 || item.message.trim().length < 3)) {
       errors.push('Every enabled follow-up needs a day and a message.');
     }
+  }
+  if (step === 3 && form.knowledge_items.length) {
+    const knowledge = knowledgeItemsInputSchema.safeParse(form.knowledge_items);
+    if (!knowledge.success) errors.push(knowledge.error.issues[0]?.message ?? 'Complete each knowledge answer.');
   }
   return errors;
 }

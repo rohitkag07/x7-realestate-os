@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { serviceClientOrNull } from '@/lib/sales-server';
 import { keywordPlaybookInputSchema } from '@/lib/keyword-reply-schema';
+import { knowledgeItemsInputSchema, normalizeKnowledgeKeywords, slugifyKnowledgeTitle } from '@/lib/knowledge-schema';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -20,6 +21,7 @@ const schema = z.object({
   qualification_questions: z.array(z.string().min(1)).optional().default([]),
   keyword_replies: keywordPlaybookInputSchema.shape.keyword_replies,
   fallback_reply: keywordPlaybookInputSchema.shape.fallback_reply,
+  knowledge_items: knowledgeItemsInputSchema.optional().default([]),
 });
 
 export async function POST(request: Request) {
@@ -35,14 +37,20 @@ export async function POST(request: Request) {
 
   const payload = parsed.data;
   const builderId = payload.builder_id || process.env.DEFAULT_BUILDER_ID || null;
-  const existing = builderId
+  const defaultBusinessId = process.env.DEFAULT_BUSINESS_ID || null;
+  const existing = defaultBusinessId
     ? await (supabase.from('businesses') as any)
+        .select('*')
+        .eq('id', defaultBusinessId)
+        .maybeSingle()
+    : builderId
+      ? await (supabase.from('businesses') as any)
         .select('*')
         .eq('builder_id', builderId)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle()
-    : { data: null };
+      : { data: null };
 
   const businessWrite = existing.data
     ? await (supabase.from('businesses') as any)
@@ -53,6 +61,7 @@ export async function POST(request: Request) {
           owner_name: payload.owner_name ?? null,
           owner_phone: normalizePhone(payload.owner_whatsapp),
           owner_whatsapp: normalizePhone(payload.owner_whatsapp),
+          phone: normalizePhone(payload.owner_whatsapp),
           status: 'trial',
           plan: 'trial',
           daily_message_limit: 500,
@@ -73,6 +82,7 @@ export async function POST(request: Request) {
           owner_name: payload.owner_name ?? null,
           owner_phone: normalizePhone(payload.owner_whatsapp),
           owner_whatsapp: normalizePhone(payload.owner_whatsapp),
+          phone: normalizePhone(payload.owner_whatsapp),
           status: 'trial',
           plan: 'trial',
           daily_message_limit: 500,
@@ -163,6 +173,34 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: playbook.error?.message ?? 'Playbook setup failed.' }, { status: 500 });
   }
 
+  if (payload.knowledge_items.length) {
+    const reviewedAt = new Date().toISOString();
+    const knowledgeRows = payload.knowledge_items.map((item, index) => ({
+      business_id: business.id,
+      playbook_id: playbook.data.id,
+      type: item.kind,
+      title: item.title,
+      question: item.question || null,
+      content: item.content,
+      keywords: normalizeKnowledgeKeywords(item.keywords),
+      locale: item.locale,
+      status: item.status,
+      okf_slug: item.okf_slug || `${slugifyKnowledgeTitle(item.title)}-${index + 1}`,
+      source_type: item.source_type,
+      source_url: item.source_url || null,
+      media_url: item.media_url || null,
+      metadata: { ...item.metadata, onboarding_source: 'assistant_setup_wizard' },
+      is_active: item.status === 'published',
+      published_at: item.status === 'published' ? reviewedAt : null,
+      last_reviewed_at: reviewedAt,
+    }));
+    const { error: knowledgeError } = await (supabase.from('assistant_knowledge_items') as any)
+      .upsert(knowledgeRows, { onConflict: 'business_id,okf_slug' });
+    if (knowledgeError) {
+      return NextResponse.json({ ok: false, error: `Knowledge setup failed: ${knowledgeError.message}` }, { status: 500 });
+    }
+  }
+
   if (builderId) {
     await (supabase.from('agent_runs') as any).insert({
       builder_id: builderId,
@@ -172,6 +210,7 @@ export async function POST(request: Request) {
         business_name: payload.name,
         category: payload.category,
         keyword_rule_count: payload.keyword_replies.length,
+        knowledge_item_count: payload.knowledge_items.length,
         whatsapp_connected: Boolean(phoneNumberId),
       },
       output: { business_id: business.id, playbook_id: playbook.data?.id ?? null },

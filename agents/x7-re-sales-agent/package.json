@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "node --env-file=.env index.js",
     "start": "node --env-file=.env index.js",
-    "test": "node --test keyword-engine.test.js playbook-store.test.js"
+    "test": "node --test keyword-engine.test.js knowledge-engine.test.js playbook-store.test.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",

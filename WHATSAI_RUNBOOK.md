@@ -25,6 +25,7 @@ Required for local proof:
 - `SALES_AGENT_URL=http://localhost:8080`
 - `TOOL_GATEWAY_URL=http://localhost:8081`
 - `DYNAMIC_KEYWORD_ENGINE_ENABLED=true`
+- `KNOWLEDGE_BASE_ENABLED=true`
 
 Also keep the same WhatsApp and Supabase values in:
 
