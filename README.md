@@ -46,7 +46,7 @@ The repo already contains a meaningful base that should be reused:
 Canonical local repo path:
 
 ```text
-/Users/rohit/Projects/whatsai-assistant
+/Users/rohit/Projects/saas-products/whatsai-assistant
 ```
 
 Do not use the deprecated spaced Claude project copy for new WhatsAI work. It is kept only as a temporary safety backup.
@@ -91,7 +91,7 @@ Long reference docs remain useful, but should be read as pre-pivot context:
 Always work from the canonical path:
 
 ```bash
-cd /Users/rohit/Projects/whatsai-assistant
+cd /Users/rohit/Projects/saas-products/whatsai-assistant
 ```
 
 Install dependencies inside the app or agent you are working on:

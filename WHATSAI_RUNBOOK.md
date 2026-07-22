@@ -3,7 +3,7 @@
 Canonical repo:
 
 ```bash
-cd /Users/rohit/Projects/whatsai-assistant
+cd /Users/rohit/Projects/saas-products/whatsai-assistant
 ```
 
 Do not use the deprecated spaced Claude project copy for new work.
