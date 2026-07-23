@@ -31,8 +31,8 @@ The repo already contains a meaningful base that should be reused:
 - site visit / booking style workflows
 - WhatsApp-oriented sales paths
 - follow-up queue concepts
-- Summoner-first agent orchestration
-- sales-agent, Summoner, and Tool Gateway runtime
+- Vercel-hosted WhatsApp webhook and deterministic sales runtime
+- direct Meta Cloud API sender with media and interactive message support
 - Supabase persistence
 - real-estate vertical implementation
 - deferred vertical modules for later expansion
@@ -51,13 +51,21 @@ Canonical local repo path:
 
 Do not use the deprecated spaced Claude project copy for new WhatsAI work. It is kept only as a temporary safety backup.
 
-## Backend Agents
+## Production Runtime
 
-Launch-critical agents live in `agents/`:
+The launch-critical WhatsAI path runs inside the root Next.js deployment:
 
-- `x7-re-summoner` - routing, WhatsApp ingress, queue/cron orchestration
-- `x7-re-tool-gateway` - WhatsApp send, UPI/payment links, PDFs, media helpers
-- `x7-re-sales-agent` - first assistant logic layer and real-estate qualification
+- `/api/webhooks/whatsapp` - Meta verification, signature validation, canonical ingest
+- `src/lib/sales-agent-engine.ts` - deterministic keyword and knowledge response engine
+- `src/lib/whatsapp-cloud-api.ts` - direct text, media, template, and interactive sends
+- `/api/cron/followup-scheduler` - secured follow-up execution
+
+Supabase Cron invokes the scheduler every five minutes. This is required because
+Vercel Hobby does not support five-minute cron schedules. No PM2, Mac, Cloud Run,
+VPS, or always-on process is required for the production WhatsApp path.
+
+The older Express services remain in `agents/` as migration reference and a
+local fallback. They are not production launch blockers.
 
 Deferred agents are not launch blockers for WhatsAI MVP:
 
@@ -108,26 +116,15 @@ npm run dev
 
 Default URL: `http://localhost:3000`.
 
-Run the agent mesh:
-
-```bash
-pm2 start ecosystem.config.cjs --update-env
-pm2 list
-```
-
-Stop the local mesh:
-
-```bash
-pm2 stop whatsai-sales-agent whatsai-tool-gateway whatsai-summoner
-```
-
 Run the complete WhatsAI readiness proof:
 
 ```bash
 npm run prove:whatsai
 ```
 
-This checks required env, PM2 health on ports `8080`, `8081`, `8082`, WhatsApp webhook verification, and Supabase `conversation_threads`.
+This checks required env, the Vercel serverless health surface, WhatsApp webhook
+verification, cron authentication, and canonical Supabase tables. Set
+`WHATSAI_APP_URL` to prove a deployed URL instead of localhost.
 
 Run the deterministic reply release gate:
 
@@ -146,8 +143,9 @@ Supabase `assistant_playbooks` is the only source of truth for live keyword repl
 Launch blockers for the current WhatsAI MVP are only:
 
 - Supabase env and canonical conversation tables are not reachable.
-- The three active PM2 agents are not online: sales-agent, tool-gateway, summoner.
 - WhatsApp Cloud API token or verify token is missing/invalid.
+- Meta app secret is missing, so webhook signatures cannot be verified.
 - Public webhook verification cannot return `200`.
+- Supabase Cron and Vault are not configured for the secured follow-up route.
 
 Razorpay, content generation, colony management, finance workflows, OpenAI content, and advanced Meta Ads are deferred modules. They are not blockers for the WhatsAI lead-to-appointment MVP.

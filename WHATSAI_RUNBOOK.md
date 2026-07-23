@@ -1,4 +1,4 @@
-# WhatsAI Runbook
+# WhatsAI Serverless Runbook
 
 Canonical repo:
 
@@ -6,222 +6,161 @@ Canonical repo:
 cd /Users/rohit/Projects/saas-products/whatsai-assistant
 ```
 
-Do not use the deprecated spaced Claude project copy for new work.
+## 1. Runtime Architecture
 
-## 1. Env Setup
+Production uses one Vercel Next.js deployment:
 
-Create or update `.env.local` using `.env.example`.
+- `/api/webhooks/whatsapp` receives Meta webhooks.
+- `src/lib/sales-agent-engine.ts` loads the tenant playbook and knowledge.
+- `src/lib/whatsapp-cloud-api.ts` sends directly through Meta Cloud API.
+- `/api/cron/followup-scheduler` processes due follow-ups.
+- Supabase Cron calls the secured scheduler route every five minutes.
 
-Required for local proof:
+PM2, Cloud Run, ngrok, and the Mac are not required for production.
+
+## 2. Environment
+
+Copy `.env.example` to `.env.local` for local development. Add the same secret
+values to the Vercel Production environment.
+
+Required:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
-- `AGENT_SECRET`
 - `WHATSAPP_PHONE_NUMBER_ID`
 - `WHATSAPP_ACCESS_TOKEN`
 - `WHATSAPP_VERIFY_TOKEN`
-- `SUMMONER_URL=http://localhost:8082`
-- `SALES_AGENT_URL=http://localhost:8080`
-- `TOOL_GATEWAY_URL=http://localhost:8081`
+- `META_APP_SECRET`
+- `CRON_SECRET`
 - `DYNAMIC_KEYWORD_ENGINE_ENABLED=true`
 - `KNOWLEDGE_BASE_ENABLED=true`
 
-Also keep the same WhatsApp and Supabase values in:
+Use a permanent Meta system-user token for `WHATSAPP_ACCESS_TOKEN`. Never commit
+tokens, app secrets, service-role keys, or `CRON_SECRET`.
 
-- `agents/x7-re-summoner/.env`
-- `agents/x7-re-tool-gateway/.env`
-- `agents/x7-re-sales-agent/.env`
+## 3. Database
 
-## 2. Start Dashboard
+Apply migrations through:
+
+```text
+supabase/migrations/019_vercel_serverless_runtime.sql
+```
+
+Migration 019 adds:
+
+- atomic tenant/channel/contact/thread/message webhook ingest
+- duplicate webhook protection
+- `pg_cron` and `pg_net`
+- a five-minute scheduler trigger
+
+After production deployment, store the endpoint and `CRON_SECRET` in Supabase
+Vault using the same values configured in Vercel:
+
+```sql
+select vault.create_secret(
+  'https://x7-whatsai-dashboard.vercel.app/api/cron/followup-scheduler',
+  'whatsai_followup_cron_url'
+);
+
+select vault.create_secret(
+  'REPLACE_WITH_THE_VERCEL_CRON_SECRET',
+  'whatsai_followup_cron_secret'
+);
+```
+
+If those names already exist, update the existing Vault secrets instead of
+creating duplicates.
+
+## 4. Local Development
 
 ```bash
 npm install
 npm run dev
 ```
 
-Dashboard URL:
+Dashboard:
 
 ```text
 http://localhost:3000
 ```
 
-Important pages:
+Webhook:
 
-- `http://localhost:3000/conversations`
-- `http://localhost:3000/assistant-setup`
-- `http://localhost:3000/leads`
-
-## 3. Start Agents
-
-Only three agents are required for the WhatsAI MVP:
-
-```bash
-pm2 start ecosystem.config.cjs --update-env
-pm2 list
+```text
+http://localhost:3000/api/webhooks/whatsapp
 ```
 
-Expected PM2 apps:
+## 5. Verification
 
-- `whatsai-sales-agent` on `8080`
-- `whatsai-tool-gateway` on `8081`
-- `whatsai-summoner` on `8082`
-
-Health checks:
+Type and build gates:
 
 ```bash
-curl -i http://localhost:8080/health
-curl -i http://localhost:8081/health
-curl -i http://localhost:8082/health
+npm run type-check
+npm run test:keyword-engine
+npm run build
 ```
 
-Logs:
-
-```bash
-pm2 logs whatsai-summoner whatsai-sales-agent whatsai-tool-gateway --lines 100
-```
-
-## 4. Prove Local Runtime
-
-Run:
+With the dashboard running:
 
 ```bash
 npm run prove:whatsai
 ```
 
-This checks:
-
-- required env exists
-- PM2 agents are online
-- `GET /health` returns `200` for ports `8080`, `8081`, `8082`
-- Summoner WhatsApp webhook verify returns `200`
-- Supabase is reachable and `conversation_threads` exists
-
-If any check fails, follow the printed fix instruction.
-
-Then prove the deterministic tenant-safe reply engine:
+To prove production:
 
 ```bash
-npm run prove:keyword-engine
+WHATSAI_APP_URL=https://x7-whatsai-dashboard.vercel.app npm run prove:whatsai
 ```
 
-Expected result: all matcher unit tests and all multi-tenant proof checks pass.
+The proof checks env, serverless health, webhook verification, cron
+authentication, and canonical Supabase tables.
 
-## 5. Test Webhook Verify
+## 6. Meta Webhook
 
-Manual verify command:
-
-```bash
-curl -i "http://localhost:8082/webhooks/whatsapp?hub.mode=subscribe&hub.verify_token=$WHATSAPP_VERIFY_TOKEN&hub.challenge=local-proof"
-```
-
-Expected:
-
-- HTTP `200`
-- response body `local-proof`
-
-## 6. Public Meta Webhook
-
-Expose Summoner:
-
-```bash
-ngrok http 8082
-```
-
-Meta callback URL:
+Set this callback in Meta Developer Console:
 
 ```text
-https://YOUR-NGROK-DOMAIN/webhooks/whatsapp
+https://x7-whatsai-dashboard.vercel.app/api/webhooks/whatsapp
 ```
 
-Meta verify token:
+Use the exact `WHATSAPP_VERIFY_TOKEN` stored in Vercel.
 
-```text
-WHATSAPP_VERIFY_TOKEN
-```
+Subscribe to the `messages` webhook field. The POST route rejects unsigned
+requests and returns `500` if canonical persistence fails, allowing Meta retries.
 
-After Meta verifies, send one WhatsApp message from the test phone and confirm:
+## 7. Data Proof
 
-- `conversation_contacts` row exists or updates
-- `conversation_threads` row exists
-- `conversation_messages` inbound row exists
-- `/conversations` shows the thread
-- the outbound `conversation_messages.metadata` contains `playbook_id`, `playbook_version`, and `rule_id`
+Send a WhatsApp message and verify:
 
-## 7. Access Dashboard
+1. `whatsapp_messages` contains the inbound audit row.
+2. `conversation_contacts` contains the tenant-scoped contact.
+3. `conversation_threads` contains the channel/contact thread.
+4. `conversation_messages` contains inbound and outbound rows.
+5. unmatched messages create `handoff_events`.
+6. first automated replies can create `followup_jobs`.
 
-Open:
+The dashboard `/chats` route should display the same canonical thread.
 
-```text
-http://localhost:3000/conversations
-```
+## 8. Operational Controls
 
-Expected operator flow:
+Pause automation by changing a thread to manual/human takeover in the dashboard.
+The embedded sales engine checks this before sending.
 
-- left pane shows threads
-- center pane shows messages
-- right panel shows lead qualification, appointment state, and handoff state
-- `Pause AI / Takeover` can put a thread into human control
-
-## 8. Deferred Modules
-
-These are not blockers for the WhatsAI MVP:
-
-- Razorpay/payment automation
-- content generation
-- colony/resident management
-- finance/receipt workflows
-- advanced Meta Ads automation
-- OpenAI-generated marketing content
-
-Build them after the lead-to-appointment WhatsApp flow is stable.
-
-## 9. Keyword Playbook Operations
-
-1. Open `/assistant-setup`.
-2. Select the business category and edit its starter keyword rules.
-3. Test sample customer messages in the Live Tester.
-4. Complete setup to upsert one active tenant playbook in Supabase.
-5. Send a real WhatsApp message and verify the exact approved reply in Chats.
-
-Unmatched messages use the tenant's `fallback_reply` and create a pending handoff. Manual or paused threads suppress automated replies.
-
-Controlled rollback:
+Controlled global rollback:
 
 ```env
 DYNAMIC_KEYWORD_ENGINE_ENABLED=false
 ```
 
-After changing the flag, restart `whatsai-sales-agent` with `pm2 restart whatsai-sales-agent --update-env` and move affected threads to human takeover. Do not restore hardcoded vertical replies.
+Redeploy Vercel after changing the flag.
 
-## 10. Cost-Guarded Cloud Run Deployment
+## 9. Cost Guard
 
-The production deployment uses the low-cost Cloud Run profile:
+This architecture has no always-on compute. Vercel functions execute only for
+requests, and Supabase triggers the scheduler. Stay within each provider's free
+tier and monitor usage; ₹0 is a target, not a contractual guarantee from Meta,
+Vercel, or Supabase.
 
-- request-based CPU billing
-- `min-instances=0` so every service scales to zero while idle
-- `max-instances=1` by default to limit burst cost
-- `1 vCPU`, `512 MiB`, and concurrency `80`
-- ₹300 monthly budget alerts at 50%, 80%, and 100%
-
-An OPEN Indian Cloud Billing account is required. Export its ID before deployment:
-
-```bash
-export GCP_BILLING_ACCOUNT_ID=YOUR_OPEN_BILLING_ACCOUNT_ID
-npm run deploy:cloud-run
-```
-
-Optional overrides must preserve the guarded limits:
-
-```bash
-export CLOUD_RUN_MIN_INSTANCES=0
-export CLOUD_RUN_MAX_INSTANCES=1
-export GCP_MONTHLY_BUDGET_AMOUNT=300INR
-```
-
-Do not set a warm minimum instance for the 10-business MVP. Scale-to-zero can add
-a cold-start delay to the first message after an idle period, but prevents
-always-on compute charges.
-
-The budget is an alert, not a hard cap. The deployment script also limits each
-service to one instance; review Billing reports after the first live week.
+Razorpay, content generation, colony, finance, OpenAI, and Cloud Run are not
+launch blockers for the WhatsAI lead-to-appointment runtime.

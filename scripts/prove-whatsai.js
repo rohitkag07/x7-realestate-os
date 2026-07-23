@@ -2,45 +2,56 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { execFileSync } = require('node:child_process');
 const { createClient } = require('@supabase/supabase-js');
 
 const root = path.resolve(__dirname, '..');
 const env = {
   ...loadEnvFile(path.join(root, '.env.local')),
-  ...loadEnvFile(path.join(root, 'apps/dashboard/.env.local')),
-  ...loadEnvFile(path.join(root, 'agents/x7-re-sales-agent/.env')),
-  ...loadEnvFile(path.join(root, 'agents/x7-re-tool-gateway/.env')),
-  ...loadEnvFile(path.join(root, 'agents/x7-re-summoner/.env')),
   ...process.env,
 };
-
+const appUrl = String(
+  env.WHATSAI_APP_URL
+  || env.NEXT_PUBLIC_APP_URL
+  || 'http://localhost:3000',
+).replace(/\/$/, '');
 const checks = [];
 
 main().catch((error) => {
-  fail('Unexpected proof runner failure', error.message || String(error));
-  printSummary();
-  process.exit(1);
+  record({
+    ok: false,
+    label: 'Unexpected proof runner failure',
+    detail: error.message || String(error),
+    fix: 'Fix the runtime error, then rerun npm run prove:whatsai.',
+  });
+  finish();
 });
 
 async function main() {
-  checkEnv('NEXT_PUBLIC_SUPABASE_URL', 'Add NEXT_PUBLIC_SUPABASE_URL to .env.local.');
-  checkEnv('WHATSAPP_ACCESS_TOKEN', 'Generate a Meta WhatsApp Cloud API token and add WHATSAPP_ACCESS_TOKEN to agents/x7-re-tool-gateway/.env and Vercel env.');
-  checkEnv('WHATSAPP_VERIFY_TOKEN', 'Set WHATSAPP_VERIFY_TOKEN in agents/x7-re-summoner/.env and Meta webhook settings.');
+  checkEnv('NEXT_PUBLIC_SUPABASE_URL', 'Add NEXT_PUBLIC_SUPABASE_URL to .env.local or Vercel.');
+  checkEnv(
+    'SUPABASE_SERVICE_ROLE_KEY',
+    'Add the Supabase service-role key to .env.local or Vercel; never expose it as NEXT_PUBLIC_.',
+    ['SUPABASE_SECRET_KEY'],
+  );
+  checkEnv(
+    'WHATSAPP_ACCESS_TOKEN',
+    'Add a permanent Meta system-user WhatsApp token to Vercel.',
+    ['WHATSAPP_TOKEN'],
+  );
+  checkEnv('WHATSAPP_PHONE_NUMBER_ID', 'Add the Meta WhatsApp Phone Number ID to Vercel.');
+  checkEnv('WHATSAPP_VERIFY_TOKEN', 'Set the same verify token in Vercel and Meta webhook settings.');
+  checkEnv('META_APP_SECRET', 'Add the Meta app secret so webhook signatures are validated.');
+  checkEnv('CRON_SECRET', 'Generate a long CRON_SECRET and configure the same value in Supabase Vault.');
 
-  await checkPm2Agent('whatsai-sales-agent', 8080);
-  await checkPm2Agent('whatsai-tool-gateway', 8081);
-  await checkPm2Agent('whatsai-summoner', 8082);
+  await checkServerlessHealth();
   await checkWebhookVerify();
+  await checkCronAuth();
   await checkSupabase();
-
-  printSummary();
-  process.exit(checks.some((check) => !check.ok) ? 1 : 0);
+  finish();
 }
 
 function loadEnvFile(filePath) {
   if (!fs.existsSync(filePath)) return {};
-
   const values = {};
   for (const rawLine of fs.readFileSync(filePath, 'utf8').split(/\r?\n/)) {
     const line = rawLine.trim();
@@ -49,7 +60,10 @@ function loadEnvFile(filePath) {
     if (equalsAt === -1) continue;
     const key = line.slice(0, equalsAt).trim();
     let value = line.slice(equalsAt + 1).trim();
-    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+    if (
+      (value.startsWith('"') && value.endsWith('"'))
+      || (value.startsWith("'") && value.endsWith("'"))
+    ) {
       value = value.slice(1, -1);
     }
     values[key] = value;
@@ -57,8 +71,8 @@ function loadEnvFile(filePath) {
   return values;
 }
 
-function checkEnv(name, fix) {
-  const present = Boolean(env[name]);
+function checkEnv(name, fix, aliases = []) {
+  const present = [name, ...aliases].some((key) => Boolean(env[key]));
   record({
     ok: present,
     label: `Env ${name}`,
@@ -67,32 +81,17 @@ function checkEnv(name, fix) {
   });
 }
 
-async function checkPm2Agent(name, port) {
-  const pm2Online = getPm2Status(name) === 'online';
+async function checkServerlessHealth() {
+  const result = await fetchJson(`${appUrl}/api/agent-mesh/health`);
+  const payload = result.json || {};
   record({
-    ok: pm2Online,
-    label: `PM2 ${name}`,
-    detail: pm2Online ? 'online' : 'not online',
-    fix: `Run: pm2 start ecosystem.config.cjs --only ${name}`,
+    ok: result.status === 200 && payload.mode === 'vercel-serverless' && payload.ok === true,
+    label: 'Vercel serverless runtime',
+    detail: result.status === 200
+      ? `HTTP 200, mode=${payload.mode || 'unknown'}, healthy=${Boolean(payload.ok)}`
+      : result.error || `HTTP ${result.status}`,
+    fix: `Start the dashboard or set WHATSAI_APP_URL to the live deployment, then check ${appUrl}/api/agent-mesh/health.`,
   });
-
-  const health = await fetchOk(`http://localhost:${port}/health`);
-  record({
-    ok: health.ok,
-    label: `${name} GET /health:${port}`,
-    detail: health.ok ? `HTTP ${health.status}` : health.error || `HTTP ${health.status}`,
-    fix: `Check logs: pm2 logs ${name} --lines 100`,
-  });
-}
-
-function getPm2Status(name) {
-  try {
-    const output = execFileSync('pm2', ['jlist'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
-    const processes = JSON.parse(output);
-    return processes.find((processInfo) => processInfo.name === name)?.pm2_env?.status || 'missing';
-  } catch {
-    return 'pm2-unavailable';
-  }
 }
 
 async function checkWebhookVerify() {
@@ -102,104 +101,106 @@ async function checkWebhookVerify() {
       ok: false,
       label: 'Webhook GET verify',
       detail: 'skipped because WHATSAPP_VERIFY_TOKEN is missing',
-      fix: 'Set WHATSAPP_VERIFY_TOKEN and restart whatsai-summoner.',
+      fix: 'Set WHATSAPP_VERIFY_TOKEN in .env.local or Vercel.',
     });
     return;
   }
-
   const challenge = `prove-whatsai-${Date.now()}`;
-  const url = new URL('http://localhost:8082/webhooks/whatsapp');
+  const url = new URL(`${appUrl}/api/webhooks/whatsapp`);
   url.searchParams.set('hub.mode', 'subscribe');
   url.searchParams.set('hub.verify_token', verifyToken);
   url.searchParams.set('hub.challenge', challenge);
-
-  const response = await fetchOk(url.toString(), { expectedBody: challenge });
+  const result = await fetchText(url.toString());
   record({
-    ok: response.ok,
+    ok: result.status === 200 && result.text.trim() === challenge,
     label: 'Webhook GET verify',
-    detail: response.ok ? 'HTTP 200 challenge matched' : response.error || `HTTP ${response.status}`,
-    fix: 'Restart Summoner and confirm Meta webhook verify token matches WHATSAPP_VERIFY_TOKEN.',
+    detail: result.status === 200 && result.text.trim() === challenge
+      ? 'HTTP 200 challenge matched'
+      : result.error || `HTTP ${result.status}`,
+    fix: 'Confirm the deployment has WHATSAPP_VERIFY_TOKEN and the Meta token matches it.',
+  });
+}
+
+async function checkCronAuth() {
+  const result = await fetchJson(`${appUrl}/api/cron/followup-scheduler`);
+  record({
+    ok: result.status === 401,
+    label: 'Follow-up cron authentication',
+    detail: result.status === 401
+      ? 'unauthenticated request correctly rejected'
+      : result.error || `expected HTTP 401, received ${result.status}`,
+    fix: 'Ensure CRON_SECRET exists and the cron route rejects requests without its Bearer token.',
   });
 }
 
 async function checkSupabase() {
   const url = env.NEXT_PUBLIC_SUPABASE_URL || env.SUPABASE_URL;
-  const key = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_SECRET_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY || env.SUPABASE_PUBLISHABLE_KEY;
-
+  const key = env.SUPABASE_SERVICE_ROLE_KEY
+    || env.SUPABASE_SECRET_KEY
+    || env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) {
     record({
       ok: false,
-      label: 'Supabase conversation_threads',
+      label: 'Supabase canonical tables',
       detail: 'missing Supabase URL or key',
-      fix: 'Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env.local.',
+      fix: 'Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.',
     });
     return;
   }
-
   try {
-    const supabase = createClient(url, key, {
-      auth: { persistSession: false },
-    });
-    const { error } = await supabase
-      .from('conversation_threads')
-      .select('id', { count: 'exact', head: true })
-      .limit(1);
-
+    const supabase = createClient(url, key, { auth: { persistSession: false } });
+    const [threads, channels] = await Promise.all([
+      supabase.from('conversation_threads').select('id', { head: true, count: 'exact' }),
+      supabase.from('business_channels').select('id', { head: true, count: 'exact' }),
+    ]);
+    const error = threads.error || channels.error;
     record({
       ok: !error,
-      label: 'Supabase conversation_threads',
-      detail: error ? error.message : 'reachable and table exists',
-      fix: 'Run Supabase migrations and confirm conversation_threads exists in the active project.',
+      label: 'Supabase canonical tables',
+      detail: error ? error.message : 'conversation_threads and business_channels are reachable',
+      fix: 'Apply all Supabase migrations through 019_vercel_serverless_runtime.sql.',
     });
   } catch (error) {
     record({
       ok: false,
-      label: 'Supabase conversation_threads',
+      label: 'Supabase canonical tables',
       detail: error.message || String(error),
-      fix: 'Check Supabase URL/key and network access.',
+      fix: 'Check the Supabase URL/key and network access.',
     });
   }
 }
 
-async function fetchOk(url, options = {}) {
+async function fetchJson(url) {
+  const result = await fetchText(url);
   try {
-    const response = await fetch(url);
-    const text = await response.text();
-    const bodyMatches = options.expectedBody ? text.trim() === options.expectedBody : true;
-    return {
-      ok: response.status === 200 && bodyMatches,
-      status: response.status,
-      error: response.status === 200 && !bodyMatches ? 'HTTP 200 but challenge body did not match' : null,
-    };
+    return { ...result, json: JSON.parse(result.text) };
+  } catch {
+    return { ...result, json: null };
+  }
+}
+
+async function fetchText(url) {
+  try {
+    const response = await fetch(url, { redirect: 'manual' });
+    return { status: response.status, text: await response.text(), error: null };
   } catch (error) {
-    return { ok: false, status: 0, error: error.message || String(error) };
+    return { status: 0, text: '', error: error.message || String(error) };
   }
 }
 
 function record(check) {
   checks.push(check);
-  const icon = check.ok ? '✅' : '❌';
-  console.log(`${icon} ${check.label} - ${check.detail}`);
+  console.log(`${check.ok ? '✅' : '❌'} ${check.label} - ${check.detail}`);
   if (!check.ok) console.log(`   Fix: ${check.fix}`);
 }
 
-function fail(label, detail) {
-  record({
-    ok: false,
-    label,
-    detail,
-    fix: 'Fix the runtime error shown above, then rerun npm run prove:whatsai.',
-  });
-}
-
-function printSummary() {
+function finish() {
   const passed = checks.filter((check) => check.ok).length;
   const failed = checks.length - passed;
   console.log('');
   console.log(`WhatsAI proof: ${passed}/${checks.length} passed, ${failed} failed.`);
-  if (failed) {
-    console.log('Result: not ready. Apply the failed fix instructions and rerun npm run prove:whatsai.');
-  } else {
-    console.log('Result: ready. Env, PM2, webhook verify, and Supabase canonical table are healthy.');
-  }
+  console.log(failed
+    ? 'Result: not ready. Apply the failed fix instructions and rerun.'
+    : 'Result: Vercel webhook, embedded sales engine, Meta sender, cron guard, and Supabase are ready.');
+  process.exit(failed ? 1 : 0);
 }
