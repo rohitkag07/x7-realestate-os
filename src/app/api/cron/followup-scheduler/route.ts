@@ -15,7 +15,7 @@ export async function POST(request: Request) {
 }
 
 async function runScheduler(request: Request) {
-  const secret = process.env.CRON_SECRET || '';
+  const secret = (process.env.CRON_SECRET || '').trim();
   if (!secret) {
     return NextResponse.json(
       { ok: false, error: 'Scheduler authentication is not configured.' },
