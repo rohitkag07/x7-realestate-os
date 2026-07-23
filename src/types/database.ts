@@ -77,6 +77,10 @@ export type KeywordReplyMediaType = 'image' | 'video' | 'document';
 export type KeywordReplyIntent = 'price' | 'location' | 'timing' | 'booking' | 'offers';
 export type ConversationStatus = 'open' | 'pending_human' | 'automated' | 'resolved' | 'archived';
 export type AiMode = 'assistant' | 'manual' | 'paused';
+export type WhatsAppTemplateCategory = 'MARKETING' | 'UTILITY';
+export type WhatsAppTemplateStatus = 'APPROVED' | 'PENDING' | 'REJECTED' | 'PAUSED' | 'DISABLED';
+export type BroadcastCampaignStatus = 'draft' | 'scheduled' | 'queued' | 'processing' | 'paused' | 'completed' | 'cancelled' | 'failed';
+export type BroadcastRecipientStatus = 'queued' | 'processing' | 'sent' | 'delivered' | 'read' | 'replied' | 'failed' | 'skipped';
 
 // ---------------------------------------------------------------------
 // Row types
@@ -580,6 +584,13 @@ export interface KeywordReplyRule {
   media_name?: string;
   media_mime_type?: 'image/jpeg' | 'image/png' | 'video/mp4' | 'application/pdf';
   media_size_bytes?: number;
+  interactive_buttons?: InteractiveReplyButton[];
+}
+
+export interface InteractiveReplyButton {
+  id: string;
+  title: string;
+  payload: string;
 }
 
 export interface AssistantPlaybook {
@@ -613,11 +624,79 @@ export interface AssistantKnowledgeItem {
   source_type: 'manual' | 'website' | 'document' | 'okf';
   source_url: string | null;
   media_url: string | null;
+  interactive_buttons: InteractiveReplyButton[];
   metadata: Record<string, unknown>;
   is_active: boolean;
   published_at: string | null;
   last_reviewed_at: string | null;
   version: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WhatsAppTemplate {
+  id: string;
+  business_id: string;
+  business_channel_id: string | null;
+  name: string;
+  language: string;
+  category: WhatsAppTemplateCategory;
+  status: WhatsAppTemplateStatus;
+  components: Array<Record<string, unknown>>;
+  meta_template_id: string | null;
+  quality_score: string | null;
+  rejection_reason: string | null;
+  last_synced_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BroadcastCampaign {
+  id: string;
+  business_id: string;
+  template_id: string;
+  name: string;
+  audience_type: 'all_contacts' | 'stage' | 'category' | 'selected_contacts';
+  audience_filter: Record<string, unknown>;
+  variable_mapping: Record<string, string>;
+  status: BroadcastCampaignStatus;
+  scheduled_at: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+  total_recipients: number;
+  sent_count: number;
+  delivered_count: number;
+  read_count: number;
+  replied_count: number;
+  failed_count: number;
+  created_by: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BroadcastRecipient {
+  id: string;
+  campaign_id: string;
+  business_id: string;
+  contact_id: string | null;
+  phone: string;
+  contact_name: string | null;
+  variables: Record<string, string>;
+  status: BroadcastRecipientStatus;
+  provider_message_id: string | null;
+  attempts: number;
+  next_attempt_at: string;
+  claimed_at: string | null;
+  worker_id: string | null;
+  sent_at: string | null;
+  delivered_at: string | null;
+  read_at: string | null;
+  replied_at: string | null;
+  failed_at: string | null;
+  error_code: string | null;
+  error_message: string | null;
+  metadata: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 }
@@ -820,6 +899,9 @@ export interface Database {
       assistant_playbooks:   { Row: AssistantPlaybook;  Insert: Partial<AssistantPlaybook>;  Update: Partial<AssistantPlaybook> };
       playbook_media_assets: { Row: PlaybookMediaAsset; Insert: Partial<PlaybookMediaAsset>; Update: Partial<PlaybookMediaAsset> };
       assistant_knowledge_items: { Row: AssistantKnowledgeItem; Insert: Partial<AssistantKnowledgeItem>; Update: Partial<AssistantKnowledgeItem> };
+      whatsapp_templates:    { Row: WhatsAppTemplate;   Insert: Partial<WhatsAppTemplate>;   Update: Partial<WhatsAppTemplate> };
+      broadcast_campaigns:   { Row: BroadcastCampaign;  Insert: Partial<BroadcastCampaign>;  Update: Partial<BroadcastCampaign> };
+      broadcast_recipients:  { Row: BroadcastRecipient; Insert: Partial<BroadcastRecipient>; Update: Partial<BroadcastRecipient> };
       conversation_contacts: { Row: ConversationContact; Insert: Partial<ConversationContact>; Update: Partial<ConversationContact> };
       conversation_threads:  { Row: ConversationThread; Insert: Partial<ConversationThread>; Update: Partial<ConversationThread> };
       conversation_messages: { Row: ConversationMessage; Insert: Partial<ConversationMessage>; Update: Partial<ConversationMessage> };

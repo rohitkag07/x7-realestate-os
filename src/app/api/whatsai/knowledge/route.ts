@@ -65,6 +65,7 @@ export async function POST(request: Request) {
         source_type: item.source_type,
         source_url: item.source_url || null,
         media_url: item.media_url || null,
+        interactive_buttons: item.interactive_buttons,
         metadata: item.metadata,
         is_active: item.status === 'published',
         published_at: item.status === 'published' ? new Date().toISOString() : null,

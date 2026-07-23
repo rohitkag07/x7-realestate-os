@@ -7,11 +7,12 @@ import {
   buildAssistantResponse, buildHandoffResponse, buildFallbackResponse,
   checkMandatoryHandoff, RESPONSE_TYPES,
 } from './assistant-contract.js';
-import { findKeywordReply } from './keyword-engine.js';
+import { findKeywordReply, findKeywordReplyFromPayload } from './keyword-engine.js';
 import { fetchActivePlaybook, PlaybookStoreError } from './playbook-store.js';
 import { findKnowledgeReply } from './knowledge-engine.js';
 import { fetchPublishedKnowledge } from './knowledge-store.js';
 import { enqueueFirstFollowup, startFollowupScheduler } from './followup-scheduler.js';
+import { createCampaignRunner } from './campaign-runner.js';
 
 const app = express();
 const port = Number(process.env.PORT || 8080);
@@ -48,6 +49,9 @@ const supabase = supabaseUrl && supabaseServiceRoleKey
     })
   : null;
 const whatsappReady = Boolean(whatsappPhoneNumberId && whatsappAccessToken);
+const campaignRunner = supabase
+  ? createCampaignRunner({ supabase, sendTemplate: sendWhatsAppTemplate, log })
+  : null;
 
 app.use(cors());
 app.use(express.json({
@@ -242,6 +246,11 @@ const dripSchema = z.object({
 
 const dispatchSchema = z.object({
   limit: z.number().int().positive().max(100).default(25).optional(),
+});
+
+const campaignRunSchema = z.object({
+  campaign_id: z.string().uuid(),
+  max_batches: z.number().int().positive().max(100).default(50).optional(),
 });
 
 const brochureSchema = z.object({
@@ -610,6 +619,41 @@ app.post('/dispatch-due', async (req, res) => {
   return res.json({ ok: true, dispatched: results.length, results });
 });
 
+app.post('/campaigns/run', async (req, res) => {
+  const parsed = campaignRunSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ ok: false, error: parsed.error.flatten() });
+  if (!campaignRunner) return res.status(503).json({ ok: false, error: 'Supabase is not configured.' });
+  try {
+    return res.json(await campaignRunner.runCampaign(parsed.data.campaign_id, { maxBatches: parsed.data.max_batches }));
+  } catch (error) {
+    log('error', 'broadcast_campaign_failed', { campaign_id: parsed.data.campaign_id, error: error instanceof Error ? error.message : 'unknown' });
+    return res.status(500).json({ ok: false, error: error instanceof Error ? error.message : 'campaign_failed' });
+  }
+});
+
+app.post('/campaigns/dispatch-due', async (req, res) => {
+  if (!campaignRunner || !supabase) return res.status(503).json({ ok: false, error: 'Supabase is not configured.' });
+  const limit = Math.min(Math.max(Number(req.body?.limit || 5), 1), 10);
+  const { data, error } = await supabase
+    .from('broadcast_campaigns')
+    .select('id')
+    .eq('status', 'scheduled')
+    .lte('scheduled_at', new Date().toISOString())
+    .order('scheduled_at')
+    .limit(limit);
+  if (error) return res.status(500).json({ ok: false, error: error.message });
+  const results = [];
+  for (const campaign of data ?? []) {
+    await supabase.from('broadcast_campaigns').update({ status: 'queued' }).eq('id', campaign.id);
+    try {
+      results.push(await campaignRunner.runCampaign(campaign.id));
+    } catch (campaignError) {
+      results.push({ ok: false, campaign_id: campaign.id, error: campaignError instanceof Error ? campaignError.message : 'campaign_failed' });
+    }
+  }
+  return res.json({ ok: true, dispatched: results.length, results });
+});
+
 app.post('/brochure/send', async (req, res) => {
   const parsed = brochureSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -659,6 +703,7 @@ const playbookRespondSchema = z.object({
   contact_id: z.string().uuid().optional().nullable(),
   phone: z.string().min(8).optional().nullable(),
   message: z.string().min(1).max(4096),
+  button_payload: z.string().min(1).max(256).optional().nullable(),
   send_via_whatsapp: z.boolean().default(true).optional(),
 });
 
@@ -702,7 +747,10 @@ async function handlePlaybookRespond(req, res) {
   }
 
   const forcedHandoff = checkMandatoryHandoff(payload.message, playbook.vertical);
-  const match = forcedHandoff ? null : findKeywordReply(payload.message, playbook.keyword_replies);
+  const match = forcedHandoff
+    ? null
+    : findKeywordReplyFromPayload(payload.button_payload, playbook.keyword_replies)
+      || findKeywordReply(payload.message, playbook.keyword_replies);
   let knowledgeMatch = null;
   if (!forcedHandoff && !match && knowledgeBaseEnabled) {
     try {
@@ -741,6 +789,12 @@ async function handlePlaybookRespond(req, res) {
     knowledge_match_confidence: knowledgeMatch?.confidence ?? null,
     handoff_reason: reason,
   };
+  const buttons = match?.rule.interactive_buttons ?? knowledgeMatch?.item.interactive_buttons ?? [];
+  const media = match?.rule ? await resolveRuleMedia({
+    businessId: payload.business_id,
+    playbookId: playbook.id,
+    rule: match.rule,
+  }) : null;
 
   const firstAutomatedReply = Boolean(payload.thread_id && payload.contact_id && supabase)
     && !(await supabase
@@ -751,22 +805,26 @@ async function handlePlaybookRespond(req, res) {
       .limit(1)).data?.length;
 
   const outbound = payload.phone && payload.send_via_whatsapp !== false
-    ? await sendWhatsAppText({
-        to: payload.phone,
-        body: reply,
-        builderId: payload.business_id,
-        leadId: null,
-        projectId: null,
-        agent: 'dynamic-keyword-engine',
-      })
+    ? buttons.length
+      ? await sendWhatsAppInteractive({
+          to: payload.phone,
+          body: reply,
+          buttons,
+          media,
+          builderId: payload.business_id,
+          agent: 'dynamic-keyword-engine',
+        })
+      : await sendWhatsAppText({
+          to: payload.phone,
+          body: reply,
+          builderId: payload.business_id,
+          leadId: null,
+          projectId: null,
+          agent: 'dynamic-keyword-engine',
+        })
     : { ok: false, skipped: true, reason: 'send_disabled_or_phone_missing' };
 
-  const media = match?.rule ? await resolveRuleMedia({
-    businessId: payload.business_id,
-    playbookId: playbook.id,
-    rule: match.rule,
-  }) : null;
-  const mediaOutbound = media && payload.phone && payload.send_via_whatsapp !== false
+  const mediaOutbound = media && !buttons.length && payload.phone && payload.send_via_whatsapp !== false
     ? await sendWhatsAppMedia({
         to: payload.phone,
         media,
@@ -783,7 +841,8 @@ async function handlePlaybookRespond(req, res) {
     businessId: payload.business_id,
     threadId: payload.thread_id,
     content: reply,
-    metadata: { ...metadata, decision_latency_ms: Math.round(performance.now() - startedAt) },
+    messageType: buttons.length ? 'interactive' : 'text',
+    metadata: { ...metadata, interactive_buttons: buttons, decision_latency_ms: Math.round(performance.now() - startedAt) },
   });
 
   if (outbound.ok && firstAutomatedReply) {
@@ -858,6 +917,7 @@ async function handlePlaybookRespond(req, res) {
     },
     outbound,
     media_outbound: mediaOutbound,
+    interactive_buttons: buttons,
     decision_latency_ms: decisionLatencyMs,
   });
 }
@@ -1318,6 +1378,67 @@ async function sendWhatsAppText({ to, body, builderId, leadId, projectId, agent 
     });
 
     return { ok: false, error: error instanceof Error ? error.message : 'whatsapp_send_failed' };
+  }
+}
+
+async function sendWhatsAppTemplate({ to, businessId, name, language, bodyParameters }) {
+  try {
+    const response = await fetch(`${toolGatewayUrl}/whatsapp/send/template`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(agentSecret ? { 'x-agent-secret': agentSecret } : {}) },
+      body: JSON.stringify({
+        to: normalizeOutboundPhone(to),
+        business_id: businessId,
+        name,
+        language,
+        bodyParameters,
+      }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    return response.ok
+      ? { ok: true, message_id: payload?.wa_message_id ?? null }
+      : { ok: false, error: payload?.error || 'whatsapp_template_failed' };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'whatsapp_template_failed' };
+  }
+}
+
+async function sendWhatsAppInteractive({ to, body, buttons, media, builderId, agent }) {
+  try {
+    const response = await fetch(`${toolGatewayUrl}/whatsapp/send/buttons`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(agentSecret ? { 'x-agent-secret': agentSecret } : {}) },
+      body: JSON.stringify({
+        to: normalizeOutboundPhone(to),
+        body,
+        business_id: builderId,
+        buttons,
+        header_media: media ? {
+          type: media.media_type,
+          url: media.signed_url,
+          filename: media.file_name,
+        } : null,
+      }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    const messageId = payload?.wa_message_id ?? null;
+    await recordWhatsAppMessage({
+      builderId,
+      direction: 'outbound',
+      phone: normalizePhone(to),
+      waMessageId: messageId,
+      messageType: 'interactive',
+      body,
+      mediaUrl: media?.signed_url ?? null,
+      status: response.ok ? 'sent' : 'failed',
+      error: response.ok ? null : payload?.error || 'whatsapp_interactive_failed',
+      agent,
+    });
+    return response.ok
+      ? { ok: true, message_id: messageId }
+      : { ok: false, error: payload?.error || 'whatsapp_interactive_failed' };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : 'whatsapp_interactive_failed' };
   }
 }
 

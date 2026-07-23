@@ -59,6 +59,21 @@ export function findKeywordReply(message, rules) {
   return matchFuzzy(normalizedMessage, prepared);
 }
 
+export function findKeywordReplyFromPayload(payload, rules) {
+  const value = String(payload || '').trim();
+  if (!value) return null;
+  const prepared = prepareKeywordRules(rules);
+  if (value.startsWith('rule:')) {
+    const ruleId = value.slice('rule:'.length);
+    const rule = prepared.find((candidate) => candidate.id === ruleId);
+    return rule
+      ? publicMatch(rule, value, normalizeMessage(value), { match_mode: 'button_payload', confidence: 1 })
+      : null;
+  }
+  if (value.startsWith('keyword:')) return findKeywordReply(value.slice('keyword:'.length), rules);
+  return findKeywordReply(value, rules);
+}
+
 // Optimal string alignment Damerau-Levenshtein. It catches one transposition or
 // typo without letting unrelated short words become matches.
 export function damerauLevenshtein(left, right) {

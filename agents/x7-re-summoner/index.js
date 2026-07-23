@@ -267,9 +267,10 @@ function mapMetaStatus(status) {
   }
 }
 
-function mapInboundMessageType(type) {
+function mapInboundMessageType(type, message) {
   if (type === 'button') return 'button_reply';
-  if (type === 'interactive') return 'list_reply';
+  if (type === 'interactive' && message?.interactive?.button_reply) return 'button_reply';
+  if (type === 'interactive' && message?.interactive?.list_reply) return 'list_reply';
   return type || 'text';
 }
 
@@ -291,6 +292,47 @@ async function updateMessageStatus(status) {
     status: mapMetaStatus(status.status),
     error: status?.errors?.[0]?.title ?? null,
   }).eq('wa_message_id', status.id);
+
+  const mappedStatus = mapMetaStatus(status.status);
+  await sb.from('conversation_messages').update({ status: mappedStatus }).eq('provider_msg_id', status.id);
+
+  const timestamp = new Date().toISOString();
+  const recipientValues = { status: mappedStatus };
+  if (mappedStatus === 'delivered') recipientValues.delivered_at = timestamp;
+  if (mappedStatus === 'read') recipientValues.read_at = timestamp;
+  if (mappedStatus === 'failed') {
+    recipientValues.failed_at = timestamp;
+    recipientValues.error_message = status?.errors?.[0]?.title ?? 'Meta delivery failed';
+  }
+  const { data: recipient } = await sb
+    .from('broadcast_recipients')
+    .update(recipientValues)
+    .eq('provider_message_id', status.id)
+    .select('campaign_id')
+    .maybeSingle();
+  if (recipient?.campaign_id) {
+    await sb.rpc('refresh_broadcast_campaign_metrics', { p_campaign_id: recipient.campaign_id });
+  }
+}
+
+async function markBroadcastReply(sb, businessId, phone) {
+  if (!businessId || !phone) return;
+  const { data: recipient, error } = await sb
+    .from('broadcast_recipients')
+    .select('id, campaign_id')
+    .eq('business_id', businessId)
+    .eq('phone', phone)
+    .not('sent_at', 'is', null)
+    .is('replied_at', null)
+    .order('sent_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error || !recipient) return;
+  await sb.from('broadcast_recipients').update({
+    status: 'replied',
+    replied_at: new Date().toISOString(),
+  }).eq('id', recipient.id);
+  await sb.rpc('refresh_broadcast_campaign_metrics', { p_campaign_id: recipient.campaign_id });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1006,7 +1048,7 @@ async function handleInboundWhatsAppMessage(message, envelope) {
       direction: 'inbound',
       phone,
       waMessageId: message.id,
-      messageType: mapInboundMessageType(message.type),
+      messageType: mapInboundMessageType(message.type, message),
       body,
       status: 'received',
       interactivePayload: message.interactive ?? {},
@@ -1023,7 +1065,7 @@ async function handleInboundWhatsAppMessage(message, envelope) {
       builderId,
       leadId: lead?.id ?? null,
       content: body,
-      messageType: mapInboundMessageType(message.type),
+      messageType: mapInboundMessageType(message.type, message),
       providerMsgId: message.id,
       metadata: {
         interactive: message.interactive ?? undefined,
@@ -1041,6 +1083,7 @@ async function handleInboundWhatsAppMessage(message, envelope) {
         .eq('thread_id', thread.id)
         .eq('business_id', businessId)
         .eq('status', 'pending');
+      await markBroadcastReply(sb, businessId, phone);
     }
   }
   // ── End dual-write ───────────────────────────────────────────────────────
@@ -1062,6 +1105,10 @@ async function handleInboundWhatsAppMessage(message, envelope) {
 
   // Every configured business uses its tenant-scoped deterministic playbook.
   if (businessId && playbook?.id) {
+    const buttonPayload = message?.interactive?.button_reply?.id
+      ?? message?.interactive?.list_reply?.id
+      ?? message?.button?.payload
+      ?? null;
     const result = await agentFetch('sales', '/playbook/respond', {
       business_id: businessId,
       playbook_id: playbook.id,
@@ -1069,6 +1116,7 @@ async function handleInboundWhatsAppMessage(message, envelope) {
       contact_id: contact?.id ?? null,
       phone,
       message: body,
+      button_payload: buttonPayload,
       send_via_whatsapp: true,
     });
 
@@ -1181,6 +1229,12 @@ const CRON_JOBS = [
     target_agent: 'sales',
     endpoint: '/dispatch-due',
     buildPayload: ({ limit }) => ({ limit }),
+  },
+  {
+    key: 'sales.broadcast_due',
+    target_agent: 'sales',
+    endpoint: '/campaigns/dispatch-due',
+    buildPayload: ({ limit }) => ({ limit: Math.min(limit || 5, 10) }),
   },
   {
     key: 'content.render_pending',

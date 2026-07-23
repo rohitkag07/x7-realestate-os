@@ -88,6 +88,7 @@ function parseKnowledgeMarkdown(content: string): KnowledgeItemInput {
     source_type: 'okf',
     source_url: values.source_url || null,
     media_url: null,
+    interactive_buttons: [],
     metadata: { imported_from_okf: true },
   };
 }

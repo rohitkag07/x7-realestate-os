@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { createKnowledgeDraft, normalizeKnowledgeKeywords, slugifyKnowledgeTitle, type KnowledgeItemInput } from '@/lib/knowledge-schema';
+import { InteractiveButtonsEditor } from '@/components/whatsai/InteractiveButtonsEditor';
+import { WhatsAppMessagePreview } from '@/components/whatsai/WhatsAppMessagePreview';
 
 type Props = {
   items: KnowledgeItemInput[];
@@ -111,6 +113,14 @@ function KnowledgeCard({ item, index, compact, onChange, onDelete }: { item: Kno
       </div>
       <div className="mt-2 flex min-h-7 flex-wrap gap-2">{item.keywords.map((keyword) => <Badge key={keyword} variant="secondary" className="bg-[#e7fce3] text-[#075e54]"><button type="button" onClick={() => onChange({ keywords: item.keywords.filter((value) => value !== keyword) })}>{keyword} ×</button></Badge>)}</div>
       <div className="mt-4"><Field label="Exact approved answer"><Textarea rows={4} value={item.content} onChange={(event) => onChange({ content: event.target.value })} placeholder="Our consultation fee is Rs 500. We are open Monday to Saturday, 10 AM to 7 PM." /></Field></div>
+      <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_280px]">
+        <InteractiveButtonsEditor
+          buttons={item.interactive_buttons ?? []}
+          onChange={(interactive_buttons) => onChange({ interactive_buttons })}
+          defaultPayload={(buttonIndex) => `keyword:${item.keywords[buttonIndex] || item.keywords[0] || item.okf_slug || 'help'}`}
+        />
+        <WhatsAppMessagePreview body={item.content} buttons={item.interactive_buttons ?? []} />
+      </div>
       {!compact ? <div className="mt-4 grid gap-4 md:grid-cols-[160px_minmax(0,1fr)]"><Field label="Language"><Select value={item.locale} onValueChange={(value) => onChange({ locale: value as KnowledgeItemInput['locale'] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="hinglish">Hinglish</SelectItem><SelectItem value="en-IN">English</SelectItem><SelectItem value="hi-IN">Hindi</SelectItem></SelectContent></Select></Field><Field label="Source URL (optional)"><div className="relative"><Input className="pr-10" value={item.source_url ?? ''} onChange={(event) => onChange({ source_url: event.target.value || null, source_type: event.target.value ? 'website' : 'manual' })} placeholder="https://yourbusiness.com/pricing" />{item.source_url ? <a href={item.source_url} target="_blank" rel="noreferrer" className="absolute right-3 top-2.5 text-[#00a884]" aria-label="Open source"><ExternalLink className="h-4 w-4" /></a> : null}</div></Field></div> : null}
       {!ready ? <p className="mt-3 text-xs font-medium text-[#9a6700]">Add a title, at least one search keyword, and the approved answer before publishing.</p> : null}
     </div>

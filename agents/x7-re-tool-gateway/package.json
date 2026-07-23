@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "node --env-file=.env --watch index.js",
     "start": "node --env-file=.env index.js",
-    "test": "node --test whatsapp-media.test.js"
+    "test": "node --test whatsapp-media.test.js whatsapp-interactive.test.js"
   },
   "engines": {
     "node": ">=20"

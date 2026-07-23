@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { findKeywordReply, normalizeMessage, prepareKeywordRules } from './keyword-engine.js';
+import { findKeywordReply, findKeywordReplyFromPayload, normalizeMessage, prepareKeywordRules } from './keyword-engine.js';
 import { checkMandatoryHandoff } from './assistant-contract.js';
 
 const rules = [
@@ -47,6 +47,12 @@ test('matches Tier-2 Hinglish and typo variants conservatively', () => {
 test('does not match unrelated text', () => {
   assert.equal(findKeywordReply('mera parcel kab aayega', rules), null);
   assert.equal(findKeywordReply('hello bhai', rules), null);
+});
+
+test('button payload selects the exact rule without fuzzy matching', () => {
+  const match = findKeywordReplyFromPayload('rule:visit', rules);
+  assert.equal(match?.rule.id, 'visit');
+  assert.equal(match?.match_mode, 'button_payload');
 });
 
 test('clinic emergency safety remains ahead of playbook matching', () => {

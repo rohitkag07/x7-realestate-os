@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { interactiveReplyButtonsSchema } from '@/lib/whatsapp-interactive-schema';
 
 export const knowledgeKinds = ['faq', 'service', 'pricing', 'policy', 'location', 'offer', 'document', 'other'] as const;
 export const knowledgeLocales = ['en-IN', 'hi-IN', 'hinglish'] as const;
@@ -18,6 +19,7 @@ export const knowledgeItemInputSchema = z.object({
   source_type: z.enum(knowledgeSourceTypes).default('manual'),
   source_url: z.string().trim().url().max(1000).optional().nullable(),
   media_url: z.string().trim().url().max(1000).optional().nullable(),
+  interactive_buttons: interactiveReplyButtonsSchema.default([]),
   metadata: z.record(z.unknown()).default({}),
 });
 
@@ -50,6 +52,7 @@ export function createKnowledgeDraft(index = 1): KnowledgeItemInput {
     source_type: 'manual',
     source_url: null,
     media_url: null,
+    interactive_buttons: [],
     metadata: {},
   };
 }

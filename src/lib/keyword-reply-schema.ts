@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { KeywordReplyRule } from '@/types/database';
+import { interactiveReplyButtonsSchema } from '@/lib/whatsapp-interactive-schema';
 
 export const TEMPLATE_PLACEHOLDER_PATTERN = /\[[^\]\n]+\]/;
 
@@ -26,6 +27,7 @@ export const keywordReplyRuleSchema = z.object({
   media_name: z.string().trim().min(1).max(180).optional(),
   media_mime_type: z.enum(['image/jpeg', 'image/png', 'video/mp4', 'application/pdf']).optional(),
   media_size_bytes: z.number().int().positive().max(16 * 1024 * 1024).optional(),
+  interactive_buttons: interactiveReplyButtonsSchema.default([]),
 }).superRefine((rule, context) => {
   if (hasTemplatePlaceholder(rule.reply)) {
     context.addIssue({ code: z.ZodIssueCode.custom, path: ['reply'], message: 'Replace every [placeholder] with your real business information before saving.' });

@@ -21,10 +21,11 @@ import PDFDocument from 'pdfkit';
 import { Buffer } from 'node:buffer';
 import { createClient } from '@supabase/supabase-js';
 import { buildWhatsAppMediaPayload } from './whatsapp-media.js';
+import { buildButtonMessage, buildListMessage, buildTemplateMessage } from './whatsapp-interactive.js';
 
 const PORT         = Number(process.env.PORT) || 8081;
 const AGENT_SECRET = process.env.AGENT_SECRET || '';
-const WHATSAPP_GRAPH_VERSION = process.env.WHATSAPP_GRAPH_VERSION || 'v17.0';
+const WHATSAPP_GRAPH_VERSION = process.env.WHATSAPP_GRAPH_VERSION || 'v22.0';
 const META_BASE    = `https://graph.facebook.com/${WHATSAPP_GRAPH_VERSION}`;
 
 const app = express();
@@ -181,7 +182,9 @@ app.post('/whatsapp/send/media',    (req, res) => safe(res, () => {
   const trustedHost = safeUrlHost(process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '');
   return metaSend(buildWhatsAppMediaPayload(req.body, { trustedHost }), usageContext(req));
 }));
-app.post('/whatsapp/send/buttons',  (req, res) => safe(res, () => metaSend({ messaging_product: 'whatsapp', to: req.body.to, type: 'interactive', interactive: { type: 'button', body: { text: req.body.body }, action: { buttons: (req.body.buttons ?? []).map((b) => ({ type: 'reply', reply: { id: b.id, title: b.title } })) } } }, usageContext(req))));
+app.post('/whatsapp/send/buttons',  (req, res) => safe(res, () => metaSend(buildButtonMessage(req.body), usageContext(req))));
+app.post('/whatsapp/send/list',     (req, res) => safe(res, () => metaSend(buildListMessage(req.body), usageContext(req))));
+app.post('/whatsapp/send/template', (req, res) => safe(res, () => metaSend(buildTemplateMessage(req.body), usageContext(req))));
 
 function safeUrlHost(value) {
   try { return new URL(value).hostname; } catch { return ''; }
