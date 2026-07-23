@@ -193,3 +193,35 @@ DYNAMIC_KEYWORD_ENGINE_ENABLED=false
 ```
 
 After changing the flag, restart `whatsai-sales-agent` with `pm2 restart whatsai-sales-agent --update-env` and move affected threads to human takeover. Do not restore hardcoded vertical replies.
+
+## 10. Cost-Guarded Cloud Run Deployment
+
+The production deployment uses the low-cost Cloud Run profile:
+
+- request-based CPU billing
+- `min-instances=0` so every service scales to zero while idle
+- `max-instances=1` by default to limit burst cost
+- `1 vCPU`, `512 MiB`, and concurrency `80`
+- ₹300 monthly budget alerts at 50%, 80%, and 100%
+
+An OPEN Indian Cloud Billing account is required. Export its ID before deployment:
+
+```bash
+export GCP_BILLING_ACCOUNT_ID=YOUR_OPEN_BILLING_ACCOUNT_ID
+npm run deploy:cloud-run
+```
+
+Optional overrides must preserve the guarded limits:
+
+```bash
+export CLOUD_RUN_MIN_INSTANCES=0
+export CLOUD_RUN_MAX_INSTANCES=1
+export GCP_MONTHLY_BUDGET_AMOUNT=300INR
+```
+
+Do not set a warm minimum instance for the 10-business MVP. Scale-to-zero can add
+a cold-start delay to the first message after an idle period, but prevents
+always-on compute charges.
+
+The budget is an alert, not a hard cap. The deployment script also limits each
+service to one instance; review Billing reports after the first live week.

@@ -4,8 +4,10 @@ set -euo pipefail
 PROJECT_ID="${GCP_PROJECT_ID:-whatsai-assistant-prod}"
 BILLING_ACCOUNT_ID="${GCP_BILLING_ACCOUNT_ID:-016AC5-C35EAA-3B5B70}"
 REGION="${GCP_REGION:-asia-south1}"
-MIN_INSTANCES="${CLOUD_RUN_MIN_INSTANCES:-1}"
-MAX_INSTANCES="${CLOUD_RUN_MAX_INSTANCES:-10}"
+MIN_INSTANCES="${CLOUD_RUN_MIN_INSTANCES:-0}"
+MAX_INSTANCES="${CLOUD_RUN_MAX_INSTANCES:-1}"
+MONTHLY_BUDGET_AMOUNT="${GCP_MONTHLY_BUDGET_AMOUNT:-300INR}"
+BUDGET_DISPLAY_NAME="${GCP_BUDGET_DISPLAY_NAME:-WhatsAI monthly cost guardrail}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RUNTIME_SERVICE_ACCOUNT="whatsai-runtime"
 RUNTIME_SERVICE_ACCOUNT_EMAIL="${RUNTIME_SERVICE_ACCOUNT}@${PROJECT_ID}.iam.gserviceaccount.com"
@@ -73,6 +75,48 @@ sync_secret() {
   printf 'Updated Secret Manager value: %s\n' "$secret_name"
 }
 
+ensure_monthly_budget() {
+  local project_number
+  local existing_budget
+
+  project_number="$(gcloud projects describe "$PROJECT_ID" \
+    --project="$PROJECT_ID" \
+    --format='value(projectNumber)')"
+  existing_budget="$(gcloud billing budgets list \
+    --billing-account="$BILLING_ACCOUNT_ID" \
+    --filter="displayName=\"$BUDGET_DISPLAY_NAME\"" \
+    --format='value(name)' \
+    --limit=1 2>/dev/null || true)"
+
+  if [[ -n "$existing_budget" ]]; then
+    gcloud billing budgets update "$existing_budget" \
+      --budget-amount="$MONTHLY_BUDGET_AMOUNT" \
+      --calendar-period=month \
+      --filter-projects="projects/$project_number" \
+      --credit-types-treatment=exclude-all-credits \
+      --clear-threshold-rules \
+      --add-threshold-rule=percent=0.50 \
+      --add-threshold-rule=percent=0.80 \
+      --add-threshold-rule=percent=1.00 \
+      --quiet >/dev/null
+    printf 'Updated monthly cost alert budget: %s\n' "$MONTHLY_BUDGET_AMOUNT"
+    return
+  fi
+
+  gcloud billing budgets create \
+    --billing-account="$BILLING_ACCOUNT_ID" \
+    --display-name="$BUDGET_DISPLAY_NAME" \
+    --budget-amount="$MONTHLY_BUDGET_AMOUNT" \
+    --calendar-period=month \
+    --filter-projects="projects/$project_number" \
+    --credit-types-treatment=exclude-all-credits \
+    --threshold-rule=percent=0.50 \
+    --threshold-rule=percent=0.80 \
+    --threshold-rule=percent=1.00 \
+    --quiet >/dev/null
+  printf 'Created monthly cost alert budget: %s\n' "$MONTHLY_BUDGET_AMOUNT"
+}
+
 candidate_url() {
   local service="$1"
   gcloud run services describe "$service" \
@@ -134,8 +178,8 @@ deploy_candidate() {
     --timeout=60 \
     --min-instances="$MIN_INSTANCES" \
     --max-instances="$MAX_INSTANCES" \
-    --no-cpu-throttling \
-    --startup-cpu-boost \
+    --cpu-throttling \
+    --no-cpu-boost \
     --execution-environment=gen2 \
     --set-env-vars="$env_vars" \
     --set-secrets="$secrets" \
@@ -171,6 +215,16 @@ require_command gcloud
 require_command node
 require_command curl
 
+if [[ "$MIN_INSTANCES" != "0" ]]; then
+  printf 'Refusing always-on deployment: CLOUD_RUN_MIN_INSTANCES must remain 0 for the low-cost profile.\n' >&2
+  exit 1
+fi
+
+if ! [[ "$MAX_INSTANCES" =~ ^[1-3]$ ]]; then
+  printf 'CLOUD_RUN_MAX_INSTANCES must be between 1 and 3 for the cost-guarded profile.\n' >&2
+  exit 1
+fi
+
 if ! gcloud auth list --filter=status:ACTIVE --format='value(account)' | grep -q .; then
   printf 'No active gcloud account. Run: gcloud auth login\n' >&2
   exit 1
@@ -200,8 +254,11 @@ gcloud services enable \
   cloudbuild.googleapis.com \
   artifactregistry.googleapis.com \
   secretmanager.googleapis.com \
+  billingbudgets.googleapis.com \
   iam.googleapis.com \
   --project="$PROJECT_ID"
+
+ensure_monthly_budget
 
 if ! gcloud iam service-accounts describe "$RUNTIME_SERVICE_ACCOUNT_EMAIL" \
   --project="$PROJECT_ID" >/dev/null 2>&1; then
@@ -284,3 +341,6 @@ printf 'Tool Gateway: %s\n' "$TOOL_GATEWAY_URL"
 printf 'Sales Agent:  %s\n' "$SALES_AGENT_URL"
 printf 'Summoner:     %s\n' "$SUMMONER_URL"
 printf 'Meta callback: %s/webhooks/whatsapp\n' "$SUMMONER_URL"
+printf 'Cost profile: request-based, min=%s, max=%s, budget alerts=%s\n' \
+  "$MIN_INSTANCES" "$MAX_INSTANCES" "$MONTHLY_BUDGET_AMOUNT"
+printf 'Note: a Google Cloud budget sends alerts; it is not a hard spending cap.\n'
